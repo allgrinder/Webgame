@@ -38,8 +38,8 @@ export function chunkKey(cx: number, cy: number): number {
  */
 export class GameMap {
   private readonly chunks = new Map<number, Chunk>();
-  /** chunkKey -> (Index im Chunk -> aktuelle Menge) */
-  private readonly modified = new Map<number, Map<number, number>>();
+  /** chunkKey -> (Index im Chunk -> [Ressource, aktuelle Menge]) */
+  private readonly modified = new Map<number, Map<number, [number, number]>>();
   private readonly startPatches: Patch[];
 
   constructor(readonly seed: number) {
@@ -62,9 +62,9 @@ export class GameMap {
     if (!c) {
       c = this.generate(cx, cy);
       const mods = this.modified.get(k);
-      if (mods) for (const [i, amt] of mods) {
+      if (mods) for (const [i, [res, amt]] of mods) {
         c.amount[i] = amt;
-        if (amt === 0) c.resource[i] = 0;
+        c.resource[i] = amt === 0 ? 0 : res;
       }
       this.chunks.set(k, c);
     }
@@ -100,15 +100,31 @@ export class GameMap {
       c.resource[i] = 0;
       c.version++;
     } else if (densityLevel(def, amt) !== before) c.version++;
-    const k = chunkKey(cx, cy);
-    let mods = this.modified.get(k);
-    if (!mods) this.modified.set(k, (mods = new Map()));
-    mods.set(i, amt);
+    this.record(cx, cy, i, res, amt);
     return res;
   }
 
-  serializeModifications(): [number, number, number, number][] {
-    const out: [number, number, number, number][] = [];
+  /** Ressource direkt setzen (Szenen, Editor). amount 0 entfernt sie. */
+  setResource(x: number, y: number, res: number, amount: number): void {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    const c = this.getChunk(cx, cy);
+    const i = (y - cy * CS) * CS + (x - cx * CS);
+    c.resource[i] = amount > 0 ? res : 0;
+    c.amount[i] = amount > 0 ? amount : 0;
+    c.version++;
+    this.record(cx, cy, i, res, c.amount[i]);
+  }
+
+  private record(cx: number, cy: number, i: number, res: number, amt: number): void {
+    const k = chunkKey(cx, cy);
+    let mods = this.modified.get(k);
+    if (!mods) this.modified.set(k, (mods = new Map()));
+    mods.set(i, [res, amt]);
+  }
+
+  serializeModifications(): [number, number, number, number, number][] {
+    const out: [number, number, number, number, number][] = [];
     const keys = [...this.modified.keys()].sort((a, b) => a - b);
     for (const k of keys) {
       const mods = this.modified.get(k)!;
@@ -116,22 +132,20 @@ export class GameMap {
       for (const i of idx) {
         const cx = Math.floor(k / 65536) - 32768;
         const cy = (k % 65536) - 32768;
-        out.push([cx, cy, i, mods.get(i)!]);
+        const [res, amt] = mods.get(i)!;
+        out.push([cx, cy, i, amt, res]);
       }
     }
     return out;
   }
 
-  loadModifications(list: [number, number, number, number][]): void {
-    for (const [cx, cy, i, amt] of list) {
-      const k = chunkKey(cx, cy);
-      let mods = this.modified.get(k);
-      if (!mods) this.modified.set(k, (mods = new Map()));
-      mods.set(i, amt);
-      const c = this.chunks.get(k);
+  loadModifications(list: [number, number, number, number, number][]): void {
+    for (const [cx, cy, i, amt, res] of list) {
+      this.record(cx, cy, i, res, amt);
+      const c = this.chunks.get(chunkKey(cx, cy));
       if (c) {
         c.amount[i] = amt;
-        if (amt === 0) c.resource[i] = 0;
+        c.resource[i] = amt === 0 ? 0 : res;
         c.version++;
       }
     }

@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
-async function openScene(page: import('@playwright/test').Page, query: string) {
+async function openScene(page: Page, query: string) {
   const errors: string[] = [];
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
@@ -12,10 +12,29 @@ async function openScene(page: import('@playwright/test').Page, query: string) {
   return errors;
 }
 
+type W = { eisenwerk: { world: { tick: number; entities: Map<number, { kind: string; result?: { count(i: string): number } }> } } };
+
 test('Startszene lädt ohne Konsolenfehler', async ({ page }) => {
   const errors = await openScene(page, '');
   await page.screenshot({ path: 'test-results/start.png' });
-  const tick = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { tick: number } } }).eisenwerk.world.tick);
+  const tick = await page.evaluate(() => (window as unknown as W).eisenwerk.world.tick);
   expect(tick).toBeGreaterThan(10);
   expect(errors).toEqual([]);
+});
+
+test('Demo-Szene zeigt die laufende Produktionskette', async ({ page }) => {
+  const errors = await openScene(page, '?scene=demo&warp=2400');
+  await page.mouse.move(640, 760);
+  await page.keyboard.press('Alt');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'test-results/demo.png' });
+  const plates = await page.evaluate(() => {
+    let n = 0;
+    for (const e of (window as unknown as W).eisenwerk.world.entities.values()) if (e.kind === 'furnace') n += e.result!.count('iron-plate');
+    return n;
+  });
+  expect(errors).toEqual([]);
+  // Nach 40 s: Platten in den Öfen oder bereits auf dem Ausgabeband
+  const belt = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { belts: { itemCount: number } } } }).eisenwerk.world.belts.itemCount);
+  expect(plates + belt).toBeGreaterThan(5);
 });

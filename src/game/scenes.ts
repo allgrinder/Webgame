@@ -1,5 +1,6 @@
 import type { Dir } from '../sim/geom';
-import { itemIndex } from '../sim/machines';
+import { resourceById } from '../data/resources';
+import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import { Player } from '../sim/player';
 import { World } from '../sim/world';
 
@@ -70,9 +71,40 @@ export function stressScene(): Scene {
   return { world, creative: true, camera: { x: 0, y: 0, zoom: 0.25 }, title: `Last: ${world.belts.count} Felder, ${n} Items` };
 }
 
-/** Wird in M3 mit der fertigen Produktionskette gefüllt. */
+/**
+ * Demo: fertige Kette. Eisenerz- und Kohlebohrer speisen ein gemeinsames Band
+ * (Erz links, Kohle rechts), Greifarme beladen zwei Steinöfen mit Erz und Kohle,
+ * weitere Greifarme legen die Platten auf ein Ausgabeband.
+ */
 export function demoScene(seed: number): Scene {
-  const s = sandboxScene(seed);
-  s.title = 'Demo';
-  return s;
+  const world = buildDemoWorld(seed);
+  return { world, creative: true, camera: { x: 0.5, y: 1.5, zoom: 1 }, title: 'Demo: Produktionskette' };
+}
+
+export function buildDemoWorld(seed: number): World {
+  const world = new World(seed);
+  const iron = resourceById('iron-ore').index;
+  const coal = resourceById('coal').index;
+  // Vorhandene Ressourcen im Demobereich entfernen, dann eigene Felder anlegen
+  for (let y = -6; y <= 8; y++) for (let x = -10; x <= 12; x++) world.map.setResource(x, y, 0, 0);
+  for (let y = -3; y <= -1; y++) for (let x = -7; x <= -2; x++) world.map.setResource(x, y, iron, 4000);
+  for (let y = 1; y <= 3; y++) for (let x = -7; x <= -4; x++) world.map.setResource(x, y, coal, 4000);
+  const P = (name: string, x: number, y: number, d: Dir) => {
+    const e = world.place(name, x, y, d);
+    if (!e) throw new Error(`Demo: ${name} bei ${x},${y} nicht platzierbar`);
+    return e;
+  };
+  for (let x = -6; x <= 7; x++) P('transport-belt', x, 0, 1);
+  for (let x = 1; x <= 10; x++) P('transport-belt', x, 5, 1);
+  const fuel = (e: Entity, n: number) => insertInto(e, 'coal', n, 'player');
+  fuel(P('burner-mining-drill', -6, -2, 2), 20);
+  fuel(P('burner-mining-drill', -4, -2, 2), 20);
+  fuel(P('burner-mining-drill', -6, 1, 0), 20);
+  P('stone-furnace', 2, 2, 0);
+  P('stone-furnace', 5, 2, 0);
+  P('burner-inserter', 2, 1, 2);
+  P('burner-inserter', 5, 1, 2);
+  fuel(P('burner-inserter', 3, 4, 2), 2);
+  fuel(P('burner-inserter', 6, 4, 2), 2);
+  return world;
 }

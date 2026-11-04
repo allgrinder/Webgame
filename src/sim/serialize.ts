@@ -38,7 +38,8 @@ export interface SaveData {
   entities: EntityData[];
   /** Band-ID -> [Spur, Abstand zum Feldende, Item] */
   beltItems: [number, [number, number, string][]][];
-  map: [number, number, number, number][];
+  /** [Chunk-x, Chunk-y, Index, Menge, Ressource] */
+  map: [number, number, number, number, number][];
   player: PlayerData | null;
 }
 

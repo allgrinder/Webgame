@@ -2,10 +2,10 @@
  "version": 1,
  "tileSize": 128,
  "generator": "blender",
- "blender": "Blender 4.0.2",
+ "blender": "bpy 5.2.3 LTS",
  "models": {
   "belt": {
-   "hash": "f9d9982aa40142e0",
+   "hash": "feb0acead11168e4",
    "sprites": [
     "belt.s.0",
     "belt.s.1",
@@ -30,7 +30,7 @@
    ]
   },
   "decals": {
-   "hash": "c634ff09f2cd4b57",
+   "hash": "5b47fa8472fbf389",
    "sprites": [
     "decal.dirt.0",
     "decal.dirt.1",
@@ -63,7 +63,7 @@
    ]
   },
   "drill": {
-   "hash": "1943ee81d1b8a3e9",
+   "hash": "ceb0d2b473b047a7",
    "sprites": [
     "drill.0",
     "drill.0.shadow",
@@ -76,7 +76,7 @@
    ]
   },
   "flora": {
-   "hash": "920d928d6d35d287",
+   "hash": "2eda92bf29d3f058",
    "sprites": [
     "flora.shrub.0",
     "flora.shrub.0.shadow",
@@ -121,7 +121,7 @@
    ]
   },
   "furnace": {
-   "hash": "60422ce569d82aa8",
+   "hash": "561110594c24e283",
    "sprites": [
     "furnace.off",
     "furnace.on",
@@ -130,7 +130,7 @@
    ]
   },
   "ground": {
-   "hash": "3bda58f8409a832a",
+   "hash": "8b9de8cdbba7c738",
    "sprites": [
     "ground.0.0",
     "ground.1.0",
@@ -391,14 +391,14 @@
    ]
   },
   "icons": {
-   "hash": "d7d21efd88912bbc",
+   "hash": "981e98afed97cb20",
    "sprites": [
     "icon.nofuel",
     "icon.blocked"
    ]
   },
   "inserter": {
-   "hash": "8d392df12365dd25",
+   "hash": "4ca2aff2bbd0d26c",
    "sprites": [
     "inserter.base",
     "inserter.arm",
@@ -406,7 +406,7 @@
    ]
   },
   "items": {
-   "hash": "94adc536cc3809c5",
+   "hash": "6c01c617b5b61f5a",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
@@ -417,11 +417,12 @@
     "item.transport-belt",
     "item.burner-inserter",
     "item.burner-mining-drill",
-    "item.stone-furnace"
+    "item.stone-furnace",
+    "item.iron-chest"
    ]
   },
   "player": {
-   "hash": "debb598f24bb97a7",
+   "hash": "667bdb3c692c48fa",
    "sprites": [
     "player.0",
     "player.1",
@@ -430,7 +431,7 @@
    ]
   },
   "resources": {
-   "hash": "9d8611a530cda217",
+   "hash": "5db15ea56a896b98",
    "sprites": [
     "res.iron-ore.0.0",
     "res.iron-ore.0.1",
@@ -507,7 +508,7 @@
    ]
   },
   "water": {
-   "hash": "298a58754521fcab",
+   "hash": "d718242ca8cb58a3",
    "sprites": [
     "water.1.0",
     "water.1.1",
@@ -570,6 +571,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-0.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-1.json"
   },
   {
    "group": "flora",
@@ -1595,16 +1600,49 @@
   "inserter.arm": {
    "group": "entities",
    "frames": [
-    "inserter.arm#0"
+    "inserter.arm#0",
+    "inserter.arm#1",
+    "inserter.arm#2",
+    "inserter.arm#3",
+    "inserter.arm#4",
+    "inserter.arm#5",
+    "inserter.arm#6",
+    "inserter.arm#7",
+    "inserter.arm#8",
+    "inserter.arm#9",
+    "inserter.arm#10",
+    "inserter.arm#11",
+    "inserter.arm#12",
+    "inserter.arm#13",
+    "inserter.arm#14",
+    "inserter.arm#15",
+    "inserter.arm#16",
+    "inserter.arm#17",
+    "inserter.arm#18",
+    "inserter.arm#19",
+    "inserter.arm#20",
+    "inserter.arm#21",
+    "inserter.arm#22",
+    "inserter.arm#23",
+    "inserter.arm#24",
+    "inserter.arm#25",
+    "inserter.arm#26",
+    "inserter.arm#27",
+    "inserter.arm#28",
+    "inserter.arm#29",
+    "inserter.arm#30",
+    "inserter.arm#31"
    ],
-   "w": 24,
-   "h": 88,
+   "w": 176,
+   "h": 192,
    "anchor": [
     0.5,
-    0.9090909090909091
+    0.5833333333333334
    ],
    "meta": {
-    "reach": 1.05
+    "angles": 32,
+    "reach": 1.1,
+    "handLift": 0.2309
    }
   },
   "inserter.base": {
@@ -1617,10 +1655,7 @@
    "anchor": [
     0.5,
     0.6
-   ],
-   "meta": {
-    "pivotLift": 0.2309
-   }
+   ]
   },
   "inserter.shadow": {
    "group": "entities",
@@ -2270,6 +2305,18 @@
    "group": "items",
    "frames": [
     "item.coal#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.iron-chest": {
+   "group": "items",
+   "frames": [
+    "item.iron-chest#0"
    ],
    "w": 64,
    "h": 64,

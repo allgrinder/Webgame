@@ -55,8 +55,9 @@ export class Hud {
     this.hoverEl = el('div', 'hover-info', this.layer);
     this.msgEl = el('div', 'messages', this.layer);
     this.help = el('div', 'window help hidden', this.layer);
-    this.invWin = el('div', 'window inventory hidden', this.layer);
-    this.entWin = el('div', 'window entity hidden', this.layer);
+    const row = el('div', 'window-row', this.layer);
+    this.invWin = el('div', 'window inventory hidden', row);
+    this.entWin = el('div', 'window entity hidden', row);
     this.menu = el('div', 'window menu hidden', this.layer);
     this.cursorEl.style.transform = 'translate(-100px, -100px)';
     this.buildHelp();
@@ -88,7 +89,7 @@ export class Hud {
     this.frame++;
     const g = this.game;
     const w = g.world;
-    this.info.textContent = `Eisenwerk – ${this.title}`;
+    this.info.textContent = `Eisenwerk – ${this.title} · H: Hilfe`;
     if (this.showDebug) {
       const st = g.renderer.stats;
       this.debugBox.style.display = 'block';

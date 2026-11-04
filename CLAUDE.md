@@ -20,7 +20,13 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Szenen über `?scene=freeplay|demo|sandbox|stress`.
 
 ## Stand
-- M1 Bänder: fertig (Gerüst, Karte, Kamera, Bänder, Kurven, Seiteneinspeisung, Debug-Items, Lastszene, Platzhaltergrafik).
-- M2 Blender-Pipeline: offen.
-- M3 Produktionskette: Simulation vorhanden, Demo-Szene offen.
-- M4 Spielbare Runde: Grundgerüst (Spieler, Inventar, Handwerk, Speichern) vorhanden, offen.
+- M1 Bänder: fertig.
+- M2 Blender-Pipeline: fertig (9 Modelle, 154 Sprites; Boden als periodische 8×8-Fläche).
+- M3 Produktionskette: fertig (`?scene=demo`, Tests für Bohrer/Ofen/Greifarm/Kette/Speichern).
+- M4 Spielbare Runde: fertig (Freeplay-Start, Handabbau, Inventar, Handwerk mit Zwischenprodukten,
+  Gebäudefenster, Speichern/Laden in IndexedDB, Playwright-Ablauftest).
+- Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
+
+## Prüfen
+- `npm run build && npm test && npm run e2e`
+- Nach Grafikänderungen: `npm run assets && npm run assets:preview`, dann `assets/preview/*.png` ansehen.

@@ -19,7 +19,7 @@ Dann im Browser öffnen:
 | http://localhost:5173/?scene=sandbox | Sandkasten (Bauen ohne Verbrauch, Debug-Tasten) |
 | http://localhost:5173/?scene=stress | Lastszene: 5.000 Bandfelder, 10.000 Items |
 
-Weitere Parameter: `&seed=123` (Kartenseed), `&debug` (Debug-Anzeige und -Tasten).
+Weitere Parameter: `&seed=123` (Kartenseed), `&debug` (Debug-Anzeige und -Tasten), `&warp=600` (spult beim Start 600 Ticks vor).
 
 ## Steuerung
 
@@ -49,6 +49,19 @@ sudo apt-get install blender
 ```
 
 Die fertigen Assets in `public/assets/` sind eingecheckt; das Spiel läuft ohne Blender.
+
+## Erster Weg im freien Spiel
+
+1. Zur Kohle laufen, mit gehaltener rechter Maustaste einige Kohle abbauen.
+2. Bohrer (Taste 3) auf Eisenerz setzen, mit **R** ausrichten, Ofen (Taste 4) direkt an die Ausgabe (Pfeil in der Alt-Ansicht).
+3. Kohle wählen (Taste 6) und auf Bohrer und Ofen klicken (Strg+Klick: alles) – die Plattenproduktion läuft.
+4. Mit **E** aus Platten Zahnräder, Greifarme und Bänder herstellen und die Kette ausbauen.
+
+## Leistung
+
+`?scene=stress` zeigt bei Zoom 0,25 alle 5.000 Bandfelder und 10.000 Items gleichzeitig.
+Gemessen (headless Chromium): Simulation ≈ 0,03 ms/Tick, Aufbereitung der Grafik ≈ 1,3 ms/Frame;
+gezeichnet werden drei Partikel-Container (Boden, Bänder, Items) mit zusammen ≈ 22.000 Quads.
 
 ## Aufbau
 

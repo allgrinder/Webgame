@@ -129,8 +129,17 @@ export class Game {
   }
 
   private handleInput(): void {
-    for (const k of this.input.takePressed()) this.onKey(k);
     const inp = this.input;
+    let pressedThisFrame = false;
+    for (const ev of inp.takePressed()) {
+      if (ev.type === 'key') this.onKey(ev.key, ev.ctrl, ev.shift);
+      else if (ev.button === 0) {
+        const w = this.renderer.screenToWorld(ev.x, ev.y);
+        this.clickMods = { ctrl: ev.ctrl, shift: ev.shift };
+        this.onLeftPress(Math.floor(w.x), Math.floor(w.y), w);
+        pressedThisFrame = true;
+      }
+    }
     const m = this.mouseWorld();
     const tx = Math.floor(m.x);
     const ty = Math.floor(m.y);
@@ -139,9 +148,8 @@ export class Game {
       if (this.world.player) this.world.player.setMineTarget(null);
       return;
     }
-    // Linksklick
-    if (inp.leftPressed) this.onLeftPress(tx, ty);
-    else if (inp.left && this.dragLast) this.onDrag(tx, ty);
+    // Ziehen mit gedrückter linker Taste
+    if (!pressedThisFrame && inp.left && this.dragLast) this.onDrag(tx, ty);
     if (!inp.left) {
       this.dragLast = null;
       this.dragBelts = [];
@@ -160,16 +168,15 @@ export class Game {
     } else if (p && p.mineTarget) p.setMineTarget(null);
   }
 
-  private onKey(k: string): void {
+  private onKey(k: string, ctrl: boolean, shift: boolean): void {
     if (this.hud.typing) return;
-    const ctrl = this.input.ctrl;
     if (ctrl && k === 's') { void this.hud.saveGame(); return; }
     if (ctrl && k === 'l') { void this.hud.loadGame(); return; }
     switch (k) {
       case 'r': {
         const m = this.mouseWorld();
         const e = this.world.entityAt(m.x, m.y);
-        const rev = this.input.shift;
+        const rev = shift;
         if (!this.cursorItem && e && entityDef(e.name).rotatable) {
           this.world.rotate(e.id, rotCW(e.dir, rev ? 3 : 1));
         } else this.buildDir = rotCW(this.buildDir, rev ? 3 : 1);
@@ -231,15 +238,35 @@ export class Game {
     if (t) this.world.belts.insertAtPoint(t, m.x - tx, m.y - ty, itemIndex(item));
   }
 
+  /** Strg+Klick ohne Cursor-Item: Ausgabe/Inhalt eines Gebäudes ins Inventar holen. */
+  private takeAllFrom(e: Entity): void {
+    const p = this.world.player;
+    if (!p) return;
+    const invs = e.kind === 'furnace' ? [e.result] : [];
+    for (const inv of invs) {
+      for (let i = 0; i < inv.slots.length; i++) {
+        const st = inv.slots[i];
+        if (!st) continue;
+        const n = p.inventory.add(st.item, st.count);
+        st.count -= n;
+        if (st.count === 0) inv.slots[i] = null;
+      }
+    }
+  }
+
   /** Platzierungsposition des Geisterbilds für den Cursor. */
   ghost(): Ghost | null {
+    if (!this.input.overCanvas) return null;
+    return this.ghostAt(this.mouseWorld());
+  }
+
+  private ghostAt(m: { x: number; y: number }): Ghost | null {
     const item = this.cursorItem;
-    if (!item || !this.input.overCanvas) return null;
+    if (!item) return null;
     const place = ITEMS[item]?.placeResult;
     if (!place) return null;
     if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < 1) return null;
     const def = entityDef(place);
-    const m = this.mouseWorld();
     const x = Math.round(m.x - def.width / 2);
     const y = Math.round(m.y - def.height / 2);
     const chk = this.world.canPlace(place, x, y, this.buildDir);
@@ -258,26 +285,30 @@ export class Game {
     return e;
   }
 
-  private onLeftPress(tx: number, ty: number): void {
+  private clickMods = { ctrl: false, shift: false };
+
+  private onLeftPress(tx: number, ty: number, at: { x: number; y: number }): void {
     const p = this.world.player;
     const target = this.world.entityAt(tx, ty);
     const item = this.cursorItem;
     const placeable = item ? ITEMS[item]?.placeResult : undefined;
+    const ctrl = this.clickMods.ctrl;
     if (item && !placeable) {
-      // Item in Gebäude legen (Brennstoff, Erz)
+      // Item in Gebäude legen (Brennstoff, Erz); Strg: ganzer Vorrat
       if (target && p) {
         const have = p.inventory.count(item);
-        const amount = this.input.ctrl ? have : Math.min(have, 1);
+        const amount = ctrl ? have : Math.min(have, 1);
         const n = insertInto(target, item, amount, 'player');
         p.inventory.remove(item, n);
       }
       return;
     }
     if (!item) {
-      if (target && target.kind !== 'belt') this.hud.openEntity(target.id);
+      if (target && ctrl && p) this.takeAllFrom(target);
+      else if (target && target.kind !== 'belt') this.hud.openEntity(target.id);
       return;
     }
-    const g = this.ghost();
+    const g = this.ghostAt(at);
     if (!g) return;
     if (!g.ok && target && target.kind !== 'belt' && entityDef(g.name).kind !== 'belt') {
       this.hud.openEntity(target.id);

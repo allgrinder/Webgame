@@ -56,6 +56,16 @@ export class GameRenderer {
   private readonly ghostSprites = new SpritePool();
   /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
   private groundPeriod = 1;
+  private readonly groundTex: Texture[] = [];
+  private readonly beltTex: Texture[][] = [];
+  private readonly resCache = new Map<number, Texture>();
+
+  private resTex(res: number, id: string, variant: number, lvl: number): Texture {
+    const key = res * 64 + variant * 8 + lvl;
+    let t = this.resCache.get(key);
+    if (!t) this.resCache.set(key, (t = this.sprites.frame(`res.${id}.${variant}.${lvl}`)));
+    return t;
+  }
   private readonly tmp = { x: 0, y: 0 };
   stats = { ground: 0, belts: 0, items: 0, entities: 0 };
 
@@ -101,6 +111,9 @@ export class GameRenderer {
     this.shadows.container.alpha = 0.5;
     this.app.stage.addChild(this.root);
     while (s.has(`ground.${this.groundPeriod}.0`)) this.groundPeriod++;
+    const gp = this.groundPeriod;
+    for (let y = 0; y < gp; y++) for (let x = 0; x < gp; x++) this.groundTex[x + gp * y] = s.frame(`ground.${x}.${y}`);
+    for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) this.beltTex[sh * 4 + d] = s.frames(`belt.${SHAPE_KEY[sh]}.${d}`);
   }
 
   /** Bildschirm -> Weltkoordinaten (Felder). */
@@ -135,7 +148,6 @@ export class GameRenderer {
 
   private drawGround(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const g = this.ground;
-    const s = this.sprites;
     g.begin();
     const CS = MAPGEN.chunkSize;
     for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor(v.y1 / CS); cy++) {
@@ -151,13 +163,13 @@ export class GameRenderer {
             const px = tx * TILE + TILE / 2;
             const py = ty * TILE + TILE / 2;
             const gp = this.groundPeriod;
-            g.push(s.frame(`ground.${((tx % gp) + gp) % gp}.${((ty % gp) + gp) % gp}`), px, py);
+            g.push(this.groundTex[(((tx % gp) + gp) % gp) + gp * (((ty % gp) + gp) % gp)], px, py);
             const res = chunk.resource[i];
             if (res) {
               const def = RESOURCE_BY_INDEX[res]!;
               const lvl = densityLevel(def, chunk.amount[i]);
               const variant = (chunk.ground[i] >> 3) % 4;
-              g.push(s.frame(`res.${def.id}.${variant}.${lvl}`), px, py);
+              g.push(this.resTex(res, def.id, variant, lvl), px, py);
             }
           }
         }
@@ -177,8 +189,8 @@ export class GameRenderer {
     const frame = Math.floor(world.tick + alpha);
     for (const t of world.belts.allTiles()) {
       if (t.x < v.x0 || t.x > v.x1 || t.y < v.y0 || t.y > v.y1) continue;
-      const tex = this.sprites.frame(`belt.${SHAPE_KEY[t.shape]}.${t.dir}`, frame);
-      b.push(tex, t.x * TILE + TILE / 2, t.y * TILE + TILE / 2);
+      const frames = this.beltTex[t.shape * 4 + t.dir];
+      b.push(frames[frame % frames.length], t.x * TILE + TILE / 2, t.y * TILE + TILE / 2);
     }
     b.end();
     this.stats.belts = b.count;
@@ -369,6 +381,12 @@ export class GameRenderer {
     }
     if (ui.ghost) {
       const def = entityDef(ui.ghost.name);
+      if (def.kind === 'drill') {
+        const a = def.miningAreaSize;
+        const ox = ui.ghost.x + (def.width - a) / 2;
+        const oy = ui.ghost.y + (def.height - a) / 2;
+        g.rect(ox * TILE + 2, oy * TILE + 2, a * TILE - 4, a * TILE - 4).stroke({ width: 2 / z, color: 0x80c0ff, alpha: 0.8 });
+      }
       if (def.rotatable) this.arrow(g, ui.ghost.x + def.width / 2, ui.ghost.y + def.height / 2, ui.ghost.dir, ui.ghost.ok ? 0x9dff9a : 0xff8070);
     }
     if (!ui.alt) return;

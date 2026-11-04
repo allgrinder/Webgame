@@ -52,8 +52,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .grid.inv { grid-template-columns: repeat(10, 40px); }
 .grid.recipes { grid-template-columns: repeat(6, 40px); margin-bottom: 8px; }
 .sub-head { color: var(--dim); margin: 2px 0 6px; font-size: 12px; }
-.inventory { left: 50%; top: 50%; transform: translate(-50%, -50%); }
-.entity { left: 50%; top: 40px; transform: translateX(-50%); min-width: 260px; }
+.window-row { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); display: flex; gap: 10px;
+  align-items: flex-start; pointer-events: none; }
+.window-row > .window { position: relative; pointer-events: auto; }
+.entity { min-width: 280px; max-width: 320px; }
 .help { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 560px; }
 .help-body p { margin: 4px 0; }
 .dim { color: var(--dim); }

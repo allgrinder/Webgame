@@ -13,6 +13,10 @@ export interface DecorItem {
   /** Ganzzahliges Feld unter dem Anker. */
   tx: number;
   ty: number;
+  /** Drehung (rad) und Streckung für flache Flecken. */
+  rot: number;
+  sx: number;
+  sy: number;
 }
 
 /**
@@ -75,12 +79,18 @@ export class DecorField {
           const tx = Math.floor(x);
           const ty = Math.floor(y);
           if (this.nearResource(tx, ty, kind.clearOfResources)) continue;
-          out.push({ kind, variant: Math.floor(h(4) * nv), x, y, tx, ty });
+          const w = kind.warp === true;
+          out.push({
+            kind, variant: Math.floor(h(4) * nv), x, y, tx, ty,
+            rot: w ? h(5) * Math.PI * 2 : 0,
+            sx: w ? 0.8 + h(6) * 0.6 : 1,
+            sy: w ? 0.65 + h(7) * 0.45 : 1,
+          });
         }
       }
     });
     // Zeichenreihenfolge: große Flecken zuerst, dann kleine Decals; Flora wird ohnehin nach y sortiert
-    out.sort((a, b) => a.kind.cell === b.kind.cell ? a.y - b.y : b.kind.cell - a.kind.cell);
+    out.sort((a, b) => (a.kind === b.kind ? a.y - b.y : DECOR.indexOf(a.kind) - DECOR.indexOf(b.kind)));
     return out;
   }
 }

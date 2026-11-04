@@ -65,6 +65,7 @@ export class GameRenderer {
   private readonly groundTex: Texture[] = [];
   private readonly beltTex: Texture[][] = [];
   private readonly resCache = new Map<number, Texture>();
+  private resVariants = 4;
 
   private resTex(res: number, id: string, variant: number, lvl: number): Texture {
     const key = res * 64 + variant * 8 + lvl;
@@ -122,6 +123,7 @@ export class GameRenderer {
     while (s.has(`ground.${this.groundPeriod}.0`)) this.groundPeriod++;
     const gp = this.groundPeriod;
     for (let y = 0; y < gp; y++) for (let x = 0; x < gp; x++) this.groundTex[x + gp * y] = s.frame(`ground.${x}.${y}`);
+    while (s.has(`res.iron-ore.${this.resVariants}.0`)) this.resVariants++;
     for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) this.beltTex[sh * 4 + d] = s.frames(`belt.${SHAPE_KEY[sh]}.${d}`);
   }
 
@@ -179,8 +181,9 @@ export class GameRenderer {
             if (res) {
               const def = RESOURCE_BY_INDEX[res]!;
               const lvl = densityLevel(def, chunk.amount[i]);
-              const variant = (chunk.ground[i] >> 3) % 4;
-              rp.push(this.resTex(res, def.id, variant, lvl), px, py);
+              const variant = (chunk.ground[i] >> 3) % this.resVariants;
+              const h = chunk.ground[i];
+              rp.push(this.resTex(res, def.id, variant, lvl), px + ((h & 7) - 3.5) * 1.6, py + (((h >> 5) & 7) - 3.5) * 1.6);
             }
           }
         }
@@ -223,8 +226,13 @@ export class GameRenderer {
     for (const d of this.visibleDecor(world, v, 4)) {
       if (d.kind.layer !== 'decal') continue;
       if (!small && d.kind.cell < 6) continue;
-      const sp = p.get(this.sprites.frame(`${d.kind.sprite}.${d.variant}`));
+      if (!this.sprites.has(`${d.kind.sprite}.${d.variant}`)) continue;
+      const name = `${d.kind.sprite}.${d.variant}`;
+      const sp = p.get(this.sprites.frame(name));
       sp.position.set(d.x * TILE, d.y * TILE);
+      const k = this.sprites.info(name)?.meta?.scale ?? 1;
+      sp.scale.set(k * d.sx, k * d.sy);
+      sp.rotation = d.rot;
       n++;
     }
     p.end();

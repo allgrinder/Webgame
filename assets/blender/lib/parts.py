@@ -16,8 +16,8 @@ class Mats:
 
     def __init__(self):
         S = eisen.srgb
-        self.steel = eisen.material('steel', S('#5b5c58'), rough=0.5, metal=0.7, noise=0.25, wear=0.7, rust=0.3)
-        self.dark = eisen.material('dark', S('#33332f'), rough=0.6, metal=0.6, noise=0.2, wear=0.6, rust=0.2)
+        self.steel = eisen.material('steel', S('#4a4a45'), rough=0.5, metal=0.7, noise=0.25, wear=0.7, rust=0.3)
+        self.dark = eisen.material('dark', S('#2c2c29'), rough=0.6, metal=0.6, noise=0.2, wear=0.6, rust=0.2)
         self.ochre = eisen.material('ochre', S('#8c6a2e'), rough=0.55, metal=0.3, noise=0.25, wear=0.8, rust=0.25)
         self.rust = eisen.material('rust', S('#6b3c1f'), rough=0.85, noise=0.3)
         self.rubber = eisen.material('rubber', S('#222120'), rough=0.85)
@@ -25,7 +25,7 @@ class Mats:
         self.stone = eisen.material('stone', S('#8a7b66'), rough=0.95, noise=0.35, noise_scale=10, bump=0.4)
         self.stone_dark = eisen.material('stoned', S('#5e5446'), rough=0.95, noise=0.35, noise_scale=10, bump=0.4)
         self.soot = eisen.material('soot', S('#1b1917'), rough=0.9, noise=0.2)
-        self.plate = eisen.material('plate', S('#8d9196'), rough=0.35, metal=0.9, noise=0.12, wear=0.4)
+        self.plate = eisen.material('plate', S('#7c8085'), rough=0.35, metal=0.9, noise=0.12, wear=0.4)
         self.cloth = eisen.material('cloth', S('#6b5a3a'), rough=0.9, noise=0.2)
         self.suit = eisen.material('suit', S('#7c4f2a'), rough=0.8, noise=0.2)
         self.skin = eisen.material('skin', S('#b48a68'), rough=0.7)

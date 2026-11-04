@@ -21,11 +21,14 @@ export interface DecorKind {
   readonly clearOfSpawn: number;
   /** Hat eine eigene Schattenebene (<sprite>.<n>.shadow). */
   readonly shadow: boolean;
+  /** Flache Flecken zufällig drehen und strecken (nur ohne gerichtete Schatten sinnvoll). */
+  readonly warp?: boolean;
 }
 
 export const DECOR: readonly DecorKind[] = [
-  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 9, chance: 0.35, clearOfResources: 0, clearOfSpawn: 0, shadow: false },
-  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 13, chance: 0.25, clearOfResources: 0, clearOfSpawn: 0, shadow: false },
+  { id: 'tint', sprite: 'decal.tint', layer: 'decal', cell: 11, chance: 0.7, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
+  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 10, chance: 0.3, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
+  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 17, chance: 0.18, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
   { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false },
   { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false },
   { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false },

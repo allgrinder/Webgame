@@ -6,3 +6,4 @@ assets/.cache/
 *.blend1
 __pycache__/
 .venv-blender/
+assets/preview/contact-sheet.png

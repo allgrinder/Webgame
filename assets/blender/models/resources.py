@@ -16,7 +16,7 @@ from natur import disc, patch_material
 
 P = gw_lib.P
 lin = gw_ground.lin
-RESOURCES = ('iron-ore', 'coal', 'stone')
+RESOURCES = ('iron-ore', 'coal', 'stone', 'copper-ore')
 COUNTS = (5, 9, 14, 20)
 SIZE = 1.5
 
@@ -25,6 +25,8 @@ STYLE = {
     'iron-ore': (['#6b737a', '#7c858b', '#5d6369', '#7a5a46', '#8a6a52'], ('#3f3428', '#4b3d2e'), True, (0.06, 0.13)),
     'coal': (['#232324', '#2c2c2e', '#1a1a1b', '#333234'], ('#2c2620', '#35302a'), True, (0.06, 0.12)),
     'stone': (['#a39479', '#b3a58a', '#8f826b', '#9c8d74'], ('#5a4c3a', '#665643'), False, (0.06, 0.13)),
+    # Kupfererz: rotbraune Brocken mit grünlicher Patina (Malachit)
+    'copper-ore': (['#9c5a34', '#b06a3e', '#7f4a2c', '#5f7d64', '#8c5333'], ('#3f3226', '#4c3a2a'), True, (0.06, 0.13)),
 }
 
 

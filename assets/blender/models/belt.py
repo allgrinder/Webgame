@@ -145,10 +145,10 @@ def belt_material(frame):
     return m
 
 
-def frame_parts(shape, m):
+def frame_parts(shape, m, paint='#57482b'):
     """U-Profil links und rechts, Schrauben am Steg, Stützfüße."""
     objs = []
-    m.paint = bauten.weathered('w_beltpaint', '#57482b', metal=0.3, rough=0.6, rust=0.45, dust=0.08, edge=0.6, streaks=0.4, dust_hex='#6e624e')
+    m.paint = bauten.weathered('w_beltpaint', paint, metal=0.3, rough=0.6, rust=0.45, dust=0.08, edge=0.6, streaks=0.4, dust_hex='#6e624e')
     m.steel = bauten.weathered('w_beltsteel', '#3a3a36', metal=0.65, rough=0.55, rust=0.35, dust=0.2, edge=0.5)
     for side in (-1, 1):
         a, b = sorted((side * RAIL_IN, side * RAIL_OUT))
@@ -172,26 +172,34 @@ def frame_parts(shape, m):
     return objs
 
 
+# Bandstufen: Sprite-Präfix, Profilfarbe, Farbe der Umlenktrommel-Lagerböcke
+TIERS = (('belt', '#57482b', None), ('fast-belt', '#6a3324', '#7a3a28'))
+
+
 def render(out):
-    for shape in ('s', 'l', 'r'):
-        for d in range(4):
-            frames = []
-            for f in range(FRAMES):
+    for prefix, paint, cap_paint in TIERS:
+        for shape in ('s', 'l', 'r'):
+            for d in range(4):
+                frames = []
+                for f in range(FRAMES):
+                    eisen.reset(samples=48)
+                    m = bauten.Mats()
+                    objs = [strip('belt', shape, -WIDTH / 2, WIDTH / 2, BELT_Z - 0.012, BELT_Z, belt_material(f), walls=False)]
+                    objs += frame_parts(shape, m, paint)
+                    root = eisen.parent_all(objs)
+                    root.rotation_euler = (0, 0, -d * math.pi / 2)
+                    eisen.camera(1, 1)
+                    frames.append(out.render_frame(f'{prefix}.{shape}.{d}', f))
+                out.add(f'{prefix}.{shape}.{d}', 'belts', frames, (0.5, 0.5), fps=60)
+        # Umlenktrommeln an Bandende und -anfang (nur gerade Bänder)
+        for kind in ('end', 'start'):
+            for d in range(4):
                 eisen.reset(samples=48)
                 m = bauten.Mats()
-                objs = [strip('belt', shape, -WIDTH / 2, WIDTH / 2, BELT_Z - 0.012, BELT_Z, belt_material(f), walls=False)]
-                objs += frame_parts(shape, m)
-                root = eisen.parent_all(objs)
+                if cap_paint:
+                    m.paint = bauten.weathered('w_cappaint', cap_paint, metal=0.2, rough=0.6, rust=0.4, dust=0.6, edge=0.7, streaks=0.5)
+                root = bauten.belt_cap(m, end=kind == 'end')
                 root.rotation_euler = (0, 0, -d * math.pi / 2)
-                eisen.camera(1, 1)
-                frames.append(out.render_frame(f'belt.{shape}.{d}', f))
-            out.add(f'belt.{shape}.{d}', 'belts', frames, (0.5, 0.5), fps=60)
-    # Umlenktrommeln an Bandende und -anfang (nur gerade Bänder)
-    for kind in ('end', 'start'):
-        for d in range(4):
-            eisen.reset(samples=48)
-            root = bauten.belt_cap(bauten.Mats(), end=kind == 'end')
-            root.rotation_euler = (0, 0, -d * math.pi / 2)
-            eisen.camera(1.25, 1.25)
-            name = f'belt.cap.{kind}.{d}'
-            out.add(name, 'belts', [out.render_frame(name, 0)], (0.5, 0.5))
+                eisen.camera(1.25, 1.25)
+                name = f'{prefix}.cap.{kind}.{d}'
+                out.add(name, 'belts', [out.render_frame(name, 0)], (0.5, 0.5))

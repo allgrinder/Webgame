@@ -26,6 +26,8 @@ def reset(samples=SAMPLES, ground=True):
     unsichtbarer Boden für Streulicht. Dazu Eisenwerk-Einstellungen (kein Denoiser verfügbar, 8 Bit)."""
     import gw_lib
     import gw_plants
+    if os.environ.get('EISEN_PREVIEW'):
+        samples = 4  # nur zum schnellen Prüfen der Skripte
     s = gw_lib.reset_scene(samples, ground=ground, outlines=False)
     gw_plants.reset_cache()
     if bpy.app.version >= (4, 2, 0):

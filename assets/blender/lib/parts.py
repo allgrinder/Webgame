@@ -192,13 +192,19 @@ def furnace(m, fire=0.0, seed=3):
 
 # --------------------------------------------------------------------------- Greifarm
 
-def inserter_base(m):
+def inserter_base(m, burner=True):
     o = []
     o.append(eisen.cylinder('plate', 0.36, 0.08, (0, 0, 0.04), m.dark, segments=24, bevel=0.01))
     o.append(eisen.cylinder('ring', 0.3, 0.1, (0, 0, 0.12), m.ochre, segments=24, bevel=0.01))
     o.append(eisen.cylinder('pillar', 0.14, 0.18, (0, 0, 0.26), m.steel, segments=16))
-    o.append(eisen.box('fuelbox', (0.24, 0.12, 0.14), (0, -0.28, 0.12), m.dark, bevel=0.01))
-    o.append(eisen.box('fuelglow', (0.12, 0.02, 0.03), (0, -0.345, 0.12), eisen.emission_material('ember', (1.0, 0.35, 0.08), 2.0)))
+    if burner:
+        o.append(eisen.box('fuelbox', (0.24, 0.12, 0.14), (0, -0.28, 0.12), m.dark, bevel=0.01))
+        o.append(eisen.box('fuelglow', (0.12, 0.02, 0.03), (0, -0.345, 0.12), eisen.emission_material('ember', (1.0, 0.35, 0.08), 2.0)))
+    else:
+        # Elektromotor mit Kabelanschluss statt Brennkammer
+        o.append(eisen.cylinder('motor', 0.08, 0.2, (0, -0.27, 0.14), m.dark, segments=16, rot=(0, math.pi / 2, 0), bevel=0.01))
+        o.append(eisen.box('jbox', (0.1, 0.06, 0.06), (0.14, -0.27, 0.12), m.steel, bevel=0.005))
+        o.append(eisen.box('lamp', (0.04, 0.015, 0.02), (0, -0.335, 0.2), eisen.emission_material('elamp', (0.4, 1.0, 0.35), 2.0)))
     rivets(o, m.steel, [(0.28, 0.12), (-0.28, 0.12), (0.22, -0.2), (-0.22, -0.2)], 0.09, 0.02)
     return eisen.parent_all(o, 'inserterBase')
 
@@ -266,6 +272,9 @@ def ore_material(res):
     if res == 'iron-ore':
         return eisen.material('iron', S('#7a8ea3'), rough=0.5, metal=0.35, noise=0.3, noise_scale=22, rust=0.4,
                               rust_color=S('#8a4a26'), bump=0.5)
+    if res == 'copper-ore':
+        return eisen.material('copper', S('#a5633a'), rough=0.5, metal=0.4, noise=0.35, noise_scale=22, rust=0.45,
+                              rust_color=S('#4f7d62'), bump=0.5)
     if res == 'coal':
         return eisen.material('coal', S('#1d1d1f'), rough=0.35, metal=0.1, noise=0.5, noise_scale=30, bump=0.6)
     return eisen.material('stone', S('#9a8869'), rough=0.9, noise=0.3, noise_scale=16, bump=0.5)

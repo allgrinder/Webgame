@@ -65,6 +65,7 @@ export function writeAtlases(outDir, sprites, extra = {}) {
         h: s.frames[0].h,
         anchor: s.anchor,
         ...(s.fps ? { fps: s.fps } : {}),
+        ...(s.meta ? { meta: s.meta } : {}),
       };
     }
   }

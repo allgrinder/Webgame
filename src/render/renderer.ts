@@ -54,7 +54,8 @@ export class GameRenderer {
   private readonly icons = new SpritePool();
   private readonly overlay = new Graphics();
   private readonly ghostSprites = new SpritePool();
-  private groundVariants = 1;
+  /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
+  private groundPeriod = 1;
   private readonly tmp = { x: 0, y: 0 };
   stats = { ground: 0, belts: 0, items: 0, entities: 0 };
 
@@ -80,7 +81,7 @@ export class GameRenderer {
 
   private init(): void {
     const s = this.sprites;
-    this.ground = new ParticlePool(s.frame('ground.0'));
+    this.ground = new ParticlePool(s.frame('ground.0.0'));
     this.belts = new ParticlePool(s.frame('belt.s.0'));
     this.items = new ParticlePool(s.frame('item.iron-ore'));
     this.glow.container.blendMode = 'add';
@@ -97,9 +98,9 @@ export class GameRenderer {
       this.icons.container,
       this.overlay,
     );
-    this.shadows.container.alpha = 1;
+    this.shadows.container.alpha = 0.5;
     this.app.stage.addChild(this.root);
-    this.groundVariants = Math.max(1, s.countPrefix('ground.'));
+    while (s.has(`ground.${this.groundPeriod}.0`)) this.groundPeriod++;
   }
 
   /** Bildschirm -> Weltkoordinaten (Felder). */
@@ -149,7 +150,8 @@ export class GameRenderer {
             const i = (ty - cy * CS) * CS + (tx - cx * CS);
             const px = tx * TILE + TILE / 2;
             const py = ty * TILE + TILE / 2;
-            g.push(s.frame(`ground.${chunk.ground[i] % this.groundVariants}`), px, py);
+            const gp = this.groundPeriod;
+            g.push(s.frame(`ground.${((tx % gp) + gp) % gp}.${((ty % gp) + gp) % gp}`), px, py);
             const res = chunk.resource[i];
             if (res) {
               const def = RESOURCE_BY_INDEX[res]!;
@@ -259,6 +261,7 @@ export class GameRenderer {
   private drawEntity(e: Entity, cx: number, cy: number, world: World, alpha: number): void {
     const s = this.sprites;
     const z = cy + 16;
+    cx = Math.round(cx);
     switch (e.kind) {
       case 'drill': {
         const sh = this.shadows.get(s.frame(`drill.${e.dir}.shadow`));
@@ -277,9 +280,9 @@ export class GameRenderer {
         sp.zIndex = z;
         if (on) {
           const t = world.tick + alpha;
-          const g = this.glow.get(s.frame('furnace.glow', Math.floor(t / 5) + e.id));
+          const g = this.glow.get(s.frame('furnace.glow', Math.floor(t / 6) + e.id * 3));
           g.position.set(cx, cy);
-          g.alpha = 0.75 + 0.25 * Math.sin(t * 0.37 + e.id) * Math.sin(t * 0.13);
+          g.alpha = 0.8 + 0.2 * Math.sin(t * 0.37 + e.id) * Math.sin(t * 0.13 + e.id * 2);
         }
         break;
       }
@@ -299,7 +302,9 @@ export class GameRenderer {
         const reach = e.def.pickupVector[1] + (-e.def.dropVector[1] - e.def.pickupVector[1]) * t;
         const arm = this.ents.get(s.frame('inserter.arm'));
         const info = s.info('inserter.arm');
-        const armLen = info ? info.h * info.anchor[1] : 64;
+        const armLen = (info?.meta?.reach ?? 1) * TILE;
+        const lift = (s.info('inserter.base')?.meta?.pivotLift ?? 0) * TILE;
+        cy -= lift;
         arm.position.set(cx, cy);
         arm.rotation = rot;
         arm.scale.set(1, (reach * TILE) / armLen);

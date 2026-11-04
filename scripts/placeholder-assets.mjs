@@ -23,7 +23,7 @@ function rot(x, y, d) {
 }
 
 // Boden
-for (let v = 0; v < 8; v++) {
+for (let v = 0; v < 4; v++) {
   const img = new Img(T, T);
   for (let y = 0; y < T; y++)
     for (let x = 0; x < T; x++) {
@@ -31,7 +31,7 @@ for (let v = 0; v < 8; v++) {
       const b = 70 + n * 18;
       img.set(x, y, [b + 10, b + 4, b - 12, 255]);
     }
-  add(`ground.${v}`, 'terrain', [img]);
+  add(`ground.${v % 2}.${v >> 1}`, 'terrain', [img]);
 }
 
 // Ressourcen

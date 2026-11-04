@@ -12,6 +12,8 @@ async function main(): Promise<void> {
   const sprites = await loadSprites();
   const renderer = await GameRenderer.create(root, sprites);
   const scene = createScene(sceneName, seed);
+  const warp = Number(params.get('warp') ?? 0);
+  if (warp > 0) scene.world.run(Math.min(warp, 60 * 60 * 30));
   const game = new Game(root, renderer, sprites, scene, debug);
   document.getElementById('loading')?.remove();
   game.start();

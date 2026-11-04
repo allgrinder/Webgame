@@ -2,7 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'e2e',
-  timeout: 60_000,
+  timeout: 90_000,
+  // Software-Rendering im Container: Tests nacheinander, damit die Simulation in Echtzeit läuft
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: 'http://localhost:4173',

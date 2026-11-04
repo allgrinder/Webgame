@@ -59,7 +59,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   let [sx, sy] = await toScreen(page, coal[0] + 0.5, coal[1] + 0.5);
   await page.mouse.move(sx, sy);
   await page.mouse.down({ button: 'right' });
-  await page.waitForTimeout(5000);
+  await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('coal') >= 2, null, { timeout: 30_000 });
   await page.mouse.up({ button: 'right' });
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBeGreaterThanOrEqual(1);
 

@@ -1,6 +1,6 @@
 /**
  * Dekoration der Karte (nur Darstellung, ohne Einfluss auf die Simulation).
- * Eigene Werte. Sprites aus assets/blender/models/decals.py und flora.py.
+ * Eigene Werte. Sprites aus assets/blender/models/decals.py, flora.py und landscape.py.
  */
 export type DecorLayer = 'decal' | 'flora';
 
@@ -39,6 +39,8 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
   { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
+  { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true },
+  { id: 'conifer', sprite: 'flora.conifer', layer: 'flora', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, clearOfResources: 3, clearOfSpawn: 14, shadow: true },
   { id: 'tree', sprite: 'flora.tree', layer: 'flora', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, clearOfResources: 3, clearOfSpawn: 14, shadow: true },
 ];
 

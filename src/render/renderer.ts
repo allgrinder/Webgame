@@ -11,6 +11,7 @@ import { type Entity, InserterPhase, itemId } from '../sim/machines';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { DecorField } from './decor';
+import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
 export const TILE = 64;
@@ -77,6 +78,9 @@ export class GameRenderer {
   private readonly shadows = new SpritePool();
   private readonly ents = new SpritePool();
   private readonly glow = new SpritePool();
+  private readonly fxPool = new SpritePool();
+  private readonly fxAddPool = new SpritePool();
+  private effects: Effects | null = null;
   private readonly icons = new SpritePool();
   private readonly overlay = new Graphics();
   private readonly wires = new Graphics();
@@ -135,6 +139,8 @@ export class GameRenderer {
     this.belts = new ParticlePool(s.frame('belt.s.0'));
     this.items = new ParticlePool(s.frame('item.iron-ore'));
     this.glow.container.blendMode = 'add';
+    this.fxAddPool.container.blendMode = 'add';
+    this.effects = new Effects(s, this.fxPool, this.fxAddPool, TILE);
     this.ents.container.sortableChildren = true;
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
@@ -148,6 +154,8 @@ export class GameRenderer {
       this.shadows.container,
       this.ents.container,
       this.glow.container,
+      this.fxPool.container,
+      this.fxAddPool.container,
       this.wires,
       this.ghostSprites.container,
       this.icons.container,
@@ -197,6 +205,7 @@ export class GameRenderer {
     this.drawItems(world, view, alpha);
     this.drawEntities(world, view, alpha, ui);
     this.drawWires(world, view);
+    this.effects?.update(world, alpha, view);
     this.drawOverlay(world, ui);
   }
 

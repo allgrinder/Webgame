@@ -123,6 +123,67 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 | Erzfeldform (Teilellipsen, Verzerrung, Ausläufer) | `src/data/mapgen.ts` | E |
 | Dekoration (Dichte, Haine, Abstände zu Start und Erz) | `src/data/decor.ts`, nur Darstellung | E |
 
+## Kupfer, Ziegel, Zwischenprodukte
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Kupfererz | Stapel 50, Abbauzeit 1 | P `item.lua`, `entity/resources.lua` |
+| Kupferplatte | 1 Kupfererz → 1 Platte, 3,2 s (Ofen) | P `recipe.lua` |
+| Steinziegel | 2 Stein → 1 Ziegel, 3,2 s (Ofen) | P `recipe.lua` |
+| Kupferkabel | 1 Kupferplatte → 2 Kabel, 0,5 s; Stapel 200 | P `recipe.lua`, `item.lua` |
+| Eisenstange | 1 Eisenplatte → 2 Stangen, 0,5 s | P `recipe.lua` |
+| Elektronischer Schaltkreis | 1 Eisenplatte + 3 Kupferkabel, 0,5 s; Stapel 200 | P `recipe.lua`, `item.lua` |
+| Eisenkiste | 8 Eisenplatten, 0,5 s; 32 Slots | P `recipe.lua`, `entity/entities.lua`: `inventory_size = 32` |
+| Holzkiste | entfällt (kein Holz im Spiel, Bäume nur Dekoration) | E |
+
+## Flüssigkeiten und Strom (`src/data/fluids.ts`, `src/data/entities.ts`)
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Mengen | ganzzahlig in Tausendstel Einheiten | E |
+| Netzmodell | verbundene Behälter teilen einen Vorrat (wie Rohrsegmente) | E, angelehnt an das Verhalten von Rohrnetzen |
+| Wasser / Dampf | Wärmekapazität 0,2 kJ/(Einheit·°C), Wasser 15 °C | P `fluid.lua`: `heat_capacity = "0.2kJ"`, `default_temperature = 15` |
+| Rohr | Fassung 100 | P `entity/entities.lua` (pipe): `fluid_box.volume = 100` |
+| Uferpumpe | 20 Einheiten/Tick = 1.200/s; ohne Strom | P `entity/entities.lua`: `pumping_speed = 20` |
+| Uferpumpe, Größe | 1×1 (Rücken zum Wasser) | Abweichung: Vorbild 1×2; vereinfacht, E |
+| Kessel | 3×2, 1,8 MW, Zieltemperatur 165 °C, Fassung 200 | P `boiler.lua`: `energy_consumption = "1.8MW"`, `target_temperature = 165` |
+| Kessel-Durchsatz | 60 Einheiten Dampf/s (1,8 MW / (150 °C × 0,2 kJ)) | abgeleitet |
+| Dampfmaschine | 3×5, 0,5 Einheiten/Tick, 900 kW | P `entity/entities.lua`: `fluid_usage_per_tick = 0.5`, `maximum_temperature = 165` → 30 /s × 30 kJ |
+| Kleiner Strommast | Kabel 7,5 Felder, Versorgung 2,5 Felder (5×5) | P `entity/entities.lua`: `maximum_wire_distance = 7.5`, `supply_area_distance = 2.5` |
+| Kleiner Strommast, Rezept | 1 Eisenstange + 2 Kupferkabel → 2 Masten | Abweichung: Vorbild Holz + Kupferkabel; Holz gibt es nicht, E |
+| Stromverteilung | anteilig nach Bedarf; Maschinen werden bei Mangel anteilig langsamer | E, angelehnt an das Verhalten |
+| Elektrischer Bohrer | 3×3, Abbaubereich 5×5, 0,5/s, 90 kW, Lebenspunkte 300 | P `mining-drill.lua`: `mining_speed = 0.5`, `energy_usage = "90kW"`, `resource_searching_radius = 2.49` |
+| Greifarm (elektrisch) | 0,014 U/Tick, Grundlast 0,4 kW, ≈ 15,7 kJ je Transfer | P `entities.lua`: `rotation_speed = 0.014`, `drain = "0.4kW"`; Energie je Transfer aus der Wiki-Angabe 13,2 kW Betrieb × Zyklus abgeleitet (Wiki nicht erreichbar, **Messvorschlag 5**) |
+| Langer Greifarm | 0,02 U/Tick, Aufnahme 2 / Ablage 2,2 Felder, ≈ 16,7 kJ je Transfer | P `entities.lua`: `rotation_speed = 0.02`, `pickup_position = {0, -2}`, `insert_position = {0, 2.2}`; Energie wie oben abgeleitet aus 20 kW |
+| Rezepte | Rohr 1 Platte; Uferpumpe 3 Rohre + 2 Zahnräder; Kessel 1 Steinofen + 4 Rohre; Dampfmaschine 8 Zahnräder + 5 Rohre + 10 Platten; elektrischer Bohrer 3 Schaltkreise + 5 Zahnräder + 10 Platten (2 s); Greifarm 1 Schaltkreis + 1 Zahnrad + 1 Platte; langer Greifarm 1 Greifarm + 1 Zahnrad + 1 Platte | P `recipe.lua` |
+
+## Montage und Forschung (`src/data/entities.ts`, `src/data/tech.ts`)
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Montagemaschine 1 | 3×3, Geschwindigkeit 0,5, 75 kW, Grundlast 2,5 kW | P `entity/entities.lua`: `crafting_speed = 0.5`, `energy_usage = "75kW"`; Grundlast = Standard 1/30 der Leistung |
+| Montagemaschine, Rezept | 3 Schaltkreise + 5 Zahnräder + 9 Platten, 0,5 s | P `recipe.lua` |
+| Montagemaschine, Ausgabe | stoppt, solange zwei Ergebnisse warten | E, **Messvorschlag 6** |
+| Labor | 3×3, 60 kW, Grundlast 2 kW (1/30), Forschungsgeschwindigkeit 1 | P `entity/entities.lua`: `energy_usage = "60kW"`, `researching_speed = 1` |
+| Labor, Rezept | 10 Schaltkreise + 10 Zahnräder + 4 Bänder, 2 s; Stapel 10 | P `recipe.lua`, `item.lua` |
+| Paketverbrauch | je Einheit ein Paket jeder Sorte, dann `time` Sekunden Laborarbeit | E, angelehnt an das Verhalten (Teilverbrauch eines Pakets wird nicht nachgebildet) |
+| Automatisierungs-Paket | 1 Kupferplatte + 1 Zahnrad, 5 s; Stapel 200 | P `recipe.lua`, `item.lua` |
+| Logistik-Paket | 1 Greifarm + 1 Band, 6 s; Stapel 200 | P `recipe.lua`, `item.lua` |
+| Technologien | Automatisierung 10 × 10 s; Logistik 20 × 15 s; Logistik-Wissenschaft 75 × 5 s; Logistik 2: 200 × 30 s (rot + grün) | P `technology.lua` (`unit.count`, `unit.time`, `prerequisites`, `effects`) |
+| Freischaltungen | Automatisierung → Montagemaschine, langer Greifarm; Logistik → Untergrundband, Splitter; Logistik-Wissenschaft → grünes Paket; Logistik 2 → schnelles Band | P `technology.lua` |
+
+## Logistik (`src/data/belt.ts`, `src/data/entities.ts`)
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Schnelles Band | 16 Positionen/Tick = 3,75 Felder/s, 30 Items/s | P `transport-belts.lua`: `speed = 0.0625` → × 256 = 16 |
+| Geschwindigkeitswechsel | Linien enden am Wechsel, gerade Übergabe in dieselbe Spur | E |
+| Untergrundband | größter Abstand 5 Felder, Geschwindigkeit wie gelbes Band | P `transport-belts.lua`: `max_distance = 5` |
+| Untergrundband, Strecke | Eingang bis Mitte des Ausgangs als ein Linienstück; ab der Eingangsmitte unsichtbar | E |
+| Splitter | 2×1; je Spur abwechselnd auf beide Ausgänge, bei Stau alles auf den freien | E, angelehnt an das Verhalten (Vorrang/Filter fehlen) |
+| Rezepte | schnelles Band 5 Zahnräder + 1 Band; Untergrundband 10 Platten + 5 Bänder → 2 (1 s); Splitter 5 Schaltkreise + 5 Platten + 4 Bänder (1 s) | P `recipe.lua` |
+| Seitliches Einspeisen in Untergrund/Splitter | nicht möglich | Abweichung, E |
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf
@@ -136,3 +197,7 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
    Nach 60 s die Kohlemenge im Brennstoffslot des Ofens ablesen (Projekt: 5).
 4. **Greifarm-Durchsatz:** Kiste mit 100 Platten → Brennstoff-Greifarm → Kiste. Zeit für 50 Items
    stoppen (Erwartung ≈ 64 s bei 0,78 Items/s).
+5. **Strom des Greifarms:** Ein elektrischer Greifarm zwischen zwei Kisten an einem einzelnen Mast; im
+   Stromnetzfenster Verbrauch im Betrieb und im Leerlauf ablesen (Projekt: ≈ 13,2 kW / 0,4 kW).
+6. **Ausgabestau der Montagemaschine:** Montagemaschine mit Zahnrad-Rezept, Zutaten von Hand, kein
+   Ausgabe-Greifarm. Nach 30 s die Ergebnismenge ablesen (Projekt: 2).

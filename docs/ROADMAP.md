@@ -70,11 +70,11 @@ Prüfpunkte: ein Kontaktbogen je Schritt, Screenshots von Demo und Freeplay, feh
 
 ## Phase B – Komfort im bestehenden Umfang
 
-- **Kisten** (Holz- und Eisenkiste) als Lager. Greifarme können aus Kisten nehmen und hineinlegen.
-- **Items auf dem Boden:** Greifarm und Spieler können Items ablegen (wie im Vorbild).
-- **Bauen:** Rückgängig machen, Bänder per Strg-Ziehen in gerader Linie, Vorschau beim Ziehen.
+- ✔ **Kisten** (Eisenkiste; Holzkiste entfällt mangels Holz) als Lager. Greifarme können aus Kisten nehmen und hineinlegen.
+- ✔ **Items auf dem Boden:** Greifarm und Spieler können Items ablegen (wie im Vorbild).
+- ✔ **Bauen:** Rückgängig machen, Bänder per Strg-Ziehen in gerader Linie, Vorschau beim Ziehen.
 - **Hilfe:** Hinweise für die ersten Schritte im freien Spiel (ohne Text-Overlay im Bild, nur im HUD).
-- **Spielstände:** Autosave alle 5 Minuten, Export und Import als Datei.
+- ✔ **Spielstände:** Autosave alle 5 Minuten, Export und Import als Datei.
 
 ---
 
@@ -82,17 +82,17 @@ Prüfpunkte: ein Kontaktbogen je Schritt, Screenshots von Demo und Freeplay, feh
 
 Reihenfolge wie im Vorbild, damit sich jede Stufe aus der vorigen ergibt:
 
-1. **Kupfer und Steinziegel:** Kupfererz, Kupferplatte, Kupferkabel, Steinziegel. Damit gibt es Rezepte
+1. ✔ **Kupfer und Steinziegel:** Kupfererz, Kupferplatte, Kupferkabel, Steinziegel. Damit gibt es Rezepte
    für die Stromstufe.
-2. **Flüssigkeiten und Strom:**
+2. ✔ **Flüssigkeiten und Strom:**
    - Gebäude: Offshore-Pumpe, Rohre, Kessel, Dampfmaschine, kleine Strommasten.
    - Elektrischer Bohrer und Greifarm.
    - Stromnetz-Simulation mit Erzeugung und Verbrauch je Tick. Rohre als Segmente mit Füllstand, nach dem
      gleichen Prinzip wie die Transportlinien.
-3. **Montagemaschinen und Elektronik:** Montagemaschine 1, elektronischer Schaltkreis, Zahnrad- und
+3. ✔ **Montagemaschinen und Elektronik:** Montagemaschine 1, elektronischer Schaltkreis, Zahnrad- und
    Bandfertigung automatisiert.
-4. **Forschung:** Labor, Wissenschaftspakete, Technologiebaum. Gebäude werden erst nach der Forschung freigeschaltet.
-5. **Logistik:** Splitter, Untergrundband, schnelles Band, Greifarm mit großer Reichweite.
+4. ✔ **Forschung:** Labor, Wissenschaftspakete, Technologiebaum. Gebäude werden erst nach der Forschung freigeschaltet.
+5. ✔ **Logistik:** Splitter, Untergrundband, schnelles Band, Greifarm mit großer Reichweite.
 6. **Später, offen zu entscheiden:** Holz aus Bäumen (dann mit Kollision), Gegner, Verschmutzung,
    Tag-Nacht-Zyklus mit Lampen, Züge.
 

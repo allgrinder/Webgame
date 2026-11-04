@@ -32,6 +32,13 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Flora (Sträucher, Findlinge, Bäume mit Schattenebene) per Seed in `src/render/decor.ts`, Parameter in `src/data/decor.ts`.
 - Wasser (Seen/Teiche) in `src/sim/map.ts`, Darstellung nach Ecken-Prinzip (`water.<Fall>.<Variante>`).
 - Sprites mit 128 px pro Feld (Atlas-Auflösung 2), Spielwelt weiter 64 Einheiten pro Feld.
+- Phase B Komfort: fertig (Eisenkiste, Bodenitems, Rückgängig, gerade Linie, Autosave/Export/Import).
+- Phase C fertig: Kupfer/Ziegel/Kabel/Schaltkreis; Flüssigkeiten (`src/sim/fluids.ts`, Netze wie Rohrsegmente) und
+  Strom (`src/sim/power.ts`, Puffer je Verbraucher); Montagemaschine und Labor (`src/sim/entities/production.ts`),
+  Forschung (`src/sim/research.ts`, Daten `src/data/tech.ts`, gesperrte Rezepte); Logistik: schnelles Band
+  (Geschwindigkeit je Linie), Untergrundband (Teil der Transportlinie), Splitter (`src/sim/entities/logistics.ts`).
+- Gebäudeklassen in `src/sim/entities/` (Registry `registry.ts`); Modelle der neuen Anlagen in `assets/blender/lib/anlagen.py`.
+- Blender: bpy-Modul 5.2 in `.venv-blender` (mit OIDN-Denoiser, halbe Samples); `EISEN_PREVIEW=1` für schnelle Probeläufe.
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

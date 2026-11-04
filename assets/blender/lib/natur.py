@@ -20,7 +20,7 @@ def node(nt, typ, **kw):
     return n
 
 
-def patch_material(name, tones, seed, noise_amp=0.42, opacity=1.0, bump=0.6):
+def patch_material(name, tones, seed, noise_amp=0.42, opacity=1.0, bump_strength=0.6):
     """Boden mit weichem, unregelmäßigem Rand: Deckkraft fällt radial ab (Objektkoordinaten, Radius 1)."""
     m, b = gw_lib._principled(name)
     nt = m.node_tree
@@ -66,7 +66,7 @@ def patch_material(name, tones, seed, noise_amp=0.42, opacity=1.0, bump=0.6):
     L.new(cr.outputs['Color'], b.inputs['Base Color'])
     b.inputs['Roughness'].default_value = 1.0
     bump = node(nt, 'ShaderNodeBump')
-    bump.inputs['Strength'].default_value = bump
+    bump.inputs['Strength'].default_value = bump_strength
     L.new(nz2.outputs['Fac'], bump.inputs['Height'])
     L.new(bump.outputs['Normal'], b.inputs['Normal'])
     # Transparenz

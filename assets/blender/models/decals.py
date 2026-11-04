@@ -51,7 +51,7 @@ def render(out):
     tints = [('#a89a62', '#b8a873'), ('#5d6a3a', '#6a7744'), ('#6b563e', '#7a6447'), ('#8f8a55', '#9d9660')]
     for v, tones in enumerate(tints):
         eisen.reset(samples=16, ground=False)
-        disc(5.0, patch_material(f'tint{v}', tones, 50 + v, noise_amp=0.5, opacity=0.32, bump=0.0))
+        disc(5.0, patch_material(f'tint{v}', tones, 50 + v, noise_amp=0.5, opacity=0.32, bump_strength=0.0))
         eisen.camera(14, 14)
         bpy.context.scene.render.resolution_percentage = 25
         name = f'decal.tint.{v}'

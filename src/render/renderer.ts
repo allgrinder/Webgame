@@ -49,6 +49,8 @@ export class GameRenderer {
   private readonly root = new Container();
   private ground!: ParticlePool;
   private res!: ParticlePool;
+  private water: ParticlePool | null = null;
+  private waterTex: Texture[][] = [];
   private readonly decals = new SpritePool();
   private decor: DecorField | null = null;
   private decorMap: unknown = null;
@@ -64,6 +66,8 @@ export class GameRenderer {
   private groundPeriod = 1;
   private readonly groundTex: Texture[] = [];
   private readonly beltTex: Texture[][] = [];
+  /** Endkappen: [Ende 0..3, Anfang 0..3] */
+  private readonly capTex: Texture[] = [];
   private readonly resCache = new Map<number, Texture>();
   private resVariants = 4;
 
@@ -100,6 +104,14 @@ export class GameRenderer {
     const s = this.sprites;
     this.ground = new ParticlePool(s.frame('ground.0.0'));
     this.res = new ParticlePool(s.frame('ground.0.0'));
+    if (s.has('water.15.0')) {
+      this.water = new ParticlePool(s.frame('water.15.0'));
+      for (let c = 0; c < 16; c++) {
+        const list: Texture[] = [];
+        for (let v = 0; s.has(`water.${c}.${v}`); v++) list.push(s.frame(`water.${c}.${v}`));
+        this.waterTex.push(list);
+      }
+    }
     this.belts = new ParticlePool(s.frame('belt.s.0'));
     this.items = new ParticlePool(s.frame('item.iron-ore'));
     this.glow.container.blendMode = 'add';
@@ -107,6 +119,7 @@ export class GameRenderer {
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
       this.ground.container,
+      ...(this.water ? [this.water.container] : []),
       this.decals.container,
       this.res.container,
       this.belts.container,
@@ -124,6 +137,7 @@ export class GameRenderer {
     const gp = this.groundPeriod;
     for (let y = 0; y < gp; y++) for (let x = 0; x < gp; x++) this.groundTex[x + gp * y] = s.frame(`ground.${x}.${y}`);
     while (s.has(`res.iron-ore.${this.resVariants}.0`)) this.resVariants++;
+    if (s.has('belt.cap.end.0')) for (const k of ['end', 'start']) for (let d = 0; d < 4; d++) this.capTex.push(s.frame(`belt.cap.${k}.${d}`));
     for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) this.beltTex[sh * 4 + d] = s.frames(`belt.${SHAPE_KEY[sh]}.${d}`);
   }
 
@@ -192,7 +206,39 @@ export class GameRenderer {
     g.end();
     rp.end();
     this.stats.ground = g.count + rp.count;
+    this.drawWater(world, v);
     this.drawDecals(world, v);
+  }
+
+  // ------------------------------------------------------------------ Wasser
+
+  /** Wasser nach dem Ecken-Prinzip: ein Sprite je Feldecke, Fall aus den vier Nachbarfeldern. */
+  private drawWater(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const pool = this.water;
+    if (!pool) return;
+    pool.begin();
+    const CS = MAPGEN.chunkSize;
+    const m = world.map;
+    for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor((v.y1 + 1) / CS); cy++) {
+      for (let cx = Math.floor(v.x0 / CS); cx <= Math.floor((v.x1 + 1) / CS); cx++) {
+        // Ecken dieses Chunks brauchen Wasserinfo des Chunks und seiner Nachbarn links/oben
+        if (!m.getChunk(cx, cy).hasWater && !m.getChunk(cx - 1, cy).hasWater && !m.getChunk(cx, cy - 1).hasWater && !m.getChunk(cx - 1, cy - 1).hasWater) continue;
+        const x0 = Math.max(v.x0, cx * CS);
+        const x1 = Math.min(v.x1 + 1, cx * CS + CS - 1);
+        const y0 = Math.max(v.y0, cy * CS);
+        const y1 = Math.min(v.y1 + 1, cy * CS + CS - 1);
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            const c = (m.isWater(x - 1, y - 1) ? 1 : 0) | (m.isWater(x, y - 1) ? 2 : 0) | (m.isWater(x - 1, y) ? 4 : 0) | (m.isWater(x, y) ? 8 : 0);
+            if (c === 0) continue;
+            const list = this.waterTex[c];
+            if (!list.length) continue;
+            pool.push(list[(((x * 7 + y * 13) % list.length) + list.length) % list.length], x * TILE, y * TILE);
+          }
+        }
+      }
+    }
+    pool.end();
   }
 
   // ------------------------------------------------------------------ Dekoration
@@ -270,6 +316,22 @@ export class GameRenderer {
       const frames = this.beltTex[t.shape * 4 + t.dir];
       b.push(frames[frame % frames.length], t.x * TILE + TILE / 2, t.y * TILE + TILE / 2);
     }
+    // Umlenktrommeln an offenen Bandanfängen und -enden (nur gerade Felder)
+    if (this.capTex.length) {
+      for (const line of world.belts.lines) {
+        const first = line.tiles[0];
+        const last = line.tiles[line.tiles.length - 1];
+        const out = line.lanes[0].out;
+        const loop = out !== null && out.line === line;
+        if (loop) continue;
+        if (first.shape === Shape.Straight && !(first.x < v.x0 || first.x > v.x1 || first.y < v.y0 || first.y > v.y1)) {
+          b.push(this.capTex[4 + first.dir], first.x * TILE + TILE / 2, first.y * TILE + TILE / 2);
+        }
+        if (!out && last.shape === Shape.Straight && !(last.x < v.x0 || last.x > v.x1 || last.y < v.y0 || last.y > v.y1)) {
+          b.push(this.capTex[last.dir], last.x * TILE + TILE / 2, last.y * TILE + TILE / 2);
+        }
+      }
+    }
     b.end();
     this.stats.belts = b.count;
   }
@@ -280,6 +342,7 @@ export class GameRenderer {
     const lag = (1 - alpha) * BELT.speed;
     const p = this.tmp;
     const itemTex: Texture[] = [];
+    const shadow = this.sprites.has('item.shadow') ? this.sprites.frame('item.shadow') : null;
     for (const line of world.belts.lines) {
       const tiles = line.tiles;
       for (let l = 0; l < 2; l++) {
@@ -299,7 +362,10 @@ export class GameRenderer {
           BeltSystem.pointOn(t.shape, t.dir, l, Math.max(0, d - lane.tileEnd[j]), p);
           const idx = lane.items[i];
           const tex = itemTex[idx] ?? (itemTex[idx] = this.sprites.frame(`item.${itemId(idx)}`));
-          pool.push(tex, (t.x + p.x) * TILE, (t.y + p.y) * TILE, ITEM_SCALE_BELT);
+          const ix = (t.x + p.x) * TILE;
+          const iy = (t.y + p.y) * TILE;
+          if (shadow) pool.push(shadow, ix + 2, iy + 3, 1, 0.55);
+          pool.push(tex, ix, iy, ITEM_SCALE_BELT);
         }
       }
     }

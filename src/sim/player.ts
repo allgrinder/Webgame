@@ -115,6 +115,7 @@ export class Player {
     const y = py / SUB;
     for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++) {
       for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
+        if (world.map.isWater(tx, ty)) return true;
         const e = world.entityAt(tx, ty);
         if (e && entityDef(e.name).solid) {
           // Spieler, die bereits darin stehen (z. B. nach dem Bauen), dürfen hinaus

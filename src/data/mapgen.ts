@@ -23,6 +23,14 @@ export const MAPGEN = {
     { resource: 'coal', weight: 3 },
     { resource: 'stone', weight: 2 },
   ],
-  /** Rauschanteil am Feldrand (0..1). */
-  edgeNoise: 0.35,
+  /** Verzerrung der Feldform (Anteil des Radius). */
+  patchWarp: 0.35,
+  /** Breite der Ausläufer außerhalb des Feldrandes (Feldwert). */
+  patchFringe: 0.18,
+  /** Freier Radius um den Startpunkt (keine Ressourcen). */
+  spawnFree: 3,
+  /** Seen: großräumiges Rauschen über dem Schwellwert; ab spawnClear Feldern, weich über spawnFade. */
+  lakes: { scale: 70, detail: 17, threshold: 0.68, spawnClear: 26, spawnFade: 30 },
+  /** Kleine Teiche (verzerrte Ellipsen). */
+  ponds: { cell: 60, chance: 0.3, radiusMin: 2.5, radiusMax: 6 },
 } as const;

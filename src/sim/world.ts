@@ -69,6 +69,7 @@ export class World {
     }
     for (const [tx, ty] of World.footprint(def, x, y)) {
       if (this.occupancy.has(tileKey(tx, ty))) return { ok: false, reason: 'Belegt' };
+      if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
     }
     if (def.solid && this.player && this.player.overlapsRect(x, y, def.width, def.height)) {
       return { ok: false, reason: 'Spieler im Weg' };

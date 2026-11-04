@@ -1,7 +1,7 @@
 """Gemeinsame Blender-Hilfen für Eisenwerk (headless, ohne .blend-Dateien).
 
 Koordinaten: Blender X = Spiel-x (Osten), Blender Y = Norden (= -Spiel-y), Z = oben.
-Ein Feld = 1 Blender-Einheit = 64 Pixel. Kamera orthografisch, um TILT geneigt (sieht Südseiten),
+Ein Feld = 1 Blender-Einheit = 128 Pixel (im Spiel als Auflösung 2 auf 64 Welteinheiten). Kamera orthografisch, um TILT geneigt (sieht Südseiten),
 Licht von links oben (Nordwesten).
 """
 import json
@@ -13,7 +13,7 @@ import bmesh
 import bpy
 import mathutils
 
-TILE_PX = 64
+TILE_PX = 128
 TILT = math.radians(30)
 SAMPLES = 48
 LIGHT_DIR = mathutils.Vector((0.55, -0.45, -0.70)).normalized()  # Richtung des Lichts (von NW oben)

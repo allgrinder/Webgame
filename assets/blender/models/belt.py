@@ -1,21 +1,29 @@
-"""Förderband: gerade (s), Linkskurve (l), Rechtskurve (r) × 4 Richtungen × 16 Frames.
+"""Förderband: gerade (s), Linkskurve (l), Rechtskurve (r) × 4 Richtungen × 16 Frames, dazu Umlenktrommeln
+am Bandanfang und -ende.
 
-Die Rillen haben 0,5 Felder Abstand und verschieben sich pro Frame um 1/32 Feld (= 8 Positionen,
-die Itemgeschwindigkeit pro Tick). 16 Frames ergeben eine nahtlose Schleife.
+Aufbau: U-Profil aus verwittertem, gestrichenem Stahl (Steg, Ober- und Untergurt) mit Schrauben und
+Stützfüßen, darin der Gummigurt mit Querstollen, Abrieb und Staub. Stollen und Schmutz laufen mit:
+Abstand 0,5 Felder, Versatz 1/32 Feld pro Frame (= 8 Positionen, die Itemgeschwindigkeit pro Tick);
+der Schmutz ist in Laufrichtung periodisch (0,5 Felder), sodass 16 Frames nahtlos loopen.
 """
 import math
 
+import bauten
 import bmesh
 import bpy
 import eisen
+import gw_ground
+import gw_lib
+from mathutils import Vector
 
 FRAMES = 16
-WIDTH = 0.80     # Gurtbreite
-RAIL_IN = 0.40   # Innenkante Seitenwange
-RAIL_OUT = 0.48  # Außenkante
-RAIL_H = 0.11
-BELT_Z = 0.045
+WIDTH = 0.78      # Gurtbreite
+RAIL_IN = 0.405   # Innenkante Profil
+RAIL_OUT = 0.47   # Außenkante Profil
+RAIL_H = 0.13
+BELT_Z = 0.085
 SEG = 20
+lin = gw_ground.lin
 
 
 EXT = 0.06  # Überstand über die Feldgrenze, damit der Pixelfilter keine Naht erzeugt
@@ -84,95 +92,106 @@ def strip(name, shape, s0, s1, z0, z1, mat, uv=False, walls=True):
 
 
 def belt_material(frame):
-    mat = bpy.data.materials.new(f'belt{frame}')
-    mat.use_nodes = True
-    nt = mat.node_tree
-    n = nt.nodes
+    """Gummigurt: Querstollen (Bump), Abrieb in der Mitte, Staub und Ölflecken, alles mitlaufend."""
+    m, b = gw_lib._principled(f'belt{frame}')
+    nt = m.node_tree
     L = nt.links
-    b = n['Principled BSDF']
-    b.inputs['Roughness'].default_value = 0.8
-    uv = n.new('ShaderNodeUVMap')
-    sep = n.new('ShaderNodeSeparateXYZ')
+    N = nt.nodes
+    uv = N.new('ShaderNodeUVMap')
+    sep = N.new('ShaderNodeSeparateXYZ')
     L.new(uv.outputs['UV'], sep.inputs[0])
-    # phase = 2 * (v - frame/32)
-    ph = n.new('ShaderNodeMath')
-    ph.operation = 'MULTIPLY_ADD'
-    ph.inputs[1].default_value = 2.0
-    ph.inputs[2].default_value = -2.0 * frame / 32.0
-    L.new(sep.outputs['Y'], ph.inputs[0])
-    fr = n.new('ShaderNodeMath')
-    fr.operation = 'FRACT'
-    L.new(ph.outputs[0], fr.inputs[0])
-    # Rille: schmaler Grat
-    ramp = n.new('ShaderNodeValToRGB')
-    cr = ramp.color_ramp
+    shift = -frame / 32.0
+    vv = bauten._math(nt, 'ADD', sep.outputs['Y'], vb=shift)
+    # Stollen: Periode 0,5
+    ph = bauten._math(nt, 'FRACT', bauten._math(nt, 'MULTIPLY', vv, vb=2.0))
+    cleat = N.new('ShaderNodeValToRGB')
+    cr = cleat.color_ramp
     cr.interpolation = 'EASE'
     cr.elements[0].position = 0.0
     cr.elements[0].color = (1, 1, 1, 1)
-    cr.elements[1].position = 0.14
+    cr.elements[1].position = 0.12
     cr.elements[1].color = (0, 0, 0, 1)
-    e2 = cr.elements.new(0.86)
-    e2.color = (0, 0, 0, 1)
-    e3 = cr.elements.new(1.0)
-    e3.color = (1, 1, 1, 1)
-    L.new(fr.outputs[0], ramp.inputs['Fac'])
-    # Gummi-Rauschen (mitbewegt)
-    comb = n.new('ShaderNodeCombineXYZ')
-    L.new(sep.outputs['X'], comb.inputs[0])
-    vy = n.new('ShaderNodeMath')
-    vy.operation = 'ADD'
-    vy.inputs[1].default_value = -frame / 32.0
-    L.new(sep.outputs['Y'], vy.inputs[0])
-    L.new(vy.outputs[0], comb.inputs[1])
-    nz = n.new('ShaderNodeTexNoise')
-    nz.inputs['Scale'].default_value = 1.0
-    nz.inputs['Detail'].default_value = 3
-    mapping = n.new('ShaderNodeVectorMath')
-    mapping.operation = 'MULTIPLY'
-    mapping.inputs[1].default_value = (6.0, 32.0, 1.0)
-    L.new(comb.outputs[0], mapping.inputs[0])
-    L.new(mapping.outputs[0], nz.inputs['Vector'])
-    mix = n.new('ShaderNodeMix')
-    mix.data_type = 'RGBA'
-    L.new(ramp.outputs['Color'], mix.inputs['Factor'])
-    mix.inputs[6].default_value = (*eisen.srgb('#2f2c27'), 1)
-    mix.inputs[7].default_value = (*eisen.srgb('#5d574a'), 1)
-    m2 = n.new('ShaderNodeMix')
-    m2.data_type = 'RGBA'
-    m2.blend_type = 'OVERLAY'
-    m2.inputs['Factor'].default_value = 0.35
-    L.new(mix.outputs[2], m2.inputs[6])
-    L.new(nz.outputs['Color'], m2.inputs[7])
-    L.new(m2.outputs[2], b.inputs['Base Color'])
-    bump = n.new('ShaderNodeBump')
-    bump.inputs['Strength'].default_value = 0.6
-    bump.inputs['Distance'].default_value = 0.03
-    L.new(ramp.outputs['Color'], bump.inputs['Height'])
+    e = cr.elements.new(0.88)
+    e.color = (0, 0, 0, 1)
+    e = cr.elements.new(1.0)
+    e.color = (1, 1, 1, 1)
+    L.new(ph, cleat.inputs['Fac'])
+    # Schmutz/Abrieb: in v periodisch (Torus mit Umfang 0,5), quer u frei
+    ang = bauten._math(nt, 'MULTIPLY', vv, vb=2 * math.pi * 2.0)
+    c = bauten._math(nt, 'MULTIPLY', bauten._math(nt, 'COSINE', ang), vb=1.6)
+    sn = bauten._math(nt, 'MULTIPLY', bauten._math(nt, 'SINE', ang), vb=1.6)
+    comb = N.new('ShaderNodeCombineXYZ')
+    L.new(bauten._math(nt, 'MULTIPLY', sep.outputs['X'], vb=3.0), comb.inputs[0])
+    L.new(c, comb.inputs[1])
+    L.new(sn, comb.inputs[2])
+    dirt = bauten._noise(nt, comb.outputs[0], 2.2, 6, 0.6)
+    fine = bauten._noise(nt, comb.outputs[0], 9.0, 4, 0.6)
+    # Abrieb: Mitte heller und glatter
+    mid = bauten._math(nt, 'ABSOLUTE', bauten._math(nt, 'SUBTRACT', sep.outputs['X'], vb=0.5))
+    wear = bauten._math(nt, 'SUBTRACT', va=1.0, b=bauten._band(nt, mid, 0.1, 0.38))
+    col = bauten._mix(nt, bauten._band(nt, fine, 0.3, 0.7), lin('#24221f'), lin('#2f2c28'))
+    col = bauten._mix(nt, bauten._math(nt, 'MULTIPLY', wear, vb=0.35), col, lin('#3b3832'))
+    col = bauten._mix(nt, bauten._math(nt, 'MULTIPLY', bauten._band(nt, dirt, 0.55, 0.8), vb=0.55), col, lin('#6b5c47'))
+    col = bauten._mix(nt, bauten._math(nt, 'MULTIPLY', cleat.outputs['Color'], vb=0.75), col, lin('#575249'))
+    L.new(col, b.inputs['Base Color'])
+    L.new(bauten._math(nt, 'SUBTRACT', va=0.88, b=bauten._math(nt, 'MULTIPLY', wear, vb=0.2)), b.inputs['Roughness'])
+    bump = N.new('ShaderNodeBump')
+    bump.inputs['Strength'].default_value = 1.0
+    bump.inputs['Distance'].default_value = 0.02
+    hgt = bauten._math(nt, 'ADD', cleat.outputs['Color'], bauten._math(nt, 'MULTIPLY', fine, vb=0.2))
+    L.new(hgt, bump.inputs['Height'])
     L.new(bump.outputs['Normal'], b.inputs['Normal'])
-    return mat
+    gw_lib._ao(m, 0.6, 0.05)
+    return m
+
+
+def frame_parts(shape, m):
+    """U-Profil links und rechts, Schrauben am Steg, Stützfüße."""
+    objs = []
+    m.paint = bauten.weathered('w_beltpaint', '#57482b', metal=0.3, rough=0.6, rust=0.45, dust=0.08, edge=0.6, streaks=0.4, dust_hex='#6e624e')
+    m.steel = bauten.weathered('w_beltsteel', '#3a3a36', metal=0.65, rough=0.55, rust=0.35, dust=0.2, edge=0.5)
+    for side in (-1, 1):
+        a, b = sorted((side * RAIL_IN, side * RAIL_OUT))
+        web0, web1 = sorted((side * (RAIL_OUT - 0.022), side * RAIL_OUT))
+        objs.append(strip(f'web{side}', shape, web0, web1, 0.0, RAIL_H, m.steel))
+        objs.append(strip(f'top{side}', shape, a, b, RAIL_H - 0.02, RAIL_H, m.paint))
+        objs.append(strip(f'bot{side}', shape, a, b, 0.0, 0.018, m.steel))
+        # Schrauben außen am Steg (t = 0,25 und 0,75 → nahtlos)
+        for t in (0.25, 0.75):
+            p = Vector((*path_point(shape, t, side * (RAIL_OUT + 0.004)), RAIL_H * 0.55))
+            q = Vector((*path_point(shape, t, side * (RAIL_OUT - 0.1)), RAIL_H * 0.55))
+            o = bauten.pipe(f'bolt{side}{t}', p, p + (p - q).normalized() * 0.012, 0.014, m.bright, seg=6)
+            objs.append(o)
+        # Stützfuß in der Feldmitte
+        p = Vector((*path_point(shape, 0.5, side * (RAIL_OUT + 0.012)), 0.0))
+        objs.append(eisen.box(f'foot{side}', (0.05, 0.05, RAIL_H * 0.8), (p.x, p.y, RAIL_H * 0.4), m.dark, bevel=0.006))
+        objs.append(eisen.box(f'footplate{side}', (0.08, 0.08, 0.012), (p.x, p.y, 0.006), m.dark))
+    # dunkles Bett unter dem Gurt
+    bed = gw_ground.pmat('bed', lin('#141311'), 1.0, 0.1, 0.0, 20)
+    objs.append(strip('bed', shape, -RAIL_IN, RAIL_IN, 0.018, BELT_Z - 0.01, bed))
+    return objs
 
 
 def render(out):
-    rail_mat = None
     for shape in ('s', 'l', 'r'):
         for d in range(4):
             frames = []
             for f in range(FRAMES):
-                eisen.reset(samples=40)
-                rail_mat = eisen.material('rail', eisen.srgb('#7d6a45'), rough=0.55, metal=0.6, noise=0.25,
-                                          noise_scale=14, wear=0.6, rust=0.35)
-                lip_mat = eisen.material('lip', eisen.srgb('#3b3833'), rough=0.5, metal=0.8, noise=0.2, wear=0.8)
-                bed = eisen.material('bed', eisen.srgb('#1b1a18'), rough=0.9)
-                objs = [
-                    strip('belt', shape, -WIDTH / 2, WIDTH / 2, 0.0, BELT_Z, belt_material(f), walls=False),
-                    strip('bed', shape, -RAIL_IN, RAIL_IN, -0.01, BELT_Z - 0.005, bed, walls=True),
-                    strip('railL', shape, -RAIL_OUT, -RAIL_IN, 0.0, RAIL_H, rail_mat),
-                    strip('railR', shape, RAIL_IN, RAIL_OUT, 0.0, RAIL_H, rail_mat),
-                    strip('lipL', shape, -RAIL_OUT - 0.005, -RAIL_IN + 0.01, RAIL_H, RAIL_H + 0.012, lip_mat, walls=False),
-                    strip('lipR', shape, RAIL_IN - 0.01, RAIL_OUT + 0.005, RAIL_H, RAIL_H + 0.012, lip_mat, walls=False),
-                ]
+                eisen.reset(samples=48)
+                m = bauten.Mats()
+                objs = [strip('belt', shape, -WIDTH / 2, WIDTH / 2, BELT_Z - 0.012, BELT_Z, belt_material(f), walls=False)]
+                objs += frame_parts(shape, m)
                 root = eisen.parent_all(objs)
                 root.rotation_euler = (0, 0, -d * math.pi / 2)
                 eisen.camera(1, 1)
                 frames.append(out.render_frame(f'belt.{shape}.{d}', f))
             out.add(f'belt.{shape}.{d}', 'belts', frames, (0.5, 0.5), fps=60)
+    # Umlenktrommeln an Bandende und -anfang (nur gerade Bänder)
+    for kind in ('end', 'start'):
+        for d in range(4):
+            eisen.reset(samples=48)
+            root = bauten.belt_cap(bauten.Mats(), end=kind == 'end')
+            root.rotation_euler = (0, 0, -d * math.pi / 2)
+            eisen.camera(1.25, 1.25)
+            name = f'belt.cap.{kind}.{d}'
+            out.add(name, 'belts', [out.render_frame(name, 0)], (0.5, 0.5))

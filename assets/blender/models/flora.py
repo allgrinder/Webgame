@@ -63,6 +63,29 @@ def render(out):
         out.add(name, 'flora', [out.render_frame(name, 0)], anchor)
         shadow(out, name, d, h)
 
+    # Schilf und Rohrkolben am Ufer
+    for i in range(4):
+        eisen.reset(samples=48)
+        rnd = random.Random(850 + i)
+        sp = {'id': 'calamagrostis', 'kind': 'grass', 'diameterMature': 0.7 + 0.1 * (i % 2), 'heightMature': 1.0 + 0.2 * (i % 3)}
+        gw_plants.grass(sp, {'color': ['#6f7a45', '#7a8049', '#66703f', '#858351'][i], 'bare': False, 'bloom': None, 'fruit': None}, 860 + i)
+        head = gw_ground.pmat('cattail', lin('#5a3d24'), 0.8, 0.2, 0.3, 30)
+        stalk = gw_ground.pmat('stalk', lin('#6d7344'), 0.7, 0.1, 0.0, 10)
+        for k in range(rnd.randint(4, 8)):
+            a = rnd.uniform(0, math.tau)
+            r = rnd.uniform(0.0, 0.25)
+            x, y = math.cos(a) * r, math.sin(a) * r
+            hgt = rnd.uniform(1.0, 1.45)
+            lean = (rnd.uniform(-0.08, 0.08), rnd.uniform(-0.08, 0.08))
+            st = eisen.cylinder(f'st{k}', 0.006, hgt, (x + lean[0] / 2, y + lean[1] / 2, hgt / 2), stalk, segments=6)
+            st.rotation_euler = (lean[1] * -1.2, lean[0] * 1.2, 0)
+            eisen.cylinder(f'hd{k}', 0.022, 0.16, (x + lean[0], y + lean[1], hgt - 0.1), head, segments=10)
+        canvas, anchor = plant_canvas(0.9, 1.5, 0.0)
+        eisen.camera(*canvas, anchor=anchor)
+        name = f'flora.reed.{i}'
+        out.add(name, 'flora', [out.render_frame(name, 0)], anchor)
+        shadow(out, name, 0.9, 1.4, half=False)
+
     # Findlinge
     for i in range(4):
         eisen.reset(samples=48)

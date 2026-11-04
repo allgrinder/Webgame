@@ -31,6 +31,23 @@ def belt_piece(m):
 
 
 def render(out):
+    # weicher Schatten unter Items auf dem Band
+    eisen.reset(samples=32)
+    import bpy
+    me = bpy.data.meshes.new('blob')
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=2, radius=0.16)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new('blob', me)
+    eisen.link(ob)
+    ob.location = (0, 0, 0.12)
+    ob.scale = (1, 1, 0.5)
+    ob.visible_camera = False
+    eisen.shadow_catcher(4)
+    eisen.camera(0.75, 0.75)
+    out.add('item.shadow', 'items', [out.render_frame('item.shadow', 0)], (0.5, 0.5))
+
     for res, name in (('iron-ore', 'item.iron-ore'), ('coal', 'item.coal'), ('stone', 'item.stone')):
         icon_scene()
         objs = parts.ore_pile(res, 4, 0.2, seed={'iron-ore': 11, 'coal': 23, 'stone': 37}[res], spread=0.2)

@@ -1,4 +1,4 @@
-import { DECOR, type DecorKind, GROVE } from '../data/decor';
+import { DECOR, type DecorKind, GROVE, WATER_NEAR } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import type { GameMap } from '../sim/map';
 import { hash01, valueNoise } from '../sim/rng';
@@ -43,6 +43,12 @@ export class DecorField {
     return list;
   }
 
+  private waterWithin(x: number, y: number, r: number): boolean {
+    for (let dy = -r; dy <= r; dy += r > 2 ? 2 : 1)
+      for (let dx = -r; dx <= r; dx += r > 2 ? 2 : 1) if (this.map.isWater(x + dx, y + dy)) return true;
+    return false;
+  }
+
   private nearResource(x: number, y: number, r: number): boolean {
     if (r <= 0) return false;
     for (let dy = -r; dy <= r; dy++)
@@ -74,10 +80,13 @@ export class DecorField {
             const g = valueNoise(this.seed + 4242, x / GROVE.scale, y / GROVE.scale);
             if (g > GROVE.threshold) p *= kind.groveBoost * ((g - GROVE.threshold) / (1 - GROVE.threshold) + 0.3);
           }
+          if (kind.waterBoost && h(3) < p * kind.waterBoost && h(3) >= p && this.waterWithin(Math.floor(x), Math.floor(y), WATER_NEAR)) p *= kind.waterBoost;
           if (h(3) >= p) continue;
           if (kind.clearOfSpawn > 0 && Math.hypot(x, y) < kind.clearOfSpawn) continue;
           const tx = Math.floor(x);
           const ty = Math.floor(y);
+          if (this.map.isWater(tx, ty)) continue;
+          if (kind.shore && !this.waterWithin(tx, ty, 1)) continue;
           if (this.nearResource(tx, ty, kind.clearOfResources)) continue;
           const w = kind.warp === true;
           out.push({

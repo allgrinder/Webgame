@@ -40,4 +40,17 @@ describe('Kartengenerierung', () => {
     }
     expect(tiles).toBeGreaterThan(1000);
   });
+
+  it('hat Seen und Teiche, aber nicht am Start und nie unter Erz', () => {
+    const m = new GameMap(12345);
+    let water = 0;
+    for (let y = -150; y < 150; y += 1)
+      for (let x = -150; x < 150; x += 1) {
+        if (!m.isWater(x, y)) continue;
+        water++;
+        expect(Math.hypot(x, y)).toBeGreaterThan(20);
+        expect(m.resourceAt(x, y).amount).toBe(0);
+      }
+    expect(water).toBeGreaterThan(200);
+  });
 });

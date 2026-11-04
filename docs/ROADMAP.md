@@ -9,7 +9,18 @@ Für jeden Schritt gelten die Regeln aus `CLAUDE.md`: Werte mit Quelle in `docs/
 
 ---
 
-## Phase A – Grafik-Feinschliff (als Nächstes)
+## Aktueller Schwerpunkt (Wunsch 04.11.2026)
+
+Möglichst natürlich, bestehender Grafikstil bleibt. Reihenfolge:
+
+1. **Förderbänder schöner** – U-Profil, Schrauben, Stützfüße, Gummi mit Abrieb, Umlenktrommeln, Item-Schatten. ✔
+2. **Doppelte Auflösung** (128 px pro Feld) für alle Sprites. ✔
+3. **Natürliche Anordnung** – Erzfelder aus mehreren verzerrten Ellipsen mit Ausläufern. ✔
+4. **Wasser** – Seen und Teiche mit Ufer (Ecken-Prinzip), Schilf, Ufersteine; Wasser blockiert Laufen und Bauen. ✔
+5. **Wälder** – Haine größer, Bäume und Sträucher gehäuft am Wasser. ✔
+6. Danach Phase A wie unten (Gebäude behutsam im bestehenden Stil verbessern, Effekte, Einbindung).
+
+## Phase A – Grafik-Feinschliff
 
 Ziel: Gebäude, Figur und Effekte erreichen dieselbe Qualität wie die neue Landschaft.
 

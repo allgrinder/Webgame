@@ -107,3 +107,20 @@ describe('Montagemaschine und Forschung', () => {
     expect(b.research.fraction('logistics')).toBeGreaterThan(0);
   });
 });
+
+describe('Demo-Stromteil', () => {
+  it('Dampfmaschine versorgt Montagemaschine und Labor, Zahnräder laufen über alle Bandarten', async () => {
+    const { buildDemoWorld } = await import('../../src/game/scenes');
+    const w = buildDemoWorld(1);
+    w.run(60 * 40);
+    const byName = (n: string) => [...w.entities.values()].filter((e) => e.name === n);
+    expect(byName('steam-engine')[0].status).toBe(1);
+    expect(byName('lab')[0].status).toBe(1);
+    expect(w.research.fraction('automation')).toBeGreaterThan(0.3);
+    const gearsOnBelts = [...w.belts.allTiles()].filter((t) => t.y >= 23).reduce((n, t) => n + w.belts.itemsOnTile(t).length, 0);
+    expect(gearsOnBelts).toBeGreaterThan(5);
+    // beide Splitter-Ausgänge werden bedient
+    expect(w.belts.itemsOnTile(w.belts.tileAt(7, 26)!).length + w.belts.itemsOnTile(w.belts.tileAt(7, 25)!).length).toBeGreaterThan(0);
+    expect(w.belts.itemsOnTile(w.belts.tileAt(8, 26)!).length + w.belts.itemsOnTile(w.belts.tileAt(8, 25)!).length).toBeGreaterThan(0);
+  });
+});

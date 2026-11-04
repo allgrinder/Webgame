@@ -43,6 +43,13 @@ export class Camera {
   maxZoom = 3;
 }
 
+/** Sprite-Präfix je Greifarm. */
+const INSERTER_PREFIX: Record<string, string> = {
+  'burner-inserter': 'inserter',
+  inserter: 'inserter-electric',
+  'long-handed-inserter': 'inserter-long',
+};
+
 export class GameRenderer {
   readonly app: Application;
   readonly camera = new Camera();
@@ -497,9 +504,10 @@ export class GameRenderer {
         break;
       }
       case 'inserter': {
-        const sh = this.shadows.get(s.frame('inserter.shadow'));
+        const pre = INSERTER_PREFIX[e.name] && s.has(`${INSERTER_PREFIX[e.name]}.arm`) ? INSERTER_PREFIX[e.name] : 'inserter';
+        const sh = this.shadows.get(s.frame(`${pre}.shadow`));
         sh.position.set(cx, cy);
-        const base = this.ents.get(s.frame('inserter.base'));
+        const base = this.ents.get(s.frame(`${pre}.base`));
         base.position.set(cx, cy);
         base.zIndex = z;
         let t = e.armT();
@@ -510,14 +518,14 @@ export class GameRenderer {
         }
         const rot = ((e.dir + 2) * Math.PI) / 2 + t * Math.PI;
         const reach = e.def.pickupVector[1] + (-e.def.dropVector[1] - e.def.pickupVector[1]) * t;
-        const info = s.info('inserter.arm');
+        const info = s.info(`${pre}.arm`);
         const angles = info?.meta?.angles ?? 0;
         let hx: number;
         let hy: number;
         if (angles > 0) {
           // vorgerenderte Winkel (geneigte Kamera), Reichweite über leichte Skalierung
           const k = ((Math.round((rot / (Math.PI * 2)) * angles) % angles) + angles) % angles;
-          const arm = this.ents.get(s.frame('inserter.arm', k));
+          const arm = this.ents.get(s.frame(`${pre}.arm`, k));
           const sc = reach / (info?.meta?.reach ?? 1);
           arm.position.set(cx, cy);
           arm.scale.set(sc);
@@ -526,7 +534,7 @@ export class GameRenderer {
           hx = cx + Math.sin(rot) * reach * TILE;
           hy = cy - Math.cos(rot) * reach * TILE - lift;
         } else {
-          const arm = this.ents.get(s.frame('inserter.arm'));
+          const arm = this.ents.get(s.frame(`${pre}.arm`));
           const armLen = (info?.meta?.reach ?? 1) * TILE;
           const lift = (s.info('inserter.base')?.meta?.pivotLift ?? 0) * TILE;
           arm.position.set(cx, cy - lift);
@@ -573,7 +581,7 @@ export class GameRenderer {
   private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const g = this.wires;
     g.clear();
-    const lift = 0.95 * TILE;
+    const lift = (this.sprites.info('small-electric-pole')?.meta?.wireLift ?? 0.95) * TILE;
     for (const [a, b] of world.power.wires) {
       const pa = world.entities.get(a);
       const pb = world.entities.get(b);

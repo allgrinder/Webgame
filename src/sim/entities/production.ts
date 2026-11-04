@@ -35,6 +35,8 @@ export class AssemblerEntity extends EntityBase {
   /** Läuft gerade ein Herstellvorgang (Zutaten bereits entnommen)? */
   crafting = false;
   progress = 0;
+  /** Arbeitsticks (Animation). */
+  workTicks = 0;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
@@ -85,6 +87,7 @@ export class AssemblerEntity extends EntityBase {
       return;
     }
     this.status = Status.Working;
+    this.workTicks++;
     if (++this.progress >= this.recipeTicks(r)) {
       for (const res of r.results) this.output.add(res.item, res.amount);
       this.crafting = false;
@@ -124,7 +127,7 @@ export class AssemblerEntity extends EntityBase {
   override save() {
     return {
       ...this.energy.serialize(), recipe: this.recipe?.id ?? null, in: this.input.serialize(), out: this.output.serialize(),
-      cr: this.crafting, progress: this.progress,
+      cr: this.crafting, progress: this.progress, work: this.workTicks,
     };
   }
   override load(d: Record<string, unknown>): void {
@@ -134,6 +137,7 @@ export class AssemblerEntity extends EntityBase {
     this.output.load(d.out as InvData);
     this.crafting = !!d.cr;
     this.progress = (d.progress as number) ?? 0;
+    this.workTicks = (d.work as number) ?? 0;
   }
 }
 
@@ -149,6 +153,7 @@ export class LabEntity extends EntityBase {
   /** Noch zu leistende Ticks der bezahlten Einheit und deren Technologie. */
   remaining = 0;
   paidFor: string | null = null;
+  workTicks = 0;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
@@ -186,6 +191,7 @@ export class LabEntity extends EntityBase {
     }
     this.status = Status.Working;
     this.remaining--;
+    this.workTicks++;
     w.research.addWork(1);
     if (!w.research.current || w.research.current !== t.id) {
       this.remaining = 0;
@@ -210,13 +216,14 @@ export class LabEntity extends EntityBase {
     return [{ label: 'Wissenschaftspakete', inv: this.packs }];
   }
   override save() {
-    return { ...this.energy.serialize(), packs: this.packs.serialize(), rem: this.remaining, paid: this.paidFor };
+    return { ...this.energy.serialize(), packs: this.packs.serialize(), rem: this.remaining, paid: this.paidFor, work: this.workTicks };
   }
   override load(d: Record<string, unknown>): void {
     this.energy.load(d as { eb: number });
     this.packs.load(d.packs as InvData);
     this.remaining = (d.rem as number) ?? 0;
     this.paidFor = (d.paid as string | null) ?? null;
+    this.workTicks = (d.work as number) ?? 0;
     if (this.paidFor && !TECH_BY_ID[this.paidFor]) this.paidFor = null;
   }
 }

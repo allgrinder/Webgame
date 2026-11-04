@@ -152,6 +152,29 @@ export class GameMap {
     return res;
   }
 
+  /** Geänderte Wasserfelder (Feldschlüssel -> Wasser ja/nein), werden gespeichert. */
+  private readonly waterMods = new Map<number, boolean>();
+
+  /** Wasser direkt setzen (Szenen, Tests, später Landfüllung). */
+  setWater(x: number, y: number, water: boolean): void {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    const c = this.getChunk(cx, cy);
+    const i = (y - cy * CS) * CS + (x - cx * CS);
+    if ((c.water[i] === 1) !== water) this.waterMods.set(tileKey(x, y), water);
+    c.water[i] = water ? 1 : 0;
+    if (water) c.hasWater = true;
+    c.version++;
+  }
+
+  serializeWater(): [number, number, number][] {
+    return [...this.waterMods.entries()].sort((a, b) => a[0] - b[0]).map(([k, v]) => [Math.floor(k / 65536) - 32768, (k % 65536) - 32768, v ? 1 : 0]);
+  }
+
+  loadWater(list: [number, number, number][]): void {
+    for (const [x, y, v] of list) this.setWater(x, y, v === 1);
+  }
+
   /** Ressource direkt setzen (Szenen, Editor). amount 0 entfernt sie. */
   setResource(x: number, y: number, res: number, amount: number): void {
     const cx = Math.floor(x / CS);

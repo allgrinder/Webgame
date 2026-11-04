@@ -1,4 +1,4 @@
-import { type EntityDef, entityDef } from '../../data/entities';
+import { type EntityDef, entityDef, sizeOf } from '../../data/entities';
 import { Status } from '../entity';
 import type { Dir } from '../geom';
 import type { Inventory, Stack } from '../inventory';
@@ -33,12 +33,19 @@ export abstract class EntityBase {
     this.def = entityDef(name);
   }
 
+  /** Grundfläche in Feldern (berücksichtigt die Drehung). */
+  get w(): number {
+    return sizeOf(this.def, this.dir)[0];
+  }
+  get h(): number {
+    return sizeOf(this.def, this.dir)[1];
+  }
   /** Mittelpunkt in Feldkoordinaten. */
   get cx(): number {
-    return this.x + this.def.width / 2;
+    return this.x + this.w / 2;
   }
   get cy(): number {
-    return this.y + this.def.height / 2;
+    return this.y + this.h / 2;
   }
 
   /** Ein Tick. Bänder werden zentral im Bandsystem bewegt. */

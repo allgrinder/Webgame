@@ -39,6 +39,8 @@ export interface SaveData {
   beltItems: [number, [number, number, string][]][];
   /** [Chunk-x, Chunk-y, Index, Menge, Ressource] */
   map: [number, number, number, number, number][];
+  /** geänderte Wasserfelder [x, y, 1/0] */
+  water?: [number, number, number][];
   /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
   ground?: [number, [string, number, number][]][];
   player: PlayerData | null;
@@ -63,6 +65,7 @@ interface PlayerData {
 }
 
 export function serializeWorld(w: World): SaveData {
+  w.fluids.flush();
   const entities: EntityData[] = [];
   for (const e of [...w.entities.values()].sort((a, b) => a.id - b.id)) entities.push(entityData(e));
   const beltItems: SaveData['beltItems'] = [];
@@ -79,6 +82,7 @@ export function serializeWorld(w: World): SaveData {
     entities,
     beltItems,
     map: w.map.serializeModifications(),
+    water: w.map.serializeWater(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
@@ -104,6 +108,7 @@ export function deserializeWorld(d: SaveData): World {
   const w = new World(d.seed);
   w.tick = d.tick;
   w.map.loadModifications(d.map);
+  if (d.water) w.map.loadWater(d.water);
   for (const ed of d.entities) {
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;

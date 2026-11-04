@@ -1,10 +1,12 @@
-import { type EntityDef, entityDef } from '../data/entities';
+import { type EntityDef, entityDef, sizeOf } from '../data/entities';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
 import { ENTITY_CLASSES } from './entities/registry';
 import { type Dir, tileKey } from './geom';
 import { DrillEntity, type Entity, itemId, itemIndex } from './machines';
+import { FluidSystem } from './fluids';
 import { GameMap } from './map';
+import { PowerSystem } from './power';
 import type { Player } from './player';
 
 export interface PlaceCheck {
@@ -32,6 +34,8 @@ export class World {
   tick = 0;
   readonly map: GameMap;
   readonly belts = new BeltSystem();
+  readonly fluids = new FluidSystem();
+  readonly power = new PowerSystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
   /** Items auf dem Boden je Feld. */
@@ -52,9 +56,10 @@ export class World {
     return id === undefined ? undefined : this.entities.get(id);
   }
 
-  static footprint(def: EntityDef, x: number, y: number): [number, number][] {
+  static footprint(def: EntityDef, x: number, y: number, dir = 0): [number, number][] {
+    const [w, h] = sizeOf(def, dir);
     const out: [number, number][] = [];
-    for (let j = 0; j < def.height; j++) for (let i = 0; i < def.width; i++) out.push([x + i, y + j]);
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) out.push([x + i, y + j]);
     return out;
   }
 
@@ -64,12 +69,18 @@ export class World {
       const e = this.entityAt(x, y);
       if (e && e.kind === 'belt') return e.dir === dir ? { ok: false, reason: 'Gleiches Band' } : { ok: true, replace: e.id };
     }
-    for (const [tx, ty] of World.footprint(def, x, y)) {
+    for (const [tx, ty] of World.footprint(def, x, y, dir)) {
       if (this.occupancy.has(tileKey(tx, ty))) return { ok: false, reason: 'Belegt' };
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
     }
-    if (def.solid && this.player && this.player.overlapsRect(x, y, def.width, def.height)) {
+    const [w, h] = sizeOf(def, dir);
+    if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {
       return { ok: false, reason: 'Spieler im Weg' };
+    }
+    if (def.kind === 'offshore-pump') {
+      const DXs = [0, 1, 0, -1];
+      const DYs = [-1, 0, 1, 0];
+      if (!this.map.isWater(x - DXs[dir], y - DYs[dir])) return { ok: false, reason: 'Muss mit dem Rücken zum Wasser stehen' };
     }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
@@ -100,7 +111,7 @@ export class World {
     const def = entityDef(name);
     const e = new ENTITY_CLASSES[def.kind](id, name, x, y, dir) as Entity;
     this.entities.set(id, e);
-    for (const [tx, ty] of World.footprint(def, x, y)) this.occupancy.set(tileKey(tx, ty), id);
+    for (const [tx, ty] of World.footprint(def, x, y, dir)) this.occupancy.set(tileKey(tx, ty), id);
     e.onCreated(this);
     if (id >= this.nextId) this.nextId = id + 1;
     this.structureVersion++;
@@ -110,6 +121,7 @@ export class World {
   rotate(id: number, dir: Dir): boolean {
     const e = this.entities.get(id);
     if (!e || !entityDef(e.name).rotatable) return false;
+    if (e.def.width !== e.def.height) return false; // nicht quadratisch: zum Drehen neu bauen
     e.dir = dir;
     if (e.kind === 'belt') this.belts.setDir(id, dir);
     this.structureVersion++;
@@ -127,7 +139,7 @@ export class World {
     } else out.push(...e.contents());
     e.onRemoved(this);
     this.entities.delete(id);
-    for (const [tx, ty] of World.footprint(def, e.x, e.y)) this.occupancy.delete(tileKey(tx, ty));
+    for (const [tx, ty] of World.footprint(def, e.x, e.y, e.dir)) this.occupancy.delete(tileKey(tx, ty));
     this.structureVersion++;
     return out;
   }
@@ -135,6 +147,9 @@ export class World {
   // ------------------------------------------------------------ Simulation
 
   step(): void {
+    this.fluids.ensure(this);
+    this.power.ensure(this);
+    this.power.update();
     this.belts.update();
     for (const e of this.entities.values()) e.update(this);
     this.player?.update(this);

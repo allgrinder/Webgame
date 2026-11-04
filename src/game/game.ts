@@ -1,4 +1,4 @@
-import { entityDef } from '../data/entities';
+import { entityDef, sizeOf } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { PLAYER } from '../data/player';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -298,12 +298,13 @@ export class Game {
     if (!place) return null;
     if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < 1) return null;
     const def = entityDef(place);
-    const x = Math.round(m.x - def.width / 2);
-    const y = Math.round(m.y - def.height / 2);
+    const [w, h] = sizeOf(def, this.buildDir);
+    const x = Math.round(m.x - w / 2);
+    const y = Math.round(m.y - h / 2);
     const chk = this.world.canPlace(place, x, y, this.buildDir);
     let ok = chk.ok;
     const p = this.world.player;
-    if (p && !this.creative && p.distanceTo(x + def.width / 2, y + def.height / 2) > PLAYER.buildDistance) ok = false;
+    if (p && !this.creative && p.distanceTo(x + w / 2, y + h / 2) > PLAYER.buildDistance) ok = false;
     return { name: place, x, y, dir: this.buildDir, ok };
   }
 
@@ -396,7 +397,8 @@ export class Game {
           if (ex && ex.kind === 'belt') this.dragBelts.push(ex.id);
         }
       } else {
-        const g: Ghost = { name: place, x: nx - Math.floor((def.width - 1) / 2), y: ny - Math.floor((def.height - 1) / 2), dir: this.buildDir, ok: true };
+        const [w, h] = sizeOf(def, this.buildDir);
+        const g: Ghost = { name: place, x: nx - Math.floor((w - 1) / 2), y: ny - Math.floor((h - 1) / 2), dir: this.buildDir, ok: true };
         g.ok = this.ghostOk(g);
         this.tryBuild(g);
       }
@@ -411,7 +413,8 @@ export class Game {
     if (!this.creative) {
       const p = this.world.player;
       if (!p || p.inventory.count(def.item) < 1) return false;
-      if (p.distanceTo(g.x + def.width / 2, g.y + def.height / 2) > PLAYER.buildDistance) return false;
+      const [w, h] = sizeOf(def, g.dir);
+      if (p.distanceTo(g.x + w / 2, g.y + h / 2) > PLAYER.buildDistance) return false;
     }
     return this.world.canPlace(g.name, g.x, g.y, g.dir).ok;
   }
@@ -424,8 +427,7 @@ export class Game {
     if (!ghost && this.input.overCanvas) {
       const e = this.world.entityAt(m.x, m.y);
       if (e) {
-        const d = entityDef(e.name);
-        hover = { x: e.x, y: e.y, w: d.width, h: d.height };
+        hover = { x: e.x, y: e.y, w: e.w, h: e.h };
       } else {
         const tx = Math.floor(m.x);
         const ty = Math.floor(m.y);

@@ -17,6 +17,7 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.NoInput]: 'Keine Zutaten',
   [Status.Depleted]: 'Ressourcen erschöpft',
   [Status.NoTarget]: 'Kein Ziel',
+  [Status.NoPower]: 'Kein Strom',
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?: HTMLElement): HTMLElementTagNameMap[K] {
@@ -299,8 +300,7 @@ export class Hud {
     if (!e) return;
     const p = g.world.player;
     if (p && !g.creative) {
-      const d = entityDef(e.name);
-      if (!p.canReach(e.x + d.width / 2, e.y + d.height / 2)) {
+      if (!p.canReach(e.cx, e.cy)) {
         p.note('Außer Reichweite');
         return;
       }

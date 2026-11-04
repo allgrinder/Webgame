@@ -7,6 +7,7 @@ export const MAPGEN = {
     { resource: 'iron-ore', distance: 11, radius: 6, richness: 1200 },
     { resource: 'coal', distance: 10, radius: 5, richness: 900 },
     { resource: 'stone', distance: 11, radius: 4.5, richness: 700 },
+    { resource: 'copper-ore', distance: 12, radius: 5, richness: 1000 },
   ],
   /** Zufällige Felder: Raster, Wahrscheinlichkeit, Radiusbereich, Reichtum (steigt mit Entfernung). */
   patchCell: 80,
@@ -22,6 +23,7 @@ export const MAPGEN = {
     { resource: 'iron-ore', weight: 4 },
     { resource: 'coal', weight: 3 },
     { resource: 'stone', weight: 2 },
+    { resource: 'copper-ore', weight: 3 },
   ],
   /** Verzerrung der Feldform (Anteil des Radius). */
   patchWarp: 0.35,

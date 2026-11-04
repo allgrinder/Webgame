@@ -24,7 +24,7 @@ describe('Kartengenerierung', () => {
         const r = m.resourceAt(x, y);
         if (r.amount > 0) found.add(r.res);
       }
-      expect([...found].sort()).toEqual([1, 2, 3]);
+      expect([...found].sort()).toEqual([1, 2, 3, 4]);
       // Startpunkt selbst ist frei
       expect(m.resourceAt(0, 0).amount).toBe(0);
     }

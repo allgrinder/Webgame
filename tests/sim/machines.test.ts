@@ -45,9 +45,9 @@ describe('Brennstoff-Bohrer', () => {
     }
     // 3 Kohle × 4 MJ / 600 kJ = 20 Erz
     expect(counts.get('iron-ore')).toBe(20);
-    expect(drill.burner.fuel.isEmpty()).toBe(true);
+    expect(drill.burner!.fuel.isEmpty()).toBe(true);
     // Abbaufortschritt der Restenergie: 12 MJ − 20 × 600 kJ = 0
-    expect(drill.burner.energy).toBe(0);
+    expect(drill.burner!.energy).toBe(0);
   });
 
   it('ist nur auf Ressourcen platzierbar und gibt nicht auf freien Boden aus', () => {

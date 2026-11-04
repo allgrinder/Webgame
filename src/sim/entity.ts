@@ -9,6 +9,7 @@ export enum Status {
   NoInput = 4,
   Depleted = 5,
   NoTarget = 6,
+  NoPower = 7,
 }
 
 export interface EntityBase {

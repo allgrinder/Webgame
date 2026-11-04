@@ -206,7 +206,7 @@ export class Player {
         return;
       }
       const def = entityDef(e.name);
-      if (!this.canReach(e.x + def.width / 2, e.y + def.height / 2)) {
+      if (!this.canReach(e.cx, e.cy)) {
         this.mineProgress = 0;
         return;
       }

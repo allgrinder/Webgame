@@ -5,6 +5,7 @@ import { type RecipeDef, RECIPES, smeltingRecipeFor } from '../../data/recipes';
 import { RESOURCE_BY_INDEX } from '../../data/resources';
 import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
 import { Burner } from '../burner';
+import { ElectricSource } from '../energy';
 import { Status } from '../entity';
 import { type Dir, rotateVec } from '../geom';
 import { Inventory, type Stack } from '../inventory';
@@ -14,7 +15,7 @@ import { EntityBase, type GuiSlots, type InsertMode, invContents } from './base'
 type InvData = ReturnType<Inventory['serialize']>;
 type BurnerData = ReturnType<Burner['serialize']>;
 
-function fuelAccept(b: Burner, item: string, mode: InsertMode): number {
+export function fuelAccept(b: Burner, item: string, mode: InsertMode): number {
   if (!isFuel(item)) return 0;
   const space = b.fuel.space(item);
   if (mode !== 'inserter') return space;
@@ -36,7 +37,7 @@ export class BeltEntity extends EntityBase {
 export class DrillEntity extends EntityBase {
   readonly kind = 'drill' as const;
   declare readonly def: DrillDef;
-  private readonly fuelSource: Burner;
+  readonly energy: Burner | ElectricSource;
   /** Fortschritt in Ticks für das aktuelle Erz. */
   progress = 0;
   /** Fertig abgebautes, noch nicht ausgegebenes Item. */
@@ -48,10 +49,11 @@ export class DrillEntity extends EntityBase {
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
-    this.fuelSource = new Burner(this.def.fuelSlots);
+    const jpt = wattsToJoulesPerTick(this.def.energyUsage);
+    this.energy = this.def.energy === 'electric' ? new ElectricSource(jpt, 0, jpt * 2) : new Burner(this.def.fuelSlots);
   }
-  override get burner(): Burner {
-    return this.fuelSource;
+  override get burner(): Burner | null {
+    return this.energy instanceof Burner ? this.energy : null;
   }
   get joulesPerTick(): number {
     return wattsToJoulesPerTick(this.def.energyUsage);
@@ -62,8 +64,8 @@ export class DrillEntity extends EntityBase {
   }
   areaTiles(): [number, number][] {
     const size = this.def.miningAreaSize;
-    const ox = this.x + (this.def.width - size) / 2;
-    const oy = this.y + (this.def.height - size) / 2;
+    const ox = this.x + (this.w - size) / 2;
+    const oy = this.y + (this.h - size) / 2;
     const out: [number, number][] = [];
     for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) out.push([Math.floor(ox + i), Math.floor(oy + j)]);
     return out;
@@ -95,8 +97,8 @@ export class DrillEntity extends EntityBase {
       this.status = Status.Depleted;
       return;
     }
-    if (!this.fuelSource.consume(this.joulesPerTick)) {
-      this.status = Status.NoFuel;
+    if (!this.energy.consume(this.joulesPerTick)) {
+      this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
       return;
     }
     this.status = Status.Working;
@@ -117,24 +119,29 @@ export class DrillEntity extends EntityBase {
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {
-    return fuelAccept(this.fuelSource, item, mode);
+    const b = this.burner;
+    return b ? fuelAccept(b, item, mode) : 0;
   }
   protected override doInsert(item: string, n: number): number {
-    return this.fuelSource.fuel.add(item, n);
+    return this.burner?.fuel.add(item, n) ?? 0;
   }
   override contents(): Stack[] {
-    const out = invContents(this.fuelSource.fuel);
+    const b = this.burner;
+    const out = b ? invContents(b.fuel) : [];
     if (this.output) out.push({ item: this.output, count: 1 });
     return out;
   }
   override guiSlots(): GuiSlots[] {
-    return [{ label: 'Brennstoff', inv: this.fuelSource.fuel }];
+    const b = this.burner;
+    return b ? [{ label: 'Brennstoff', inv: b.fuel }] : [];
   }
   override save() {
-    return { b: this.fuelSource.serialize(), progress: this.progress, output: this.output, cursor: this.cursor, work: this.workTicks };
+    const en = this.energy instanceof Burner ? { b: this.energy.serialize() } : this.energy.serialize();
+    return { ...en, progress: this.progress, output: this.output, cursor: this.cursor, work: this.workTicks };
   }
   override load(d: Record<string, unknown>): void {
-    this.fuelSource.load(d.b as BurnerData);
+    if (this.energy instanceof Burner) this.energy.load(d.b as BurnerData);
+    else this.energy.load(d as { eb: number });
     this.progress = d.progress as number;
     this.output = (d.output as string | null) ?? null;
     this.cursor = d.cursor as number;

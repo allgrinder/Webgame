@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, type Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
-import { entityDef } from '../data/entities';
+import { entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
@@ -62,6 +62,7 @@ export class GameRenderer {
   private readonly glow = new SpritePool();
   private readonly icons = new SpritePool();
   private readonly overlay = new Graphics();
+  private readonly wires = new Graphics();
   private readonly ghostSprites = new SpritePool();
   /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
   private groundPeriod = 1;
@@ -129,6 +130,7 @@ export class GameRenderer {
       this.shadows.container,
       this.ents.container,
       this.glow.container,
+      this.wires,
       this.ghostSprites.container,
       this.icons.container,
       this.overlay,
@@ -168,6 +170,7 @@ export class GameRenderer {
     this.drawBelts(world, view, alpha);
     this.drawItems(world, view, alpha);
     this.drawEntities(world, view, alpha, ui);
+    this.drawWires(world, view);
     this.drawOverlay(world, ui);
   }
 
@@ -417,11 +420,10 @@ export class GameRenderer {
     const blink = Math.floor((world.tick + alpha) / 30) % 2 === 0;
     for (const e of world.entities.values()) {
       if (e.kind === 'belt') continue;
-      const def = entityDef(e.name);
-      if (e.x + def.width < v.x0 || e.x > v.x1 || e.y + def.height < v.y0 || e.y > v.y1) continue;
+      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
       n++;
-      const cx = (e.x + def.width / 2) * TILE;
-      const cy = (e.y + def.height / 2) * TILE;
+      const cx = e.cx * TILE;
+      const cy = e.cy * TILE;
       this.drawEntity(e, cx, cy, world, alpha);
       if (blink && (e.status === Status.NoFuel || e.status === Status.OutputBlocked)) {
         const icon = this.icons.get(s.frame(e.status === Status.NoFuel ? 'icon.nofuel' : 'icon.blocked'));
@@ -453,9 +455,14 @@ export class GameRenderer {
     cx = Math.round(cx);
     switch (e.kind) {
       case 'drill': {
-        const sh = this.shadows.get(s.frame(`drill.${e.dir}.shadow`));
+        const base = e.name === 'burner-mining-drill' ? 'drill' : e.name;
+        if (!s.has(`${base}.${e.dir}`)) {
+          this.drawGeneric(e, cx, cy, z);
+          break;
+        }
+        const sh = this.shadows.get(s.frame(`${base}.${e.dir}.shadow`));
         sh.position.set(cx, cy);
-        const sp = this.ents.get(s.frame(`drill.${e.dir}`, Math.floor(e.workTicks / 4)));
+        const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / 4)));
         sp.position.set(cx, cy);
         sp.zIndex = z;
         break;
@@ -523,22 +530,65 @@ export class GameRenderer {
         }
         break;
       }
-      case 'container': {
-        const sh = this.shadows.get(s.frame(s.has(`${e.name}.shadow`) ? `${e.name}.shadow` : 'inserter.shadow'));
-        sh.position.set(cx, cy);
-        const sp = this.ents.get(this.chestTex(e.name));
-        sp.position.set(cx, cy);
-        sp.zIndex = z;
+      case 'pipe': {
+        const mask = world.fluids.connections.get(e.id) ?? 0;
+        if (s.has(`pipe.${mask}`)) {
+          const sp = this.ents.get(s.frame(`pipe.${mask}`));
+          sp.position.set(cx, cy);
+          sp.zIndex = z - 32;
+        } else this.drawGeneric(e, cx, cy, z - 32);
         break;
       }
       case 'belt':
         break;
+      default:
+        this.drawGeneric(e, cx, cy, z);
     }
   }
 
-  /** Sprite einer Kiste (eigenes Modell oder vorläufig das Item-Symbol). */
-  private chestTex(name: string): Texture {
-    return this.sprites.has(name) ? this.sprites.frame(name) : this.sprites.frame(`item.${name}`);
+  /** Stromkabel zwischen Masten, leicht durchhängend. */
+  private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const g = this.wires;
+    g.clear();
+    const lift = 0.95 * TILE;
+    for (const [a, b] of world.power.wires) {
+      const pa = world.entities.get(a);
+      const pb = world.entities.get(b);
+      if (!pa || !pb) continue;
+      if (Math.max(pa.cx, pb.cx) < v.x0 || Math.min(pa.cx, pb.cx) > v.x1 || Math.max(pa.cy, pb.cy) < v.y0 || Math.min(pa.cy, pb.cy) > v.y1) continue;
+      const ax = pa.cx * TILE;
+      const ay = pa.cy * TILE - lift;
+      const bx = pb.cx * TILE;
+      const by = pb.cy * TILE - lift;
+      const sag = Math.hypot(bx - ax, by - ay) * 0.08;
+      g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.6, color: 0x5a3a22, alpha: 0.85 });
+    }
+  }
+
+  /** Sprite nach Schema name.richtung bzw. name (animiert, mit Schatten und Leuchten), sonst Item-Symbol. */
+  private drawGeneric(e: Entity, cx: number, cy: number, z: number): void {
+    const s = this.sprites;
+    const base = s.has(`${e.name}.${e.dir}`) ? `${e.name}.${e.dir}` : s.has(e.name) ? e.name : null;
+    const work = (e as { workTicks?: number }).workTicks ?? 0;
+    if (!base) {
+      const sp = this.ents.get(s.frame(`item.${e.def.item}`));
+      sp.position.set(cx, cy);
+      sp.scale.set(Math.min(e.w, e.h) * 0.85);
+      sp.zIndex = z;
+      return;
+    }
+    if (s.has(`${base}.shadow`)) {
+      const sh = this.shadows.get(s.frame(`${base}.shadow`));
+      sh.position.set(cx, cy);
+      sh.scale.set(s.info(`${base}.shadow`)?.meta?.scale ?? 1);
+    }
+    const sp = this.ents.get(s.frame(base, Math.floor(work / 4)));
+    sp.position.set(cx, cy);
+    sp.zIndex = z;
+    if (e.status === Status.Working && s.has(`${base}.glow`)) {
+      const g = this.glow.get(s.frame(`${base}.glow`, Math.floor(work / 6)));
+      g.position.set(cx, cy);
+    }
   }
 
   private drawGhost(ui: RenderUi): void {
@@ -547,16 +597,20 @@ export class GameRenderer {
     const g = ui.ghost;
     if (g) {
       const def = entityDef(g.name);
-      const cx = (g.x + def.width / 2) * TILE;
-      const cy = (g.y + def.height / 2) * TILE;
+      const [gw, gh] = sizeOf(def, g.dir);
+      const cx = (g.x + gw / 2) * TILE;
+      const cy = (g.y + gh / 2) * TILE;
       const tint = g.ok ? 0x7dff8a : 0xff6a5a;
       let tex: Texture;
       switch (def.kind) {
         case 'belt': tex = this.sprites.frame(`belt.s.${g.dir}`); break;
-        case 'drill': tex = this.sprites.frame(`drill.${g.dir}`); break;
+        case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame('furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
-        case 'container': tex = this.chestTex(g.name); break;
+        default: {
+          const b = this.sprites.has(`${g.name}.${g.dir}`) ? `${g.name}.${g.dir}` : this.sprites.has(g.name) ? g.name : `item.${def.item}`;
+          tex = this.sprites.frame(b);
+        }
       }
       const sp = gp.get(tex);
       sp.position.set(cx, cy);
@@ -590,17 +644,18 @@ export class GameRenderer {
       const def = entityDef(ui.ghost.name);
       if (def.kind === 'drill') {
         const a = def.miningAreaSize;
-        const ox = ui.ghost.x + (def.width - a) / 2;
-        const oy = ui.ghost.y + (def.height - a) / 2;
+        const [gw, gh] = sizeOf(def, ui.ghost.dir);
+        const ox = ui.ghost.x + (gw - a) / 2;
+        const oy = ui.ghost.y + (gh - a) / 2;
         g.rect(ox * TILE + 2, oy * TILE + 2, a * TILE - 4, a * TILE - 4).stroke({ width: 2 / z, color: 0x80c0ff, alpha: 0.8 });
       }
-      if (def.rotatable) this.arrow(g, ui.ghost.x + def.width / 2, ui.ghost.y + def.height / 2, ui.ghost.dir, ui.ghost.ok ? 0x9dff9a : 0xff8070);
+      const [aw, ah] = sizeOf(def, ui.ghost.dir);
+      if (def.rotatable) this.arrow(g, ui.ghost.x + aw / 2, ui.ghost.y + ah / 2, ui.ghost.dir, ui.ghost.ok ? 0x9dff9a : 0xff8070);
     }
     if (!ui.alt) return;
     const v = this.viewRect();
     for (const e of world.entities.values()) {
-      const def = entityDef(e.name);
-      if (e.x + def.width < v.x0 || e.x > v.x1 || e.y + def.height < v.y0 || e.y > v.y1) continue;
+      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
       if (e.kind === 'belt') {
         this.arrow(g, e.x + 0.5, e.y + 0.5, e.dir, 0xffffff, 0.22, 0.45);
         continue;
@@ -618,22 +673,19 @@ export class GameRenderer {
   }
 
   private drawAltContents(e: Entity, g: Graphics): void {
-    const def = entityDef(e.name);
     const list: string[] = [];
     if (e.kind === 'furnace') {
       const r = e.recipe?.results[0].item ?? e.result.firstItem() ?? e.source.firstItem();
       if (r) list.push(r);
     }
-    if (e.kind === 'drill' || e.kind === 'furnace') {
-      const f = e.burner.fuel.firstItem();
-      if (f) list.push(f);
-    }
+    const f = e.burner?.fuel.firstItem();
+    if (f && e.kind !== 'inserter') list.push(f);
     if (e.kind === 'container') {
       const f = e.inventory.firstItem();
       if (f) list.push(f);
     }
-    const cx = (e.x + def.width / 2) * TILE;
-    const cy = (e.y + def.height / 2) * TILE;
+    const cx = e.cx * TILE;
+    const cy = e.cy * TILE;
     list.forEach((it, k) => {
       const sp = this.icons.get(this.sprites.frame(`item.${it}`));
       const off = (k - (list.length - 1) / 2) * 26;
@@ -642,7 +694,7 @@ export class GameRenderer {
       sp.scale.set(0.38);
     });
     const stat = STATUS_COLORS[e.status];
-    if (stat !== undefined) g.circle(cx + def.width * TILE * 0.36, cy - def.height * TILE * 0.36, 5).fill({ color: stat });
+    if (stat !== undefined) g.circle(cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, 5).fill({ color: stat });
   }
 
   private arrow(g: Graphics, x: number, y: number, dir: Dir, color: number, size = 0.3, alpha = 0.85): void {
@@ -670,6 +722,7 @@ const STATUS_COLORS: Partial<Record<Status, number>> = {
   [Status.Depleted]: 0x808080,
   [Status.NoTarget]: 0xd0c040,
   [Status.Idle]: 0x808080,
+  [Status.NoPower]: 0xe04030,
 };
 
 export { Shape };

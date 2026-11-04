@@ -1,6 +1,8 @@
 import type { InserterDef } from '../../data/entities';
 import { isFuel } from '../../data/items';
+import { wattsToJoulesPerTick } from '../../data/time';
 import { Burner } from '../burner';
+import { ElectricSource } from '../energy';
 import { Status } from '../entity';
 import { type Dir, rotateVec } from '../geom';
 import type { Stack } from '../inventory';
@@ -32,7 +34,11 @@ export class InserterEntity extends EntityBase {
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir, energy?: EnergySource) {
     super(id, name, x, y, dir);
-    this.energy = energy ?? new Burner(this.def.fuelSlots, this.def.initialEnergy);
+    if (energy) this.energy = energy;
+    else if (this.def.energy === 'electric') {
+      const half = Math.round(this.def.energyPerTransfer / 2);
+      this.energy = new ElectricSource(half, wattsToJoulesPerTick(this.def.drain), Math.round(half * 1.5));
+    } else this.energy = new Burner(this.def.fuelSlots, this.def.initialEnergy);
   }
   override get burner(): Burner | null {
     return this.energy instanceof Burner ? this.energy : null;
@@ -82,7 +88,7 @@ export class InserterEntity extends EntityBase {
             }
           }
           if (!this.energy.canSupply(half)) {
-            this.status = Status.NoFuel;
+            this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
             return;
           }
           const accept = dst && dst.kind !== 'belt' ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
@@ -117,7 +123,7 @@ export class InserterEntity extends EntityBase {
             this.held = null;
           }
           if (!this.energy.consume(half)) {
-            this.status = Status.NoFuel;
+            this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
             return;
           }
           this.status = Status.Working;
@@ -147,10 +153,12 @@ export class InserterEntity extends EntityBase {
     return b ? [{ label: 'Brennstoff', inv: b.fuel }] : [];
   }
   override save() {
-    return { b: this.burner?.serialize(), phase: this.phase, progress: this.progress, held: this.held };
+    const en = this.energy instanceof ElectricSource ? this.energy.serialize() : { b: this.burner?.serialize() };
+    return { ...en, phase: this.phase, progress: this.progress, held: this.held };
   }
   override load(d: Record<string, unknown>): void {
     if (d.b && this.burner) this.burner.load(d.b as ReturnType<Burner['serialize']>);
+    if (this.energy instanceof ElectricSource) this.energy.load(d as { eb: number });
     this.phase = d.phase as InserterPhase;
     this.progress = d.progress as number;
     this.held = (d.held as string | null) ?? null;

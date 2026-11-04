@@ -5,11 +5,14 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import type { InsertMode } from './entities/base';
 import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './entities/basic';
 import { HALF_TURN, InserterEntity, InserterPhase } from './entities/inserter';
+import { BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity } from './entities/power';
 
-export { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity, HALF_TURN, InserterEntity, InserterPhase };
+export { BeltEntity, BoilerEntity, ContainerEntity, DrillEntity, FurnaceEntity, GeneratorEntity, HALF_TURN, InserterEntity, InserterPhase, PipeEntity, PoleEntity, PumpEntity };
 export type { InsertMode };
 
-export type Entity = BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity;
+export type Entity =
+  | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
+  | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity;
 
 export function itemIndex(id: string): number {
   const i = ITEM_IDS.indexOf(id);

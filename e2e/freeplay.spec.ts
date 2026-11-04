@@ -85,13 +85,13 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   [sx, sy] = await toScreen(page, iron[0] + 1, iron[1] + 1);
   await page.mouse.click(sx, sy);
   await expect(page.locator('.window.entity')).toBeVisible();
-  const slots = page.locator('.inventory .grid.inv .slot[title="Kohle"]');
+  const slots = page.locator('.inventory .grid.inv .slot[data-item="coal"]');
   await slots.first().click({ modifiers: ['Control'] });
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBe(0);
 
   // Zahnrad herstellen
-  await page.locator('.inventory .recipe').nth(1).click();
-  await page.waitForTimeout(1200);
+  await page.locator('.inventory .recipe[data-recipe="iron-gear-wheel"]').click();
+  await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel') >= 1, null, { timeout: 15_000 });
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel'))).toBe(1);
   await page.keyboard.press('Escape');
 

@@ -245,6 +245,7 @@ export class Hud {
       const s = el('div', 'slot recipe', rgrid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       el('span', 'count', s);
+      s.dataset.recipe = r.id;
       this.tip.attach(s, () => this.tip.recipe(r, 1, p.craftableCount(r.id)));
       s.addEventListener('click', (e) => {
         const n = e.ctrlKey || e.metaKey ? 1000 : e.shiftKey ? 5 : 1;

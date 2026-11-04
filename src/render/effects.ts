@@ -102,7 +102,7 @@ export class Effects {
       this.parts[n++] = q;
       const f = q.age / cfg.life;
       const size = cfg.size0 + (cfg.size1 - cfg.size0) * f;
-      const fade = q.kind === 'spark' ? 1 - f : Math.min(1, f * 6) * (1 - f) * (1 - f);
+      const fade = q.kind === 'spark' ? 1 - f : Math.min(1, f * 5) * (1 - f);
       const s = (q.kind === 'spark' ? this.addPool : this.pool).get(q.tex);
       s.position.set(q.x, q.y);
       s.scale.set((size * T) / q.tex.width);

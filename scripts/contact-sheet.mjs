@@ -84,7 +84,7 @@ for (const n of names) {
   const s = manifest.sprites[n];
   const strip = s.frames.length > 1;
   const cellW = Math.max(strip ? Math.min(s.frames.length, 16) * (s.w + 2) : s.w, n.length * 6) + 12;
-  if (rowW + cellW > MAXW) {
+  if (row.length && rowW + cellW > MAXW) {
     rows.push(row);
     row = [];
     rowW = 0;

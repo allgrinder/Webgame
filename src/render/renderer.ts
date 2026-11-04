@@ -381,7 +381,11 @@ export class GameRenderer {
     const s = this.sprites;
     for (const d of this.visibleDecor(world, v, 7)) {
       if (d.kind.layer !== 'flora') continue;
-      if (world.entityAt(d.tx, d.ty)) continue;
+      // Bäume halten Abstand zu Gebäuden (Krone), kleinere Pflanzen nur zum eigenen Feld
+      const r = d.kind.id === 'tree' || d.kind.id === 'conifer' ? 2 : d.kind.id === 'rocks' ? 1 : 0;
+      let blocked = false;
+      for (let oy = -r; oy <= r && !blocked; oy++) for (let ox = -r; ox <= r && !blocked; ox++) if (world.entityAt(d.tx + ox, d.ty + oy)) blocked = true;
+      if (blocked) continue;
       const name = `${d.kind.sprite}.${d.variant}`;
       if (d.kind.shadow) {
         const sh = this.shadows.get(s.frame(`${name}.shadow`));

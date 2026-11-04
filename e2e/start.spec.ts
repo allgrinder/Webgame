@@ -38,3 +38,16 @@ test('Demo-Szene zeigt die laufende Produktionskette', async ({ page }) => {
   const belt = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { belts: { itemCount: number } } } }).eisenwerk.world.belts.itemCount);
   expect(plates + belt).toBeGreaterThan(5);
 });
+
+test('Demo: Stromteil, Forschungsfenster und Übersichtskarte', async ({ page }) => {
+  const errors = await openScene(page, '?scene=demo&warp=1800');
+  type R = { eisenwerk: { world: { research: { fraction(id: string): number }; renderer?: unknown } } };
+  const frac = await page.evaluate(() => (window as unknown as R).eisenwerk.world.research.fraction('automation'));
+  expect(frac).toBeGreaterThan(0.2);
+  await page.keyboard.press('t');
+  await expect(page.locator('.window.tech')).toBeVisible();
+  await expect(page.locator('.tech-card')).toHaveCount(4);
+  await expect(page.locator('canvas.minimap')).toBeVisible();
+  await page.screenshot({ path: 'test-results/research.png' });
+  expect(errors).toEqual([]);
+});

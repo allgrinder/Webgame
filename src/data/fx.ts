@@ -15,11 +15,11 @@ export interface Emitter {
 
 export const EMITTERS: Readonly<Record<string, readonly Emitter[]>> = {
   'stone-furnace': [
-    { kind: 'smoke', at: [0.25, 0.25, 1.42], rate: 2.2 },
+    { kind: 'smoke', at: [0.25, 0.25, 1.42], rate: 3.0 },
     { kind: 'spark', at: [0.25, 0.25, 1.42], rate: 0.9 },
   ],
   'burner-mining-drill': [
-    { kind: 'smoke', at: [0.55, 0.35, 1.42], rate: 1.8 },
+    { kind: 'smoke', at: [0.55, 0.35, 1.42], rate: 2.5 },
     { kind: 'dust', at: [0, 0, 0.05], rate: 1.2, spread: 0.9 },
   ],
   boiler: [
@@ -31,8 +31,8 @@ export const EMITTERS: Readonly<Record<string, readonly Emitter[]>> = {
 
 /** Partikelwerte je Art: Lebensdauer (s), Steigen und Wind (Felder/s), Größe Anfang/Ende, Deckkraft. */
 export const FX = {
-  smoke: { life: 3.6, rise: 0.38, wind: 0.2, jitter: 0.06, size0: 0.45, size1: 1.7, alpha: 0.5 },
-  dust: { life: 1.3, rise: 0.12, wind: 0.08, jitter: 0.15, size0: 0.35, size1: 0.9, alpha: 0.55 },
+  smoke: { life: 4.0, rise: 0.4, wind: 0.22, jitter: 0.06, size0: 0.5, size1: 1.9, alpha: 1.0 },
+  dust: { life: 1.4, rise: 0.12, wind: 0.08, jitter: 0.15, size0: 0.35, size1: 1.0, alpha: 0.9 },
   spark: { life: 0.9, rise: 0.9, wind: 0.15, jitter: 0.35, size0: 0.55, size1: 0.2, alpha: 1.0 },
   /** Staub beim Handabbau (Partikel pro Sekunde). */
   mineDustRate: 6,

@@ -5,7 +5,7 @@
  "blender": "bpy 5.2.3 LTS",
  "models": {
   "belt": {
-   "hash": "feb0acead11168e4",
+   "hash": "4669b9fdabc96b71",
    "sprites": [
     "belt.s.0",
     "belt.s.1",
@@ -26,11 +26,38 @@
     "belt.cap.start.0",
     "belt.cap.start.1",
     "belt.cap.start.2",
-    "belt.cap.start.3"
+    "belt.cap.start.3",
+    "fast-belt.s.0",
+    "fast-belt.s.1",
+    "fast-belt.s.2",
+    "fast-belt.s.3",
+    "fast-belt.l.0",
+    "fast-belt.l.1",
+    "fast-belt.l.2",
+    "fast-belt.l.3",
+    "fast-belt.r.0",
+    "fast-belt.r.1",
+    "fast-belt.r.2",
+    "fast-belt.r.3",
+    "fast-belt.cap.end.0",
+    "fast-belt.cap.end.1",
+    "fast-belt.cap.end.2",
+    "fast-belt.cap.end.3",
+    "fast-belt.cap.start.0",
+    "fast-belt.cap.start.1",
+    "fast-belt.cap.start.2",
+    "fast-belt.cap.start.3"
+   ]
+  },
+  "chest": {
+   "hash": "b627945f5d53c325",
+   "sprites": [
+    "iron-chest",
+    "iron-chest.shadow"
    ]
   },
   "decals": {
-   "hash": "5b47fa8472fbf389",
+   "hash": "246bd5fd1e1e6d78",
    "sprites": [
     "decal.dirt.0",
     "decal.dirt.1",
@@ -63,7 +90,7 @@
    ]
   },
   "drill": {
-   "hash": "ceb0d2b473b047a7",
+   "hash": "e694f259a9d9c123",
    "sprites": [
     "drill.0",
     "drill.0.shadow",
@@ -75,8 +102,37 @@
     "drill.3.shadow"
    ]
   },
+  "edrill": {
+   "hash": "ca51da456b55d767",
+   "sprites": [
+    "electric-mining-drill.0",
+    "electric-mining-drill.0.shadow",
+    "electric-mining-drill.1",
+    "electric-mining-drill.1.shadow",
+    "electric-mining-drill.2",
+    "electric-mining-drill.2.shadow",
+    "electric-mining-drill.3",
+    "electric-mining-drill.3.shadow"
+   ]
+  },
+  "effects": {
+   "hash": "253d9e6047004cc8",
+   "sprites": [
+    "fx.smoke.0",
+    "fx.smoke.1",
+    "fx.smoke.2",
+    "fx.smoke.3",
+    "fx.smoke.4",
+    "fx.smoke.5",
+    "fx.dust.0",
+    "fx.dust.1",
+    "fx.dust.2",
+    "fx.dust.3",
+    "fx.spark"
+   ]
+  },
   "flora": {
-   "hash": "2eda92bf29d3f058",
+   "hash": "7f7bd73efc4830ef",
    "sprites": [
     "flora.shrub.0",
     "flora.shrub.0.shadow",
@@ -121,7 +177,7 @@
    ]
   },
   "furnace": {
-   "hash": "561110594c24e283",
+   "hash": "85035f65af842d81",
    "sprites": [
     "furnace.off",
     "furnace.on",
@@ -130,7 +186,7 @@
    ]
   },
   "ground": {
-   "hash": "8b9de8cdbba7c738",
+   "hash": "bd2e1ed1d165b957",
    "sprites": [
     "ground.0.0",
     "ground.1.0",
@@ -391,47 +447,201 @@
    ]
   },
   "icons": {
-   "hash": "981e98afed97cb20",
+   "hash": "115a07eb60c20175",
    "sprites": [
     "icon.nofuel",
     "icon.blocked"
    ]
   },
   "inserter": {
-   "hash": "4ca2aff2bbd0d26c",
+   "hash": "e7b5653c98977fb0",
    "sprites": [
     "inserter.base",
     "inserter.arm",
-    "inserter.shadow"
+    "inserter.shadow",
+    "inserter-electric.base",
+    "inserter-electric.arm",
+    "inserter-electric.shadow",
+    "inserter-long.base",
+    "inserter-long.arm",
+    "inserter-long.shadow"
    ]
   },
   "items": {
-   "hash": "6c01c617b5b61f5a",
+   "hash": "1a00d29e3974e608",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
     "item.coal",
     "item.stone",
+    "item.copper-ore",
     "item.iron-plate",
     "item.iron-gear-wheel",
     "item.transport-belt",
     "item.burner-inserter",
     "item.burner-mining-drill",
     "item.stone-furnace",
-    "item.iron-chest"
+    "item.iron-chest",
+    "item.copper-plate",
+    "item.copper-cable",
+    "item.iron-stick",
+    "item.stone-brick",
+    "item.electronic-circuit",
+    "item.pipe",
+    "item.automation-science-pack",
+    "item.logistic-science-pack",
+    "item.offshore-pump",
+    "item.boiler",
+    "item.steam-engine",
+    "item.small-electric-pole",
+    "item.electric-mining-drill",
+    "item.assembling-machine-1",
+    "item.lab",
+    "item.splitter",
+    "item.underground-belt",
+    "item.inserter",
+    "item.long-handed-inserter",
+    "item.fast-transport-belt"
+   ]
+  },
+  "landscape": {
+   "hash": "5a37294d4599742e",
+   "sprites": [
+    "flora.conifer.0",
+    "flora.conifer.0.shadow",
+    "flora.conifer.1",
+    "flora.conifer.1.shadow",
+    "flora.conifer.2",
+    "flora.conifer.2.shadow",
+    "flora.conifer.3",
+    "flora.conifer.3.shadow",
+    "flora.rocks.0",
+    "flora.rocks.0.shadow",
+    "flora.rocks.1",
+    "flora.rocks.1.shadow",
+    "flora.rocks.2",
+    "flora.rocks.2.shadow",
+    "flora.rocks.3",
+    "flora.rocks.3.shadow"
+   ]
+  },
+  "logistics": {
+   "hash": "13c99a98a38d26f2",
+   "sprites": [
+    "underground-belt.in.0",
+    "underground-belt.in.1",
+    "underground-belt.in.2",
+    "underground-belt.in.3",
+    "underground-belt.out.0",
+    "underground-belt.out.1",
+    "underground-belt.out.2",
+    "underground-belt.out.3",
+    "splitter.0",
+    "splitter.0.shadow",
+    "splitter.1",
+    "splitter.1.shadow",
+    "splitter.2",
+    "splitter.2.shadow",
+    "splitter.3",
+    "splitter.3.shadow"
+   ]
+  },
+  "pipe": {
+   "hash": "fe218eda6bb4ba02",
+   "sprites": [
+    "pipe.0",
+    "pipe.1",
+    "pipe.2",
+    "pipe.3",
+    "pipe.4",
+    "pipe.5",
+    "pipe.6",
+    "pipe.7",
+    "pipe.8",
+    "pipe.9",
+    "pipe.10",
+    "pipe.11",
+    "pipe.12",
+    "pipe.13",
+    "pipe.14",
+    "pipe.15"
    ]
   },
   "player": {
-   "hash": "667bdb3c692c48fa",
+   "hash": "1fb356bacf7d49db",
    "sprites": [
-    "player.0",
-    "player.1",
-    "player.2",
-    "player.3"
+    "player.walk.0",
+    "player.idle.0",
+    "player.mine.0",
+    "player.walk.1",
+    "player.idle.1",
+    "player.mine.1",
+    "player.walk.2",
+    "player.idle.2",
+    "player.mine.2",
+    "player.walk.3",
+    "player.idle.3",
+    "player.mine.3",
+    "player.walk.4",
+    "player.idle.4",
+    "player.mine.4",
+    "player.walk.5",
+    "player.idle.5",
+    "player.mine.5",
+    "player.walk.6",
+    "player.idle.6",
+    "player.mine.6",
+    "player.walk.7",
+    "player.idle.7",
+    "player.mine.7"
+   ]
+  },
+  "power": {
+   "hash": "4c9e892891a90520",
+   "sprites": [
+    "offshore-pump.0",
+    "offshore-pump.0.shadow",
+    "offshore-pump.1",
+    "offshore-pump.1.shadow",
+    "offshore-pump.2",
+    "offshore-pump.2.shadow",
+    "offshore-pump.3",
+    "offshore-pump.3.shadow",
+    "boiler.0",
+    "boiler.0.glow",
+    "boiler.0.shadow",
+    "boiler.1",
+    "boiler.1.glow",
+    "boiler.1.shadow",
+    "boiler.2",
+    "boiler.2.glow",
+    "boiler.2.shadow",
+    "boiler.3",
+    "boiler.3.glow",
+    "boiler.3.shadow",
+    "steam-engine.0",
+    "steam-engine.0.shadow",
+    "steam-engine.1",
+    "steam-engine.1.shadow",
+    "steam-engine.2",
+    "steam-engine.2.shadow",
+    "steam-engine.3",
+    "steam-engine.3.shadow",
+    "small-electric-pole",
+    "small-electric-pole.shadow"
+   ]
+  },
+  "production": {
+   "hash": "9aaca50ea6571f93",
+   "sprites": [
+    "assembling-machine-1",
+    "assembling-machine-1.shadow",
+    "lab",
+    "lab.shadow"
    ]
   },
   "resources": {
-   "hash": "5db15ea56a896b98",
+   "hash": "acde9e7e633702b8",
    "sprites": [
     "res.iron-ore.0.0",
     "res.iron-ore.0.1",
@@ -504,11 +714,35 @@
     "res.stone.5.0",
     "res.stone.5.1",
     "res.stone.5.2",
-    "res.stone.5.3"
+    "res.stone.5.3",
+    "res.copper-ore.0.0",
+    "res.copper-ore.0.1",
+    "res.copper-ore.0.2",
+    "res.copper-ore.0.3",
+    "res.copper-ore.1.0",
+    "res.copper-ore.1.1",
+    "res.copper-ore.1.2",
+    "res.copper-ore.1.3",
+    "res.copper-ore.2.0",
+    "res.copper-ore.2.1",
+    "res.copper-ore.2.2",
+    "res.copper-ore.2.3",
+    "res.copper-ore.3.0",
+    "res.copper-ore.3.1",
+    "res.copper-ore.3.2",
+    "res.copper-ore.3.3",
+    "res.copper-ore.4.0",
+    "res.copper-ore.4.1",
+    "res.copper-ore.4.2",
+    "res.copper-ore.4.3",
+    "res.copper-ore.5.0",
+    "res.copper-ore.5.1",
+    "res.copper-ore.5.2",
+    "res.copper-ore.5.3"
    ]
   },
   "water": {
-   "hash": "d718242ca8cb58a3",
+   "hash": "64fe0708fd03c788",
    "sprites": [
     "water.1.0",
     "water.1.1",
@@ -569,12 +803,32 @@
    "file": "atlas-decals-0.json"
   },
   {
+   "group": "effects",
+   "file": "atlas-effects-0.json"
+  },
+  {
    "group": "entities",
    "file": "atlas-entities-0.json"
   },
   {
    "group": "entities",
    "file": "atlas-entities-1.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-2.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-3.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-4.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-5.json"
   },
   {
    "group": "flora",
@@ -1030,6 +1284,438 @@
    ],
    "fps": 60
   },
+  "fast-belt.cap.end.0": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.end.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.end.1": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.end.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.end.2": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.end.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.end.3": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.end.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.start.0": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.start.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.start.1": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.start.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.start.2": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.start.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.cap.start.3": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.cap.start.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fast-belt.l.0": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.l.0#0",
+    "fast-belt.l.0#1",
+    "fast-belt.l.0#2",
+    "fast-belt.l.0#3",
+    "fast-belt.l.0#4",
+    "fast-belt.l.0#5",
+    "fast-belt.l.0#6",
+    "fast-belt.l.0#7",
+    "fast-belt.l.0#8",
+    "fast-belt.l.0#9",
+    "fast-belt.l.0#10",
+    "fast-belt.l.0#11",
+    "fast-belt.l.0#12",
+    "fast-belt.l.0#13",
+    "fast-belt.l.0#14",
+    "fast-belt.l.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.l.1": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.l.1#0",
+    "fast-belt.l.1#1",
+    "fast-belt.l.1#2",
+    "fast-belt.l.1#3",
+    "fast-belt.l.1#4",
+    "fast-belt.l.1#5",
+    "fast-belt.l.1#6",
+    "fast-belt.l.1#7",
+    "fast-belt.l.1#8",
+    "fast-belt.l.1#9",
+    "fast-belt.l.1#10",
+    "fast-belt.l.1#11",
+    "fast-belt.l.1#12",
+    "fast-belt.l.1#13",
+    "fast-belt.l.1#14",
+    "fast-belt.l.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.l.2": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.l.2#0",
+    "fast-belt.l.2#1",
+    "fast-belt.l.2#2",
+    "fast-belt.l.2#3",
+    "fast-belt.l.2#4",
+    "fast-belt.l.2#5",
+    "fast-belt.l.2#6",
+    "fast-belt.l.2#7",
+    "fast-belt.l.2#8",
+    "fast-belt.l.2#9",
+    "fast-belt.l.2#10",
+    "fast-belt.l.2#11",
+    "fast-belt.l.2#12",
+    "fast-belt.l.2#13",
+    "fast-belt.l.2#14",
+    "fast-belt.l.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.l.3": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.l.3#0",
+    "fast-belt.l.3#1",
+    "fast-belt.l.3#2",
+    "fast-belt.l.3#3",
+    "fast-belt.l.3#4",
+    "fast-belt.l.3#5",
+    "fast-belt.l.3#6",
+    "fast-belt.l.3#7",
+    "fast-belt.l.3#8",
+    "fast-belt.l.3#9",
+    "fast-belt.l.3#10",
+    "fast-belt.l.3#11",
+    "fast-belt.l.3#12",
+    "fast-belt.l.3#13",
+    "fast-belt.l.3#14",
+    "fast-belt.l.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.r.0": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.r.0#0",
+    "fast-belt.r.0#1",
+    "fast-belt.r.0#2",
+    "fast-belt.r.0#3",
+    "fast-belt.r.0#4",
+    "fast-belt.r.0#5",
+    "fast-belt.r.0#6",
+    "fast-belt.r.0#7",
+    "fast-belt.r.0#8",
+    "fast-belt.r.0#9",
+    "fast-belt.r.0#10",
+    "fast-belt.r.0#11",
+    "fast-belt.r.0#12",
+    "fast-belt.r.0#13",
+    "fast-belt.r.0#14",
+    "fast-belt.r.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.r.1": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.r.1#0",
+    "fast-belt.r.1#1",
+    "fast-belt.r.1#2",
+    "fast-belt.r.1#3",
+    "fast-belt.r.1#4",
+    "fast-belt.r.1#5",
+    "fast-belt.r.1#6",
+    "fast-belt.r.1#7",
+    "fast-belt.r.1#8",
+    "fast-belt.r.1#9",
+    "fast-belt.r.1#10",
+    "fast-belt.r.1#11",
+    "fast-belt.r.1#12",
+    "fast-belt.r.1#13",
+    "fast-belt.r.1#14",
+    "fast-belt.r.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.r.2": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.r.2#0",
+    "fast-belt.r.2#1",
+    "fast-belt.r.2#2",
+    "fast-belt.r.2#3",
+    "fast-belt.r.2#4",
+    "fast-belt.r.2#5",
+    "fast-belt.r.2#6",
+    "fast-belt.r.2#7",
+    "fast-belt.r.2#8",
+    "fast-belt.r.2#9",
+    "fast-belt.r.2#10",
+    "fast-belt.r.2#11",
+    "fast-belt.r.2#12",
+    "fast-belt.r.2#13",
+    "fast-belt.r.2#14",
+    "fast-belt.r.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.r.3": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.r.3#0",
+    "fast-belt.r.3#1",
+    "fast-belt.r.3#2",
+    "fast-belt.r.3#3",
+    "fast-belt.r.3#4",
+    "fast-belt.r.3#5",
+    "fast-belt.r.3#6",
+    "fast-belt.r.3#7",
+    "fast-belt.r.3#8",
+    "fast-belt.r.3#9",
+    "fast-belt.r.3#10",
+    "fast-belt.r.3#11",
+    "fast-belt.r.3#12",
+    "fast-belt.r.3#13",
+    "fast-belt.r.3#14",
+    "fast-belt.r.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.s.0": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.s.0#0",
+    "fast-belt.s.0#1",
+    "fast-belt.s.0#2",
+    "fast-belt.s.0#3",
+    "fast-belt.s.0#4",
+    "fast-belt.s.0#5",
+    "fast-belt.s.0#6",
+    "fast-belt.s.0#7",
+    "fast-belt.s.0#8",
+    "fast-belt.s.0#9",
+    "fast-belt.s.0#10",
+    "fast-belt.s.0#11",
+    "fast-belt.s.0#12",
+    "fast-belt.s.0#13",
+    "fast-belt.s.0#14",
+    "fast-belt.s.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.s.1": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.s.1#0",
+    "fast-belt.s.1#1",
+    "fast-belt.s.1#2",
+    "fast-belt.s.1#3",
+    "fast-belt.s.1#4",
+    "fast-belt.s.1#5",
+    "fast-belt.s.1#6",
+    "fast-belt.s.1#7",
+    "fast-belt.s.1#8",
+    "fast-belt.s.1#9",
+    "fast-belt.s.1#10",
+    "fast-belt.s.1#11",
+    "fast-belt.s.1#12",
+    "fast-belt.s.1#13",
+    "fast-belt.s.1#14",
+    "fast-belt.s.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.s.2": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.s.2#0",
+    "fast-belt.s.2#1",
+    "fast-belt.s.2#2",
+    "fast-belt.s.2#3",
+    "fast-belt.s.2#4",
+    "fast-belt.s.2#5",
+    "fast-belt.s.2#6",
+    "fast-belt.s.2#7",
+    "fast-belt.s.2#8",
+    "fast-belt.s.2#9",
+    "fast-belt.s.2#10",
+    "fast-belt.s.2#11",
+    "fast-belt.s.2#12",
+    "fast-belt.s.2#13",
+    "fast-belt.s.2#14",
+    "fast-belt.s.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "fast-belt.s.3": {
+   "group": "belts",
+   "frames": [
+    "fast-belt.s.3#0",
+    "fast-belt.s.3#1",
+    "fast-belt.s.3#2",
+    "fast-belt.s.3#3",
+    "fast-belt.s.3#4",
+    "fast-belt.s.3#5",
+    "fast-belt.s.3#6",
+    "fast-belt.s.3#7",
+    "fast-belt.s.3#8",
+    "fast-belt.s.3#9",
+    "fast-belt.s.3#10",
+    "fast-belt.s.3#11",
+    "fast-belt.s.3#12",
+    "fast-belt.s.3#13",
+    "fast-belt.s.3#14",
+    "fast-belt.s.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
   "decal.dirt.0": {
    "group": "decals",
    "frames": [
@@ -1378,6 +2064,360 @@
     0.5
    ]
   },
+  "fx.dust.0": {
+   "group": "effects",
+   "frames": [
+    "fx.dust.0#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.dust.1": {
+   "group": "effects",
+   "frames": [
+    "fx.dust.1#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.dust.2": {
+   "group": "effects",
+   "frames": [
+    "fx.dust.2#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.dust.3": {
+   "group": "effects",
+   "frames": [
+    "fx.dust.3#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.0": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.0#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.1": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.1#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.2": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.2#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.3": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.3#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.4": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.4#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.smoke.5": {
+   "group": "effects",
+   "frames": [
+    "fx.smoke.5#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.spark": {
+   "group": "effects",
+   "frames": [
+    "fx.spark#0"
+   ],
+   "w": 24,
+   "h": 24,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "assembling-machine-1": {
+   "group": "entities",
+   "frames": [
+    "assembling-machine-1#0",
+    "assembling-machine-1#1",
+    "assembling-machine-1#2",
+    "assembling-machine-1#3",
+    "assembling-machine-1#4",
+    "assembling-machine-1#5",
+    "assembling-machine-1#6",
+    "assembling-machine-1#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "assembling-machine-1.shadow": {
+   "group": "entities",
+   "frames": [
+    "assembling-machine-1.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "boiler.0": {
+   "group": "entities",
+   "frames": [
+    "boiler.0#0"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ]
+  },
+  "boiler.0.glow": {
+   "group": "entities",
+   "frames": [
+    "boiler.0.glow#0",
+    "boiler.0.glow#1",
+    "boiler.0.glow#2",
+    "boiler.0.glow#3"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "boiler.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "boiler.0.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "boiler.1": {
+   "group": "entities",
+   "frames": [
+    "boiler.1#0"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ]
+  },
+  "boiler.1.glow": {
+   "group": "entities",
+   "frames": [
+    "boiler.1.glow#0",
+    "boiler.1.glow#1",
+    "boiler.1.glow#2",
+    "boiler.1.glow#3"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "boiler.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "boiler.1.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "boiler.2": {
+   "group": "entities",
+   "frames": [
+    "boiler.2#0"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ]
+  },
+  "boiler.2.glow": {
+   "group": "entities",
+   "frames": [
+    "boiler.2.glow#0",
+    "boiler.2.glow#1",
+    "boiler.2.glow#2",
+    "boiler.2.glow#3"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "boiler.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "boiler.2.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "boiler.3": {
+   "group": "entities",
+   "frames": [
+    "boiler.3#0"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ]
+  },
+  "boiler.3.glow": {
+   "group": "entities",
+   "frames": [
+    "boiler.3.glow#0",
+    "boiler.3.glow#1",
+    "boiler.3.glow#2",
+    "boiler.3.glow#3"
+   ],
+   "w": 240,
+   "h": 272,
+   "anchor": [
+    0.5,
+    0.5647058823529412
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "boiler.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "boiler.3.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "drill.0": {
    "group": "entities",
    "frames": [
@@ -1538,6 +2578,146 @@
     0.35714285714285715
    ]
   },
+  "electric-mining-drill.0": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.0#0",
+    "electric-mining-drill.0#1",
+    "electric-mining-drill.0#2",
+    "electric-mining-drill.0#3",
+    "electric-mining-drill.0#4",
+    "electric-mining-drill.0#5",
+    "electric-mining-drill.0#6",
+    "electric-mining-drill.0#7"
+   ],
+   "w": 272,
+   "h": 320,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "electric-mining-drill.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.0.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.4,
+    0.4
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "electric-mining-drill.1": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.1#0",
+    "electric-mining-drill.1#1",
+    "electric-mining-drill.1#2",
+    "electric-mining-drill.1#3",
+    "electric-mining-drill.1#4",
+    "electric-mining-drill.1#5",
+    "electric-mining-drill.1#6",
+    "electric-mining-drill.1#7"
+   ],
+   "w": 272,
+   "h": 320,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "electric-mining-drill.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.1.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.4,
+    0.4
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "electric-mining-drill.2": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.2#0",
+    "electric-mining-drill.2#1",
+    "electric-mining-drill.2#2",
+    "electric-mining-drill.2#3",
+    "electric-mining-drill.2#4",
+    "electric-mining-drill.2#5",
+    "electric-mining-drill.2#6",
+    "electric-mining-drill.2#7"
+   ],
+   "w": 272,
+   "h": 320,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "electric-mining-drill.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.2.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.4,
+    0.4
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "electric-mining-drill.3": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.3#0",
+    "electric-mining-drill.3#1",
+    "electric-mining-drill.3#2",
+    "electric-mining-drill.3#3",
+    "electric-mining-drill.3#4",
+    "electric-mining-drill.3#5",
+    "electric-mining-drill.3#6",
+    "electric-mining-drill.3#7"
+   ],
+   "w": 272,
+   "h": 320,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "electric-mining-drill.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "electric-mining-drill.3.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.4,
+    0.4
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "furnace.glow": {
    "group": "entities",
    "frames": [
@@ -1595,6 +2775,150 @@
    "anchor": [
     0.35714285714285715,
     0.35714285714285715
+   ]
+  },
+  "inserter-electric.arm": {
+   "group": "entities",
+   "frames": [
+    "inserter-electric.arm#0",
+    "inserter-electric.arm#1",
+    "inserter-electric.arm#2",
+    "inserter-electric.arm#3",
+    "inserter-electric.arm#4",
+    "inserter-electric.arm#5",
+    "inserter-electric.arm#6",
+    "inserter-electric.arm#7",
+    "inserter-electric.arm#8",
+    "inserter-electric.arm#9",
+    "inserter-electric.arm#10",
+    "inserter-electric.arm#11",
+    "inserter-electric.arm#12",
+    "inserter-electric.arm#13",
+    "inserter-electric.arm#14",
+    "inserter-electric.arm#15",
+    "inserter-electric.arm#16",
+    "inserter-electric.arm#17",
+    "inserter-electric.arm#18",
+    "inserter-electric.arm#19",
+    "inserter-electric.arm#20",
+    "inserter-electric.arm#21",
+    "inserter-electric.arm#22",
+    "inserter-electric.arm#23",
+    "inserter-electric.arm#24",
+    "inserter-electric.arm#25",
+    "inserter-electric.arm#26",
+    "inserter-electric.arm#27",
+    "inserter-electric.arm#28",
+    "inserter-electric.arm#29",
+    "inserter-electric.arm#30",
+    "inserter-electric.arm#31"
+   ],
+   "w": 176,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ],
+   "meta": {
+    "angles": 32,
+    "reach": 1.1,
+    "handLift": 0.2309
+   }
+  },
+  "inserter-electric.base": {
+   "group": "entities",
+   "frames": [
+    "inserter-electric.base#0"
+   ],
+   "w": 64,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "inserter-electric.shadow": {
+   "group": "entities",
+   "frames": [
+    "inserter-electric.shadow#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.35,
+    0.35
+   ]
+  },
+  "inserter-long.arm": {
+   "group": "entities",
+   "frames": [
+    "inserter-long.arm#0",
+    "inserter-long.arm#1",
+    "inserter-long.arm#2",
+    "inserter-long.arm#3",
+    "inserter-long.arm#4",
+    "inserter-long.arm#5",
+    "inserter-long.arm#6",
+    "inserter-long.arm#7",
+    "inserter-long.arm#8",
+    "inserter-long.arm#9",
+    "inserter-long.arm#10",
+    "inserter-long.arm#11",
+    "inserter-long.arm#12",
+    "inserter-long.arm#13",
+    "inserter-long.arm#14",
+    "inserter-long.arm#15",
+    "inserter-long.arm#16",
+    "inserter-long.arm#17",
+    "inserter-long.arm#18",
+    "inserter-long.arm#19",
+    "inserter-long.arm#20",
+    "inserter-long.arm#21",
+    "inserter-long.arm#22",
+    "inserter-long.arm#23",
+    "inserter-long.arm#24",
+    "inserter-long.arm#25",
+    "inserter-long.arm#26",
+    "inserter-long.arm#27",
+    "inserter-long.arm#28",
+    "inserter-long.arm#29",
+    "inserter-long.arm#30",
+    "inserter-long.arm#31"
+   ],
+   "w": 320,
+   "h": 320,
+   "anchor": [
+    0.5,
+    0.5700000000000001
+   ],
+   "meta": {
+    "angles": 32,
+    "reach": 2.1,
+    "handLift": 0.2309
+   }
+  },
+  "inserter-long.base": {
+   "group": "entities",
+   "frames": [
+    "inserter-long.base#0"
+   ],
+   "w": 64,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "inserter-long.shadow": {
+   "group": "entities",
+   "frames": [
+    "inserter-long.shadow#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.35,
+    0.35
    ]
   },
   "inserter.arm": {
@@ -1669,85 +2993,1255 @@
     0.35
    ]
   },
-  "player.0": {
+  "iron-chest": {
    "group": "entities",
    "frames": [
-    "player.0#0",
-    "player.0#1",
-    "player.0#2",
-    "player.0#3",
-    "player.0#4",
-    "player.0#5",
-    "player.0#6",
-    "player.0#7"
+    "iron-chest#0"
    ],
-   "w": 64,
-   "h": 80,
+   "w": 80,
+   "h": 102.5,
    "anchor": [
-    0.42,
-    0.82
+    0.5,
+    0.625
+   ]
+  },
+  "iron-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "iron-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.3,
+    0.3
+   ]
+  },
+  "lab": {
+   "group": "entities",
+   "frames": [
+    "lab#0",
+    "lab#1",
+    "lab#2",
+    "lab#3",
+    "lab#4",
+    "lab#5",
+    "lab#6",
+    "lab#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "lab.shadow": {
+   "group": "entities",
+   "frames": [
+    "lab.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "offshore-pump.0": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.0#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.509090909090909
+   ]
+  },
+  "offshore-pump.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.0.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "offshore-pump.1": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.1#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.509090909090909
+   ]
+  },
+  "offshore-pump.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.1.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "offshore-pump.2": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.2#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.509090909090909
+   ]
+  },
+  "offshore-pump.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.2.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "offshore-pump.3": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.3#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.509090909090909
+   ]
+  },
+  "offshore-pump.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "offshore-pump.3.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "pipe.0": {
+   "group": "entities",
+   "frames": [
+    "pipe.0#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.1": {
+   "group": "entities",
+   "frames": [
+    "pipe.1#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.10": {
+   "group": "entities",
+   "frames": [
+    "pipe.10#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.11": {
+   "group": "entities",
+   "frames": [
+    "pipe.11#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.12": {
+   "group": "entities",
+   "frames": [
+    "pipe.12#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.13": {
+   "group": "entities",
+   "frames": [
+    "pipe.13#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.14": {
+   "group": "entities",
+   "frames": [
+    "pipe.14#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.15": {
+   "group": "entities",
+   "frames": [
+    "pipe.15#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.2": {
+   "group": "entities",
+   "frames": [
+    "pipe.2#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.3": {
+   "group": "entities",
+   "frames": [
+    "pipe.3#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.4": {
+   "group": "entities",
+   "frames": [
+    "pipe.4#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.5": {
+   "group": "entities",
+   "frames": [
+    "pipe.5#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.6": {
+   "group": "entities",
+   "frames": [
+    "pipe.6#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.7": {
+   "group": "entities",
+   "frames": [
+    "pipe.7#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.8": {
+   "group": "entities",
+   "frames": [
+    "pipe.8#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "pipe.9": {
+   "group": "entities",
+   "frames": [
+    "pipe.9#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "player.idle.0": {
+   "group": "entities",
+   "frames": [
+    "player.idle.0#0",
+    "player.idle.0#1",
+    "player.idle.0#2",
+    "player.idle.0#3",
+    "player.idle.0#4",
+    "player.idle.0#5",
+    "player.idle.0#6",
+    "player.idle.0#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.1": {
+   "group": "entities",
+   "frames": [
+    "player.idle.1#0",
+    "player.idle.1#1",
+    "player.idle.1#2",
+    "player.idle.1#3",
+    "player.idle.1#4",
+    "player.idle.1#5",
+    "player.idle.1#6",
+    "player.idle.1#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.2": {
+   "group": "entities",
+   "frames": [
+    "player.idle.2#0",
+    "player.idle.2#1",
+    "player.idle.2#2",
+    "player.idle.2#3",
+    "player.idle.2#4",
+    "player.idle.2#5",
+    "player.idle.2#6",
+    "player.idle.2#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.3": {
+   "group": "entities",
+   "frames": [
+    "player.idle.3#0",
+    "player.idle.3#1",
+    "player.idle.3#2",
+    "player.idle.3#3",
+    "player.idle.3#4",
+    "player.idle.3#5",
+    "player.idle.3#6",
+    "player.idle.3#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.4": {
+   "group": "entities",
+   "frames": [
+    "player.idle.4#0",
+    "player.idle.4#1",
+    "player.idle.4#2",
+    "player.idle.4#3",
+    "player.idle.4#4",
+    "player.idle.4#5",
+    "player.idle.4#6",
+    "player.idle.4#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.5": {
+   "group": "entities",
+   "frames": [
+    "player.idle.5#0",
+    "player.idle.5#1",
+    "player.idle.5#2",
+    "player.idle.5#3",
+    "player.idle.5#4",
+    "player.idle.5#5",
+    "player.idle.5#6",
+    "player.idle.5#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.6": {
+   "group": "entities",
+   "frames": [
+    "player.idle.6#0",
+    "player.idle.6#1",
+    "player.idle.6#2",
+    "player.idle.6#3",
+    "player.idle.6#4",
+    "player.idle.6#5",
+    "player.idle.6#6",
+    "player.idle.6#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.idle.7": {
+   "group": "entities",
+   "frames": [
+    "player.idle.7#0",
+    "player.idle.7#1",
+    "player.idle.7#2",
+    "player.idle.7#3",
+    "player.idle.7#4",
+    "player.idle.7#5",
+    "player.idle.7#6",
+    "player.idle.7#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 6
+  },
+  "player.mine.0": {
+   "group": "entities",
+   "frames": [
+    "player.mine.0#0",
+    "player.mine.0#1",
+    "player.mine.0#2",
+    "player.mine.0#3",
+    "player.mine.0#4",
+    "player.mine.0#5",
+    "player.mine.0#6",
+    "player.mine.0#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
    ],
    "fps": 12
   },
-  "player.1": {
+  "player.mine.1": {
    "group": "entities",
    "frames": [
-    "player.1#0",
-    "player.1#1",
-    "player.1#2",
-    "player.1#3",
-    "player.1#4",
-    "player.1#5",
-    "player.1#6",
-    "player.1#7"
+    "player.mine.1#0",
+    "player.mine.1#1",
+    "player.mine.1#2",
+    "player.mine.1#3",
+    "player.mine.1#4",
+    "player.mine.1#5",
+    "player.mine.1#6",
+    "player.mine.1#7"
    ],
-   "w": 64,
-   "h": 80,
+   "w": 80,
+   "h": 96,
    "anchor": [
-    0.42,
-    0.82
+    0.5,
+    0.7000000000000001
    ],
    "fps": 12
   },
-  "player.2": {
+  "player.mine.2": {
    "group": "entities",
    "frames": [
-    "player.2#0",
-    "player.2#1",
-    "player.2#2",
-    "player.2#3",
-    "player.2#4",
-    "player.2#5",
-    "player.2#6",
-    "player.2#7"
+    "player.mine.2#0",
+    "player.mine.2#1",
+    "player.mine.2#2",
+    "player.mine.2#3",
+    "player.mine.2#4",
+    "player.mine.2#5",
+    "player.mine.2#6",
+    "player.mine.2#7"
    ],
-   "w": 64,
-   "h": 80,
+   "w": 80,
+   "h": 96,
    "anchor": [
-    0.42,
-    0.82
+    0.5,
+    0.7000000000000001
    ],
    "fps": 12
   },
-  "player.3": {
+  "player.mine.3": {
    "group": "entities",
    "frames": [
-    "player.3#0",
-    "player.3#1",
-    "player.3#2",
-    "player.3#3",
-    "player.3#4",
-    "player.3#5",
-    "player.3#6",
-    "player.3#7"
+    "player.mine.3#0",
+    "player.mine.3#1",
+    "player.mine.3#2",
+    "player.mine.3#3",
+    "player.mine.3#4",
+    "player.mine.3#5",
+    "player.mine.3#6",
+    "player.mine.3#7"
    ],
-   "w": 64,
-   "h": 80,
+   "w": 80,
+   "h": 96,
    "anchor": [
-    0.42,
-    0.82
+    0.5,
+    0.7000000000000001
    ],
    "fps": 12
+  },
+  "player.mine.4": {
+   "group": "entities",
+   "frames": [
+    "player.mine.4#0",
+    "player.mine.4#1",
+    "player.mine.4#2",
+    "player.mine.4#3",
+    "player.mine.4#4",
+    "player.mine.4#5",
+    "player.mine.4#6",
+    "player.mine.4#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 12
+  },
+  "player.mine.5": {
+   "group": "entities",
+   "frames": [
+    "player.mine.5#0",
+    "player.mine.5#1",
+    "player.mine.5#2",
+    "player.mine.5#3",
+    "player.mine.5#4",
+    "player.mine.5#5",
+    "player.mine.5#6",
+    "player.mine.5#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 12
+  },
+  "player.mine.6": {
+   "group": "entities",
+   "frames": [
+    "player.mine.6#0",
+    "player.mine.6#1",
+    "player.mine.6#2",
+    "player.mine.6#3",
+    "player.mine.6#4",
+    "player.mine.6#5",
+    "player.mine.6#6",
+    "player.mine.6#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 12
+  },
+  "player.mine.7": {
+   "group": "entities",
+   "frames": [
+    "player.mine.7#0",
+    "player.mine.7#1",
+    "player.mine.7#2",
+    "player.mine.7#3",
+    "player.mine.7#4",
+    "player.mine.7#5",
+    "player.mine.7#6",
+    "player.mine.7#7"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 12
+  },
+  "player.walk.0": {
+   "group": "entities",
+   "frames": [
+    "player.walk.0#0",
+    "player.walk.0#1",
+    "player.walk.0#2",
+    "player.walk.0#3",
+    "player.walk.0#4",
+    "player.walk.0#5",
+    "player.walk.0#6",
+    "player.walk.0#7",
+    "player.walk.0#8",
+    "player.walk.0#9",
+    "player.walk.0#10",
+    "player.walk.0#11",
+    "player.walk.0#12",
+    "player.walk.0#13",
+    "player.walk.0#14",
+    "player.walk.0#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.1": {
+   "group": "entities",
+   "frames": [
+    "player.walk.1#0",
+    "player.walk.1#1",
+    "player.walk.1#2",
+    "player.walk.1#3",
+    "player.walk.1#4",
+    "player.walk.1#5",
+    "player.walk.1#6",
+    "player.walk.1#7",
+    "player.walk.1#8",
+    "player.walk.1#9",
+    "player.walk.1#10",
+    "player.walk.1#11",
+    "player.walk.1#12",
+    "player.walk.1#13",
+    "player.walk.1#14",
+    "player.walk.1#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.2": {
+   "group": "entities",
+   "frames": [
+    "player.walk.2#0",
+    "player.walk.2#1",
+    "player.walk.2#2",
+    "player.walk.2#3",
+    "player.walk.2#4",
+    "player.walk.2#5",
+    "player.walk.2#6",
+    "player.walk.2#7",
+    "player.walk.2#8",
+    "player.walk.2#9",
+    "player.walk.2#10",
+    "player.walk.2#11",
+    "player.walk.2#12",
+    "player.walk.2#13",
+    "player.walk.2#14",
+    "player.walk.2#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.3": {
+   "group": "entities",
+   "frames": [
+    "player.walk.3#0",
+    "player.walk.3#1",
+    "player.walk.3#2",
+    "player.walk.3#3",
+    "player.walk.3#4",
+    "player.walk.3#5",
+    "player.walk.3#6",
+    "player.walk.3#7",
+    "player.walk.3#8",
+    "player.walk.3#9",
+    "player.walk.3#10",
+    "player.walk.3#11",
+    "player.walk.3#12",
+    "player.walk.3#13",
+    "player.walk.3#14",
+    "player.walk.3#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.4": {
+   "group": "entities",
+   "frames": [
+    "player.walk.4#0",
+    "player.walk.4#1",
+    "player.walk.4#2",
+    "player.walk.4#3",
+    "player.walk.4#4",
+    "player.walk.4#5",
+    "player.walk.4#6",
+    "player.walk.4#7",
+    "player.walk.4#8",
+    "player.walk.4#9",
+    "player.walk.4#10",
+    "player.walk.4#11",
+    "player.walk.4#12",
+    "player.walk.4#13",
+    "player.walk.4#14",
+    "player.walk.4#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.5": {
+   "group": "entities",
+   "frames": [
+    "player.walk.5#0",
+    "player.walk.5#1",
+    "player.walk.5#2",
+    "player.walk.5#3",
+    "player.walk.5#4",
+    "player.walk.5#5",
+    "player.walk.5#6",
+    "player.walk.5#7",
+    "player.walk.5#8",
+    "player.walk.5#9",
+    "player.walk.5#10",
+    "player.walk.5#11",
+    "player.walk.5#12",
+    "player.walk.5#13",
+    "player.walk.5#14",
+    "player.walk.5#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.6": {
+   "group": "entities",
+   "frames": [
+    "player.walk.6#0",
+    "player.walk.6#1",
+    "player.walk.6#2",
+    "player.walk.6#3",
+    "player.walk.6#4",
+    "player.walk.6#5",
+    "player.walk.6#6",
+    "player.walk.6#7",
+    "player.walk.6#8",
+    "player.walk.6#9",
+    "player.walk.6#10",
+    "player.walk.6#11",
+    "player.walk.6#12",
+    "player.walk.6#13",
+    "player.walk.6#14",
+    "player.walk.6#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "player.walk.7": {
+   "group": "entities",
+   "frames": [
+    "player.walk.7#0",
+    "player.walk.7#1",
+    "player.walk.7#2",
+    "player.walk.7#3",
+    "player.walk.7#4",
+    "player.walk.7#5",
+    "player.walk.7#6",
+    "player.walk.7#7",
+    "player.walk.7#8",
+    "player.walk.7#9",
+    "player.walk.7#10",
+    "player.walk.7#11",
+    "player.walk.7#12",
+    "player.walk.7#13",
+    "player.walk.7#14",
+    "player.walk.7#15"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 24
+  },
+  "small-electric-pole": {
+   "group": "entities",
+   "frames": [
+    "small-electric-pole#0"
+   ],
+   "w": 80,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.8181818181818182
+   ],
+   "meta": {
+    "wireLift": 0.9525
+   }
+  },
+  "small-electric-pole.shadow": {
+   "group": "entities",
+   "frames": [
+    "small-electric-pole.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.24,
+    0.24
+   ]
+  },
+  "splitter.0": {
+   "group": "entities",
+   "frames": [
+    "splitter.0#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "splitter.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "splitter.0.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "splitter.1": {
+   "group": "entities",
+   "frames": [
+    "splitter.1#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "splitter.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "splitter.1.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "splitter.2": {
+   "group": "entities",
+   "frames": [
+    "splitter.2#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "splitter.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "splitter.2.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "splitter.3": {
+   "group": "entities",
+   "frames": [
+    "splitter.3#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "splitter.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "splitter.3.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "steam-engine.0": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.0#0",
+    "steam-engine.0#1",
+    "steam-engine.0#2",
+    "steam-engine.0#3",
+    "steam-engine.0#4",
+    "steam-engine.0#5",
+    "steam-engine.0#6",
+    "steam-engine.0#7"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5538461538461539
+   ],
+   "fps": 15
+  },
+  "steam-engine.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.0.shadow#0"
+   ],
+   "w": 216,
+   "h": 216,
+   "anchor": [
+    0.4444444444444444,
+    0.4444444444444444
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "steam-engine.1": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.1#0",
+    "steam-engine.1#1",
+    "steam-engine.1#2",
+    "steam-engine.1#3",
+    "steam-engine.1#4",
+    "steam-engine.1#5",
+    "steam-engine.1#6",
+    "steam-engine.1#7"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5538461538461539
+   ],
+   "fps": 15
+  },
+  "steam-engine.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.1.shadow#0"
+   ],
+   "w": 216,
+   "h": 216,
+   "anchor": [
+    0.4444444444444444,
+    0.4444444444444444
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "steam-engine.2": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.2#0",
+    "steam-engine.2#1",
+    "steam-engine.2#2",
+    "steam-engine.2#3",
+    "steam-engine.2#4",
+    "steam-engine.2#5",
+    "steam-engine.2#6",
+    "steam-engine.2#7"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5538461538461539
+   ],
+   "fps": 15
+  },
+  "steam-engine.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.2.shadow#0"
+   ],
+   "w": 216,
+   "h": 216,
+   "anchor": [
+    0.4444444444444444,
+    0.4444444444444444
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "steam-engine.3": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.3#0",
+    "steam-engine.3#1",
+    "steam-engine.3#2",
+    "steam-engine.3#3",
+    "steam-engine.3#4",
+    "steam-engine.3#5",
+    "steam-engine.3#6",
+    "steam-engine.3#7"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5538461538461539
+   ],
+   "fps": 15
+  },
+  "steam-engine.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "steam-engine.3.shadow#0"
+   ],
+   "w": 216,
+   "h": 216,
+   "anchor": [
+    0.4444444444444444,
+    0.4444444444444444
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "underground-belt.in.0": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.in.0#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.in.1": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.in.1#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.in.2": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.in.2#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.in.3": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.in.3#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.out.0": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.out.0#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.out.1": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.out.1#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.out.2": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.out.2#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "underground-belt.out.3": {
+   "group": "entities",
+   "frames": [
+    "underground-belt.out.3#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
   },
   "flora.boulder.0": {
    "group": "flora",
@@ -1845,6 +4339,114 @@
     0.39425035704165384
    ]
   },
+  "flora.conifer.0": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.0#0"
+   ],
+   "w": 288,
+   "h": 544,
+   "anchor": [
+    0.48888888888888893,
+    0.7447208257555521
+   ]
+  },
+  "flora.conifer.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.0.shadow#0"
+   ],
+   "w": 288,
+   "h": 336,
+   "anchor": [
+    0.24444444444444446,
+    0.20952380952380953
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.conifer.1": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.1#0"
+   ],
+   "w": 256,
+   "h": 480,
+   "anchor": [
+    0.5,
+    0.7172762225300906
+   ]
+  },
+  "flora.conifer.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.1.shadow#0"
+   ],
+   "w": 256,
+   "h": 288,
+   "anchor": [
+    0.25,
+    0.2222222222222222
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.conifer.2": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.2#0"
+   ],
+   "w": 320,
+   "h": 544,
+   "anchor": [
+    0.45999999999999996,
+    0.7089390388811123
+   ]
+  },
+  "flora.conifer.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.2.shadow#0"
+   ],
+   "w": 288,
+   "h": 320,
+   "anchor": [
+    0.25555555555555554,
+    0.22999999999999998
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.conifer.3": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.3#0"
+   ],
+   "w": 288,
+   "h": 480,
+   "anchor": [
+    0.4666666666666667,
+    0.6844215343282538
+   ]
+  },
+  "flora.conifer.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.conifer.3.shadow#0"
+   ],
+   "w": 256,
+   "h": 272,
+   "anchor": [
+    0.2625,
+    0.24705882352941178
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "flora.reed.0": {
    "group": "flora",
    "frames": [
@@ -1939,6 +4541,102 @@
    "anchor": [
     0.31666666666666665,
     0.31666666666666665
+   ]
+  },
+  "flora.rocks.0": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.0#0"
+   ],
+   "w": 256,
+   "h": 288,
+   "anchor": [
+    0.4575,
+    0.5161822940061224
+   ]
+  },
+  "flora.rocks.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.0.shadow#0"
+   ],
+   "w": 320,
+   "h": 320,
+   "anchor": [
+    0.35600000000000004,
+    0.35600000000000004
+   ]
+  },
+  "flora.rocks.1": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.1#0"
+   ],
+   "w": 288,
+   "h": 320,
+   "anchor": [
+    0.47111111111111115,
+    0.5225640646055101
+   ]
+  },
+  "flora.rocks.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.1.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.3763636363636364,
+    0.3763636363636364
+   ]
+  },
+  "flora.rocks.2": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.2#0"
+   ],
+   "w": 288,
+   "h": 320,
+   "anchor": [
+    0.46888888888888886,
+    0.5205640646055101
+   ]
+  },
+  "flora.rocks.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.2.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.37454545454545457,
+    0.37454545454545457
+   ]
+  },
+  "flora.rocks.3": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.3#0"
+   ],
+   "w": 256,
+   "h": 288,
+   "anchor": [
+    0.495,
+    0.5495156273394557
+   ]
+  },
+  "flora.rocks.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.rocks.3.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.35090909090909095,
+    0.35090909090909095
    ]
   },
   "flora.shrub.0": {
@@ -2277,6 +4975,42 @@
     0.5
    ]
   },
+  "item.assembling-machine-1": {
+   "group": "items",
+   "frames": [
+    "item.assembling-machine-1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.automation-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.automation-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.boiler": {
+   "group": "items",
+   "frames": [
+    "item.boiler#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.burner-inserter": {
    "group": "items",
    "frames": [
@@ -2305,6 +5039,90 @@
    "group": "items",
    "frames": [
     "item.coal#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.copper-cable": {
+   "group": "items",
+   "frames": [
+    "item.copper-cable#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.copper-ore": {
+   "group": "items",
+   "frames": [
+    "item.copper-ore#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.copper-plate": {
+   "group": "items",
+   "frames": [
+    "item.copper-plate#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.electric-mining-drill": {
+   "group": "items",
+   "frames": [
+    "item.electric-mining-drill#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.electronic-circuit": {
+   "group": "items",
+   "frames": [
+    "item.electronic-circuit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.fast-transport-belt": {
+   "group": "items",
+   "frames": [
+    "item.fast-transport-belt#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.inserter": {
+   "group": "items",
+   "frames": [
+    "item.inserter#0"
    ],
    "w": 64,
    "h": 64,
@@ -2361,6 +5179,78 @@
     0.5
    ]
   },
+  "item.iron-stick": {
+   "group": "items",
+   "frames": [
+    "item.iron-stick#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.lab": {
+   "group": "items",
+   "frames": [
+    "item.lab#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.logistic-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.logistic-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.long-handed-inserter": {
+   "group": "items",
+   "frames": [
+    "item.long-handed-inserter#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.offshore-pump": {
+   "group": "items",
+   "frames": [
+    "item.offshore-pump#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.pipe": {
+   "group": "items",
+   "frames": [
+    "item.pipe#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.shadow": {
    "group": "items",
    "frames": [
@@ -2373,10 +5263,58 @@
     0.5
    ]
   },
+  "item.small-electric-pole": {
+   "group": "items",
+   "frames": [
+    "item.small-electric-pole#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.splitter": {
+   "group": "items",
+   "frames": [
+    "item.splitter#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.steam-engine": {
+   "group": "items",
+   "frames": [
+    "item.steam-engine#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.stone": {
    "group": "items",
    "frames": [
     "item.stone#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.stone-brick": {
+   "group": "items",
+   "frames": [
+    "item.stone-brick#0"
    ],
    "w": 64,
    "h": 64,
@@ -2401,6 +5339,18 @@
    "group": "items",
    "frames": [
     "item.transport-belt#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.underground-belt": {
+   "group": "items",
+   "frames": [
+    "item.underground-belt#0"
    ],
    "w": 64,
    "h": 64,
@@ -5761,6 +8711,294 @@
    "group": "terrain",
    "frames": [
     "res.coal.5.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.0.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.0.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.0.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.0.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.0.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.0.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.0.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.0.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.1.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.1.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.1.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.1.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.1.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.1.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.1.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.1.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.2.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.2.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.2.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.2.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.2.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.2.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.2.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.2.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.3.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.3.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.3.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.3.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.3.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.3.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.3.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.3.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.4.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.4.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.4.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.4.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.4.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.4.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.4.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.4.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.5.0": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.5.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.5.1": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.5.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.5.2": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.5.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.copper-ore.5.3": {
+   "group": "terrain",
+   "frames": [
+    "res.copper-ore.5.3#0"
    ],
    "w": 96,
    "h": 96,

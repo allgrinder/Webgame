@@ -22,7 +22,9 @@ const frame = (name, i = 0) => {
   if (!s) return null;
   return frames.get(s.frames[i % s.frames.length]);
 };
-const T = 64;
+const T = manifest.tileSize ?? 64;
+const R = T / 64;
+for (const s of Object.values(manifest.sprites)) { s.w *= R; s.h *= R; }
 const BG = [52, 70, 60, 255];
 
 // ------------------------------------------------------------------ Testszene

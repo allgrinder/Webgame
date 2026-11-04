@@ -143,5 +143,5 @@ if (oldManifest) {
 }
 if (keep.length) console.log(`  ${keep.length} Platzhalter-Sprites ohne Blender-Modell übernommen`);
 
-const manifest = writeAtlases(OUT, sprites, { generator: 'blender', blender: version ?? oldManifest?.blender ?? null, models: modelInfo, placeholders: keep });
+const manifest = writeAtlases(OUT, sprites, { tileSize: 128, generator: 'blender', blender: version ?? oldManifest?.blender ?? null, models: modelInfo, placeholders: keep });
 console.log(`Fertig: ${rendered} Modell(e) neu gerendert, ${Object.keys(manifest.sprites).length} Sprites, ${manifest.atlases.length} Atlanten.`);

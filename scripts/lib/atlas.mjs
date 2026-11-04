@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Img } from './image.mjs';
 
-const MAX = 2048;
+const MAX = 4096;
 const PAD = 1; // Rand mit Kantenwiederholung gegen Texturbluten
 
 /**
@@ -12,6 +12,9 @@ const PAD = 1; // Rand mit Kantenwiederholung gegen Texturbluten
  * @param {object} extra  zusätzliche Felder für manifest.json
  */
 export function writeAtlases(outDir, sprites, extra = {}) {
+  // Pixel pro Feld; das Spiel arbeitet mit 64 Welteinheiten pro Feld (Texturauflösung = tileSize / 64)
+  const tileSize = extra.tileSize ?? 64;
+  const resolution = tileSize / 64;
   fs.mkdirSync(outDir, { recursive: true });
   for (const f of fs.readdirSync(outDir)) {
     if (/^atlas-.*\.(png|json)$/.test(f)) fs.rmSync(path.join(outDir, f));
@@ -21,7 +24,7 @@ export function writeAtlases(outDir, sprites, extra = {}) {
     if (!groups.has(s.group)) groups.set(s.group, []);
     groups.get(s.group).push(s);
   }
-  const manifest = { version: 1, tileSize: 64, ...extra, atlases: [], sprites: {} };
+  const manifest = { version: 1, ...extra, tileSize, atlases: [], sprites: {} };
   for (const [group, list] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
     // Frames sammeln und nach Höhe sortieren (Regalpacken)
     const frames = [];
@@ -35,7 +38,7 @@ export function writeAtlases(outDir, sprites, extra = {}) {
       const { placed, rest, w, h } = packPage(remaining);
       if (!placed.length) throw new Error(`Frame zu groß für Atlas: ${remaining[0].key}`);
       const page = new Img(w, h);
-      const json = { frames: {}, meta: { image: '', format: 'RGBA8888', size: { w, h }, scale: 1 } };
+      const json = { frames: {}, meta: { image: '', format: 'RGBA8888', size: { w, h }, scale: resolution } };
       for (const p of placed) {
         const { img } = p;
         page.blit(img, 0, 0, img.w, img.h, p.x + PAD, p.y + PAD);
@@ -61,8 +64,8 @@ export function writeAtlases(outDir, sprites, extra = {}) {
       manifest.sprites[s.name] = {
         group,
         frames: s.frames.map((_, i) => `${s.name}#${i}`),
-        w: s.frames[0].w,
-        h: s.frames[0].h,
+        w: s.frames[0].w / resolution,
+        h: s.frames[0].h / resolution,
         anchor: s.anchor,
         ...(s.fps ? { fps: s.fps } : {}),
         ...(s.meta ? { meta: s.meta } : {}),

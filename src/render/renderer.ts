@@ -43,6 +43,16 @@ export class Camera {
   maxZoom = 3;
 }
 
+/** Boden-Decal unter Gebäuden (Einbindung in die Landschaft). */
+const GROUND_DECAL: Partial<Record<string, string>> = {
+  drill: 'decal.dirt',
+  furnace: 'decal.dirt',
+  boiler: 'decal.dirt',
+  generator: 'decal.gravel',
+  assembler: 'decal.gravel',
+  lab: 'decal.gravel',
+};
+
 /** Sprite-Präfix je Greifarm. */
 const INSERTER_PREFIX: Record<string, string> = {
   'burner-inserter': 'inserter',
@@ -331,6 +341,25 @@ export class GameRenderer {
       sp.scale.set(k * d.sx, k * d.sy);
       sp.rotation = d.rot;
       n++;
+    }
+    // Einbindung: festgetretene Erde bzw. Kies unter größeren Gebäuden
+    if (this.sprites.has('decal.dirt.0')) {
+      for (const e of world.entities.values()) {
+        if (!GROUND_DECAL[e.kind]) continue;
+        if (e.x + e.w < v.x0 - 1 || e.x > v.x1 + 1 || e.y + e.h < v.y0 - 1 || e.y > v.y1 + 1) continue;
+        const h = (Math.imul(e.x * 73856093 ^ e.y * 19349663, 0x9e3779b1) >>> 0);
+        const name = `${GROUND_DECAL[e.kind]}.${h % 4}`;
+        if (!this.sprites.has(name)) continue;
+        const tex = this.sprites.frame(name);
+        const sp = p.get(tex);
+        sp.position.set(e.cx * TILE, e.cy * TILE);
+        const size = Math.max(e.w, e.h) * 1.45 * TILE;
+        sp.scale.set(size / tex.width, (Math.min(e.w, e.h) * 1.45 * TILE) / tex.height);
+        if (e.h > e.w) sp.scale.set((e.w * 1.45 * TILE) / tex.width, (e.h * 1.45 * TILE) / tex.height);
+        sp.rotation = ((h >> 8) % 7 - 3) * 0.05;
+        sp.alpha = 0.9;
+        n++;
+      }
     }
     p.end();
     this.stats.decor = n;

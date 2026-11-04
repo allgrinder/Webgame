@@ -1,5 +1,7 @@
 // Asset-Pipeline: rendert geänderte Blender-Modelle neu und packt alles in Atlanten.
-// Aufruf: npm run assets [-- --force] [-- --only belt,ground]
+// Aufruf: npm run assets [-- --force] [-- --only belt,ground] [-- --stamp]
+// Ein Modell wird neu gerendert, wenn sich sein Skript oder eine der Bibliotheken ändert, die es (auch
+// mittelbar) importiert. --stamp übernimmt vorhandene Renderergebnisse ohne Neurendern (nach Umstellungen).
 import { execFileSync, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -14,6 +16,7 @@ const CACHE = path.join(root, 'assets/.cache/renders');
 const OUT = path.join(root, 'public/assets');
 const args = process.argv.slice(2);
 const force = args.includes('--force');
+const stamp = args.includes('--stamp');
 const onlyIdx = args.indexOf('--only');
 const only = onlyIdx >= 0 ? new Set(args[onlyIdx + 1].split(',')) : null;
 
@@ -36,9 +39,44 @@ function sha(...parts) {
   return h.digest('hex').slice(0, 16);
 }
 
-const libFiles = [path.join(BL, 'render.py'), ...fs.readdirSync(path.join(BL, 'lib')).filter((f) => f.endsWith('.py')).sort().map((f) => path.join(BL, 'lib', f)), ...fs.readdirSync(path.join(BL, 'lib/gartenwerk')).filter((f) => f.endsWith('.py')).sort().map((f) => path.join(BL, 'lib/gartenwerk', f))];
-const libHash = sha(...libFiles.map((f) => fs.readFileSync(f)), useVenv ? 'bpy' : 'blender');
+/** Bibliotheksmodul -> Datei (lib/ oder lib/gartenwerk/). */
+function libPath(mod) {
+  for (const d of ['lib', 'lib/gartenwerk']) {
+    const f = path.join(BL, d, `${mod}.py`);
+    if (fs.existsSync(f)) return f;
+  }
+  return null;
+}
+
+/** Alle Bibliotheksdateien, die eine Datei (mittelbar) importiert. */
+function depsOf(file, seen = new Set()) {
+  const src = fs.readFileSync(file, 'utf8');
+  for (const m of src.matchAll(/^\s*(?:import\s+([\w, ]+)|from\s+(\w+)\s+import)/gm)) {
+    const mods = m[1] ? m[1].split(',').map((x) => x.trim().split(/\s+/)[0]) : [m[2]];
+    for (const mod of mods) {
+      const f = libPath(mod);
+      if (f && !seen.has(f)) {
+        seen.add(f);
+        depsOf(f, seen);
+      }
+    }
+  }
+  return seen;
+}
+
+const renderPy = path.join(BL, 'render.py');
+const baseDeps = depsOf(renderPy);
+function modelHash(m) {
+  const file = path.join(BL, 'models', `${m}.py`);
+  const deps = [...new Set([...baseDeps, ...depsOf(file)])].sort();
+  return sha(fs.readFileSync(renderPy), ...deps.map((f) => path.relative(BL, f) + fs.readFileSync(f)), useVenv ? 'bpy' : 'blender', fs.readFileSync(file));
+}
 const models = fs.readdirSync(path.join(BL, 'models')).filter((f) => f.endsWith('.py')).map((f) => f.slice(0, -3)).sort();
+
+if (args.includes('--deps')) {
+  for (const m of models) console.log(m.padEnd(12), [...new Set([...baseDeps, ...depsOf(path.join(BL, 'models', `${m}.py`))])].map((f) => path.basename(f, '.py')).sort().join(' '));
+  process.exit(0);
+}
 
 const oldManifest = fs.existsSync(path.join(OUT, 'manifest.json')) ? JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8')) : null;
 const version = blenderVersion();
@@ -72,8 +110,9 @@ const sprites = [];
 const modelInfo = {};
 let rendered = 0;
 for (const m of models) {
-  const hash = sha(libHash, fs.readFileSync(path.join(BL, 'models', `${m}.py`)));
+  const hash = modelHash(m);
   const dir = path.join(CACHE, m);
+  if (stamp && fs.existsSync(path.join(dir, 'sprites.json'))) fs.writeFileSync(path.join(dir, 'hash.txt'), hash);
   const cached = fs.existsSync(path.join(dir, 'hash.txt')) && fs.readFileSync(path.join(dir, 'hash.txt'), 'utf8') === hash;
   const inAtlas = oldManifest?.models?.[m]?.hash === hash;
   const wanted = only ? only.has(m) : true;

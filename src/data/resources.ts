@@ -12,13 +12,15 @@ export interface ResourceDef {
   readonly miningTime: number;
   /** Mengenschwellen für die sichtbare Dichte (aufsteigend, Anzahl = Dichtestufen - 1). */
   readonly densityThresholds: readonly number[];
+  /** Farbe auf der Übersichtskarte (sRGB). */
+  readonly mapColor: number;
 }
 
 export const RESOURCES: readonly ResourceDef[] = [
-  { id: 'iron-ore', index: 1, name: 'Eisenerz', result: 'iron-ore', miningTime: 1, densityThresholds: [150, 400, 800] },
-  { id: 'coal', index: 2, name: 'Kohle', result: 'coal', miningTime: 1, densityThresholds: [150, 400, 800] },
-  { id: 'stone', index: 3, name: 'Stein', result: 'stone', miningTime: 1, densityThresholds: [150, 400, 800] },
-  { id: 'copper-ore', index: 4, name: 'Kupfererz', result: 'copper-ore', miningTime: 1, densityThresholds: [150, 400, 800] },
+  { id: 'iron-ore', index: 1, name: 'Eisenerz', result: 'iron-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0x6f8aa0 },
+  { id: 'coal', index: 2, name: 'Kohle', result: 'coal', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0x1e1d1c },
+  { id: 'stone', index: 3, name: 'Stein', result: 'stone', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xb09e7c },
+  { id: 'copper-ore', index: 4, name: 'Kupfererz', result: 'copper-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xc0683a },
 ];
 
 export const RESOURCE_BY_INDEX: readonly (ResourceDef | undefined)[] = (() => {

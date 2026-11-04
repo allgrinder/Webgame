@@ -9,6 +9,8 @@ import type { SpriteLib } from '../render/assets';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
+import { Minimap } from './minimap';
+import { Tooltip } from './tooltip';
 
 const STATUS_TEXT: Record<Status, string> = {
   [Status.Idle]: 'Leerlauf',
@@ -42,6 +44,8 @@ export class Hud {
   private readonly entWin: HTMLDivElement;
   private readonly menu: HTMLDivElement;
   private readonly techWin: HTMLDivElement;
+  readonly tip: Tooltip;
+  readonly minimap: Minimap;
   private readonly researchEl: HTMLDivElement;
   private readonly craftQueueEl: HTMLDivElement;
   private openEntityId: number | null = null;
@@ -66,6 +70,8 @@ export class Hud {
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.researchEl = el('div', 'research-bar', this.layer);
+    this.minimap = new Minimap(this.layer);
+    this.tip = new Tooltip(this.layer, (n) => this.sprites.iconUrl(n));
     this.cursorEl.style.transform = 'translate(-100px, -100px)';
     this.buildHelp();
     this.showDebug = game.debug;
@@ -124,6 +130,8 @@ export class Hud {
       this.updateCraftQueue();
       const p = w.player;
       this.updateResearch();
+      const c = g.renderer.camera;
+      this.minimap.update(w, p ? p.px / 256 : c.x, p ? p.py / 256 : c.y);
       if (p && p.messages.length) {
         this.msgEl.textContent = p.messages.join(' · ');
         this.msgEl.dataset.t = String(this.frame);
@@ -139,6 +147,7 @@ export class Hud {
   // ---------------------------------------------------------- Schnellleiste
 
   private buildQuickbar(): void {
+    this.tip.hide();
     this.quickbar.replaceChildren();
     const qb = this.game.quickbar();
     qb.forEach((item, i) => {
@@ -149,6 +158,7 @@ export class Hud {
       if (item) slot.appendChild(this.icon(`item.${item}`));
       el('span', 'count', slot);
       slot.addEventListener('click', () => this.game.selectQuickbar(i));
+      if (item) this.tip.attach(slot, () => this.tip.item(item));
       slot.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         // Rechtsklick: Schnellleistenplatz mit Cursor-Item belegen oder leeren
@@ -206,6 +216,7 @@ export class Hud {
   private buildInventory(): void {
     const p = this.game.world.player;
     if (!p) return;
+    this.tip.hide();
     this.invWin.replaceChildren();
     const head = el('div', 'win-head', this.invWin);
     head.textContent = 'Inventar & Handwerk';
@@ -221,6 +232,7 @@ export class Hud {
     this.invSlots = p.inventory.slots.map((_, i) => {
       const s = el('div', 'slot', grid);
       s.addEventListener('click', (e) => this.onInvSlot(i, e.ctrlKey || e.metaKey, e.shiftKey));
+      this.tip.attach(s, () => (s.dataset.item ? this.tip.item(s.dataset.item, Number(s.dataset.count)) : null));
       return s;
     });
     const right = el('div', 'col', body);
@@ -233,8 +245,7 @@ export class Hud {
       const s = el('div', 'slot recipe', rgrid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       el('span', 'count', s);
-      s.title = `${ITEMS[r.results[0].item]?.name}${r.results[0].amount > 1 ? ` ×${r.results[0].amount}` : ''}\n` +
-        r.ingredients.map((i) => `${i.amount}× ${ITEMS[i.item]?.name}`).join(', ') + `\n${r.time} s`;
+      this.tip.attach(s, () => this.tip.recipe(r, 1, p.craftableCount(r.id)));
       s.addEventListener('click', (e) => {
         const n = e.ctrlKey || e.metaKey ? 1000 : e.shiftKey ? 5 : 1;
         p.craft(r.id, n);
@@ -262,8 +273,11 @@ export class Hud {
       if (st) {
         s.appendChild(this.icon(`item.${st.item}`));
         el('span', 'count', s).textContent = String(st.count);
-        s.title = ITEMS[st.item]?.name ?? st.item;
-      } else s.title = '';
+        s.dataset.item = st.item;
+        s.dataset.count = String(st.count);
+      } else {
+        delete s.dataset.item;
+      }
       s.classList.toggle('active', !!st && st.item === this.game.cursorItem);
     });
     for (const [id, s] of this.recipeEls) {
@@ -337,6 +351,7 @@ export class Hud {
     const key = this.entityKey(e);
     if (this.entWin.dataset.key === key) return;
     this.entWin.dataset.key = key;
+    if (this.entWin.matches(':hover')) this.tip.hide();
     this.entWin.replaceChildren();
     const head = el('div', 'win-head', this.entWin);
     head.textContent = def.name;
@@ -432,8 +447,7 @@ export class Hud {
       if (r.category !== 'crafting' || !g.world.research.recipeUnlocked(r.id)) continue;
       const s = el('div', `slot recipe${e.recipe?.id === r.id ? ' active' : ''}`, grid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
-      s.title = `${ITEMS[r.results[0].item]?.name}\n` + r.ingredients.map((i) => `${i.amount}× ${ITEMS[i.item]?.name}`).join(', ') +
-        `\n${(r.time / e.def.craftingSpeed).toFixed(1)} s`;
+      this.tip.attach(s, () => this.tip.recipe(r, e.def.craftingSpeed));
       s.addEventListener('click', () => {
         const back = e.setRecipe(e.recipe?.id === r.id ? null : r.id);
         const p = g.world.player;
@@ -496,8 +510,9 @@ export class Hud {
       const un = el('div', 'tech-unlocks', card);
       for (const u of t.unlocks) {
         const ic = this.icon(`item.${u}`);
-        ic.title = ITEMS[u]?.name ?? u;
         un.appendChild(ic);
+        const rec = RECIPE_LIST.find((x) => x.id === u);
+        if (rec) this.tip.attach(ic, () => this.tip.recipe(rec));
       }
       if (t.prerequisites.length) el('div', 'dim', card).textContent = `Voraussetzung: ${t.prerequisites.map((p) => TECH_BY_ID[p].name).join(', ')}`;
       if (!done) {
@@ -530,7 +545,7 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>

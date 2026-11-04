@@ -6,6 +6,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, 'lib'))
+sys.path.insert(0, os.path.join(HERE, 'lib', 'gartenwerk'))
 
 import eisen  # noqa: E402
 
@@ -22,7 +23,7 @@ def main():
     o = eisen.Output(out)
     mod.render(o)
     o.finish()
-    print(f'[eisenwerk] Modell {model}: {sum(len(s["frames"]) for s in o.sprites)} Frames in {time.time() - t0:.1f} s')
+    print(f'[eisenwerk] Modell {model}: {sum(len(s.get("frames", [])) or s.get("cols", 1) * s.get("rows", 1) for s in o.sprites)} Sprites in {time.time() - t0:.1f} s')
 
 
 main()

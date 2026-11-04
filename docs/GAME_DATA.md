@@ -119,6 +119,7 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 |---|---|---|
 | Abbauzeit Eisenerz, Kohle, Stein | 1 | P `entity/resources.lua`: `mining_time = 1` |
 | Feldgrößen, Mengen, Lage, Dichtestufen | eigene Werte | E |
+| Dekoration (Dichte, Haine, Abstände zu Start und Erz) | `src/data/decor.ts`, nur Darstellung | E |
 
 ## Messvorschläge (Quelle 3)
 

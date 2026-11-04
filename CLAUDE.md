@@ -10,6 +10,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Bänder: Transportlinien mit Abständen (`src/sim/belts.ts`), nie Items einzeln pro Tick bewegen.
 - Grafik nur aus Blender-Skripten (`assets/blender/`, headless `blender -b -P`), keine fremden Grafiken/Icons/Sounds.
   Ergebnis: Atlanten + `public/assets/manifest.json` (eingecheckt). Nach jedem Renderlauf Kontaktbogen ansehen.
+- Natur-Grafik (Wiese, Kiesel, Gräser, Sträucher, Bäume) nutzt die eigenen Gartenwerk-Generatoren
+  (`assets/blender/lib/gartenwerk/`, aus `allgrinder/Greenlabv2`). Szene/Licht für alle Modelle: `gw_lib.reset_scene` (AgX).
+- Stil: natürlich, trockene Steppenwiese; Bäume nur Dekoration (keine Kollision, kein Holz).
 - Meilenstein fertig erst, wenn `npm run build`, `npm test` und `npm run e2e` durchlaufen.
 - Erweiterbarkeit: neue Gebäude/Ressourcen/Rezepte nur über `src/data/` + `kind`-Verhalten in `src/sim/`.
 
@@ -25,6 +28,8 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - M3 Produktionskette: fertig (`?scene=demo`, Tests für Bohrer/Ofen/Greifarm/Kette/Speichern).
 - M4 Spielbare Runde: fertig (Freeplay-Start, Handabbau, Inventar, Handwerk mit Zwischenprodukten,
   Gebäudefenster, Speichern/Laden in IndexedDB, Playwright-Ablauftest).
+- Natürlicher Boden: Steppenwiese (periodisch 16×16), Decals (Erd-/Kiesflecken, Kiesel, Blüten, Grasbüschel),
+  Flora (Sträucher, Findlinge, Bäume mit Schattenebene) per Seed in `src/render/decor.ts`, Parameter in `src/data/decor.ts`.
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 
 ## Prüfen

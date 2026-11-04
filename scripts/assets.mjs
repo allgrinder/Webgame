@@ -103,6 +103,19 @@ for (const m of models) {
   if (source === 'cache') {
     const list = JSON.parse(fs.readFileSync(path.join(dir, 'sprites.json'), 'utf8'));
     for (const s of list) {
+      if (s.sheet) {
+        // großes Bild in Einzelsprites schneiden
+        const img = Img.read(path.join(dir, s.sheet));
+        const cw = img.w / s.cols;
+        const ch = img.h / s.rows;
+        for (let y = 0; y < s.rows; y++)
+          for (let x = 0; x < s.cols; x++) {
+            const name = s.nameFmt.replace('{x}', String(x)).replace('{y}', String(y));
+            sprites.push({ name, group: s.group, anchor: s.anchor, frames: [img.crop(x * cw, y * ch, cw, ch)] });
+            names.push(name);
+          }
+        continue;
+      }
       sprites.push({ name: s.name, group: s.group, anchor: s.anchor, fps: s.fps, meta: s.meta, frames: s.frames.map((f) => Img.read(path.join(dir, f))) });
       names.push(s.name);
     }

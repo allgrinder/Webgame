@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, type Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { entityDef } from '../data/entities';
+import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
 import { BeltSystem, Shape, laneLength } from '../sim/belts';
@@ -9,6 +10,7 @@ import { DX, DY, type Dir } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
+import { DecorField } from './decor';
 import { ParticlePool, SpritePool } from './pools';
 
 export const TILE = 64;
@@ -46,6 +48,10 @@ export class GameRenderer {
   readonly camera = new Camera();
   private readonly root = new Container();
   private ground!: ParticlePool;
+  private res!: ParticlePool;
+  private readonly decals = new SpritePool();
+  private decor: DecorField | null = null;
+  private decorMap: unknown = null;
   private belts!: ParticlePool;
   private items!: ParticlePool;
   private readonly shadows = new SpritePool();
@@ -67,7 +73,7 @@ export class GameRenderer {
     return t;
   }
   private readonly tmp = { x: 0, y: 0 };
-  stats = { ground: 0, belts: 0, items: 0, entities: 0 };
+  stats = { ground: 0, decor: 0, belts: 0, items: 0, entities: 0 };
 
   private constructor(app: Application, readonly sprites: SpriteLib) {
     this.app = app;
@@ -92,6 +98,7 @@ export class GameRenderer {
   private init(): void {
     const s = this.sprites;
     this.ground = new ParticlePool(s.frame('ground.0.0'));
+    this.res = new ParticlePool(s.frame('ground.0.0'));
     this.belts = new ParticlePool(s.frame('belt.s.0'));
     this.items = new ParticlePool(s.frame('item.iron-ore'));
     this.glow.container.blendMode = 'add';
@@ -99,6 +106,8 @@ export class GameRenderer {
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
       this.ground.container,
+      this.decals.container,
+      this.res.container,
       this.belts.container,
       this.items.container,
       this.shadows.container,
@@ -148,7 +157,9 @@ export class GameRenderer {
 
   private drawGround(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const g = this.ground;
+    const rp = this.res;
     g.begin();
+    rp.begin();
     const CS = MAPGEN.chunkSize;
     for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor(v.y1 / CS); cy++) {
       for (let cx = Math.floor(v.x0 / CS); cx <= Math.floor(v.x1 / CS); cx++) {
@@ -169,14 +180,73 @@ export class GameRenderer {
               const def = RESOURCE_BY_INDEX[res]!;
               const lvl = densityLevel(def, chunk.amount[i]);
               const variant = (chunk.ground[i] >> 3) % 4;
-              g.push(this.resTex(res, def.id, variant, lvl), px, py);
+              rp.push(this.resTex(res, def.id, variant, lvl), px, py);
             }
           }
         }
       }
     }
     g.end();
-    this.stats.ground = g.count;
+    rp.end();
+    this.stats.ground = g.count + rp.count;
+    this.drawDecals(world, v);
+  }
+
+  // ------------------------------------------------------------------ Dekoration
+
+  private decorField(world: World): DecorField {
+    if (!this.decor || this.decorMap !== world.map) {
+      const s = this.sprites;
+      this.decor = new DecorField(world.map, world.seed, (prefix) => s.countPrefix(`${prefix}.`));
+      this.decorMap = world.map;
+    }
+    return this.decor;
+  }
+
+  /** Sichtbare Dekoration je Chunk, mit Rand für große Sprites (Bäume). */
+  private *visibleDecor(world: World, v: ReturnType<GameRenderer['viewRect']>, margin: number) {
+    const field = this.decorField(world);
+    const CS = MAPGEN.chunkSize;
+    for (let cy = Math.floor((v.y0 - margin) / CS); cy <= Math.floor((v.y1 + margin) / CS); cy++)
+      for (let cx = Math.floor((v.x0 - margin) / CS); cx <= Math.floor((v.x1 + margin) / CS); cx++)
+        for (const d of field.chunk(cx, cy)) {
+          if (d.x < v.x0 - margin || d.x > v.x1 + margin || d.y < v.y0 - margin || d.y > v.y1 + margin) continue;
+          yield d;
+        }
+  }
+
+  private drawDecals(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const p = this.decals;
+    p.begin();
+    const small = this.camera.zoom >= DECOR_MIN_ZOOM_SMALL;
+    let n = 0;
+    for (const d of this.visibleDecor(world, v, 4)) {
+      if (d.kind.layer !== 'decal') continue;
+      if (!small && d.kind.cell < 6) continue;
+      const sp = p.get(this.sprites.frame(`${d.kind.sprite}.${d.variant}`));
+      sp.position.set(d.x * TILE, d.y * TILE);
+      n++;
+    }
+    p.end();
+    this.stats.decor = n;
+  }
+
+  /** Flora im Gebäude-Layer (nach y sortiert), Schatten in der Schattenebene. Unter Gebäuden ausgeblendet. */
+  private drawFlora(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const s = this.sprites;
+    for (const d of this.visibleDecor(world, v, 7)) {
+      if (d.kind.layer !== 'flora') continue;
+      if (world.entityAt(d.tx, d.ty)) continue;
+      const name = `${d.kind.sprite}.${d.variant}`;
+      if (d.kind.shadow) {
+        const sh = this.shadows.get(s.frame(`${name}.shadow`));
+        sh.position.set(d.x * TILE, d.y * TILE);
+        sh.scale.set(s.info(`${name}.shadow`)?.meta?.scale ?? 1);
+      }
+      const sp = this.ents.get(s.frame(name));
+      sp.position.set(d.x * TILE, d.y * TILE);
+      sp.zIndex = d.y * TILE;
+    }
   }
 
   // ------------------------------------------------------------------ Bänder
@@ -253,6 +323,7 @@ export class GameRenderer {
         icon.scale.set(0.5);
       }
     }
+    this.drawFlora(world, v);
     const pl = world.player;
     if (pl) {
       const px = (pl.prevPx + (pl.px - pl.prevPx) * alpha) / 256;

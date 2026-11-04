@@ -95,7 +95,7 @@ export class Hud {
       this.debugBox.style.display = 'block';
       this.debugBox.textContent =
         `FPS ${fps.toFixed(0)} | Tick ${w.tick} | Bänder ${w.belts.count} | Items ${w.belts.itemCount} | ` +
-        `Gezeichnet: Boden ${st.ground}, Band ${st.belts}, Items ${st.items}, Gebäude ${st.entities}` +
+        `Gezeichnet: Boden ${st.ground}, Deko ${st.decor}, Band ${st.belts}, Items ${st.items}, Gebäude ${st.entities}` +
         (g.paused ? ' | PAUSE' : '');
     } else this.debugBox.style.display = 'none';
     // Cursor-Item

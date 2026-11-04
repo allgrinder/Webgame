@@ -21,39 +21,18 @@ LIGHT_DIR = mathutils.Vector((0.55, -0.45, -0.70)).normalized()  # Richtung des 
 
 # --------------------------------------------------------------------------- Szene
 
-def reset(samples=SAMPLES):
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    s = bpy.context.scene
-    s.render.engine = 'CYCLES'
-    s.cycles.device = 'CPU'
-    s.cycles.samples = samples
+def reset(samples=SAMPLES, ground=True):
+    """Szene wie in Gartenwerk (gw_lib.reset_scene): AgX, warme Sonne von links oben, kühles Himmelslicht,
+    unsichtbarer Boden für Streulicht. Dazu Eisenwerk-Einstellungen (kein Denoiser verfügbar, 8 Bit)."""
+    import gw_lib
+    import gw_plants
+    s = gw_lib.reset_scene(samples, ground=ground, outlines=False)
+    gw_plants.reset_cache()
     s.cycles.use_denoising = False
-    s.cycles.max_bounces = 4
-    s.cycles.diffuse_bounces = 2
-    s.cycles.glossy_bounces = 2
-    s.cycles.transparent_max_bounces = 4
     s.cycles.seed = 7
-    s.render.film_transparent = True
     s.render.filter_size = 1.0
-    s.render.image_settings.file_format = 'PNG'
-    s.render.image_settings.color_mode = 'RGBA'
     s.render.image_settings.color_depth = '8'
-    s.view_settings.view_transform = 'Standard'
-    s.view_settings.look = 'None'
     s.render.threads_mode = 'AUTO'
-    world = bpy.data.worlds.new('world')
-    world.use_nodes = True
-    bg = world.node_tree.nodes['Background']
-    bg.inputs['Color'].default_value = (0.42, 0.40, 0.37, 1)
-    bg.inputs['Strength'].default_value = 0.55
-    s.world = world
-    sun = bpy.data.lights.new('sun', 'SUN')
-    sun.energy = 3.2
-    sun.angle = math.radians(6)
-    sun.color = (1.0, 0.96, 0.9)
-    so = bpy.data.objects.new('sun', sun)
-    so.rotation_euler = LIGHT_DIR.to_track_quat('-Z', 'Y').to_euler()
-    s.collection.objects.link(so)
     return s
 
 
@@ -282,7 +261,10 @@ def set_camera_visible(objs, visible):
 
 
 def all_mesh_objects():
-    return [o for o in bpy.context.scene.objects if o.type == 'MESH' and o.name != 'catcher']
+    """Sichtbare Szenenobjekte (Meshes, Kurven) ohne Schattenfänger und Streulicht-Boden."""
+    return [o for o in bpy.context.scene.objects
+            if o.type in ('MESH', 'CURVE') and o.name != 'catcher' and not o.name.startswith('ground_bounce')
+            and o.visible_camera]
 
 
 # --------------------------------------------------------------------------- Ausgabe
@@ -308,6 +290,12 @@ class Output:
             d['meta'] = meta
         self.sprites.append(d)
 
+    def add_sheet(self, path, cols, rows, name_fmt, group, anchor=(0.5, 0.5)):
+        """Ein großes Bild, das die Pipeline in cols×rows Einzelsprites schneidet.
+        name_fmt mit {x} und {y}, z. B. 'ground.{x}.{y}'."""
+        self.sprites.append({'sheet': os.path.relpath(path, self.out_dir), 'cols': cols, 'rows': rows,
+                             'nameFmt': name_fmt, 'group': group, 'anchor': list(anchor)})
+
     def render_frame(self, sprite, i):
         p = self.frame_path(sprite, i)
         render_to(p)
@@ -318,21 +306,25 @@ class Output:
             json.dump(self.sprites, f, indent=1)
 
 
-def shadow_render(out, sprite, group, canvas, anchor, target=(0, 0, 0)):
-    """Schatten-Ebene: Objekte unsichtbar für die Kamera, Boden als Schattenfänger."""
+def shadow_render(out, sprite, group, canvas, anchor, target=(0, 0, 0), half=False):
+    """Schatten-Ebene: Objekte unsichtbar für die Kamera, Boden als Schattenfänger.
+    half=True rendert in halber Auflösung (weiche Schatten großer Objekte); das Spiel skaliert ×2."""
     objs = all_mesh_objects()
     lights = [o for o in bpy.context.scene.objects if o.type == 'LIGHT' and o.name != 'sun']
     for l in lights:
         l.hide_render = True
     set_camera_visible(objs, False)
-    catcher = shadow_catcher(12)
+    catcher = shadow_catcher(40)
     camera(canvas[0], canvas[1], anchor, target)
+    if half:
+        bpy.context.scene.render.resolution_percentage = 50
     p = out.render_frame(sprite, 0)
-    out.add(sprite, group, [p], anchor)
+    out.add(sprite, group, [p], anchor, meta={'scale': 2} if half else None)
     bpy.data.objects.remove(catcher)
     set_camera_visible(objs, True)
     for l in lights:
         l.hide_render = False
+    bpy.context.scene.render.resolution_percentage = 100
     return p
 
 

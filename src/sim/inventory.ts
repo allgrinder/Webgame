@@ -1,5 +1,7 @@
 import { ITEMS } from '../data/items';
 
+export type InvData = ([string, number] | null)[];
+
 export interface Stack {
   item: string;
   count: number;

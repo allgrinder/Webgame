@@ -208,6 +208,7 @@ export class Game {
       }
       case 'q': this.pipette(); break;
       case 'e': this.hud.toggleInventory(); break;
+      case 't': this.hud.toggleResearch(); break;
       case 'escape':
         if (!this.hud.closeWindows()) {
           if (this.cursorItem) this.cursorItem = null;

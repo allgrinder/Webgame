@@ -1,6 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { RECIPE_LIST } from '../data/recipes';
+import { TECHS, TECH_BY_ID } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { deserializeWorld, serializeWorld } from '../sim/serialize';
@@ -40,6 +41,8 @@ export class Hud {
   private readonly invWin: HTMLDivElement;
   private readonly entWin: HTMLDivElement;
   private readonly menu: HTMLDivElement;
+  private readonly techWin: HTMLDivElement;
+  private readonly researchEl: HTMLDivElement;
   private readonly craftQueueEl: HTMLDivElement;
   private openEntityId: number | null = null;
   private showDebug = false;
@@ -61,6 +64,8 @@ export class Hud {
     this.invWin = el('div', 'window inventory hidden', row);
     this.entWin = el('div', 'window entity hidden', row);
     this.menu = el('div', 'window menu hidden', this.layer);
+    this.techWin = el('div', 'window tech hidden', this.layer);
+    this.researchEl = el('div', 'research-bar', this.layer);
     this.cursorEl.style.transform = 'translate(-100px, -100px)';
     this.buildHelp();
     this.showDebug = game.debug;
@@ -118,6 +123,7 @@ export class Hud {
       this.updateQuickbarCounts();
       this.updateCraftQueue();
       const p = w.player;
+      this.updateResearch();
       if (p && p.messages.length) {
         this.msgEl.textContent = p.messages.join(' · ');
         this.msgEl.dataset.t = String(this.frame);
@@ -221,8 +227,9 @@ export class Hud {
     el('div', 'sub-head', right).textContent = 'Handwerk (Klick: 1, Umschalt: 5, Strg: alle)';
     const rgrid = el('div', 'grid recipes', right);
     this.recipeEls.clear();
+    const research = this.game.world.research;
     for (const r of RECIPE_LIST) {
-      if (r.category !== 'crafting') continue;
+      if (r.category !== 'crafting' || !research.recipeUnlocked(r.id)) continue;
       const s = el('div', 'slot recipe', rgrid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       el('span', 'count', s);
@@ -356,7 +363,15 @@ export class Hud {
       const b = el('div', `progress ${cls}`, r);
       el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
     };
+    if (e.kind === 'assembler') this.recipePicker(e, body);
     for (const g of e.guiSlots()) row(g.label, g.inv);
+    if (e.kind === 'assembler') bar('Fortschritt', e.recipe && e.crafting ? e.progress / e.recipeTicks(e.recipe) : 0);
+    if (e.kind === 'lab') {
+      const t = g.world.research.currentTech;
+      bar(t ? t.name : 'Keine Forschung (T)', t ? g.world.research.fraction(t.id) : 0);
+    }
+    const en = (e as { energy?: { type?: string; buffer?: number; capacity?: number } }).energy;
+    if (en?.type === 'electric') bar('Strom', (en.buffer ?? 0) / Math.max(1, en.capacity ?? 1), 'power');
     if (e.kind === 'drill') bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
     if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
     const burner = e.burner;
@@ -366,8 +381,11 @@ export class Hud {
 
   private entityKey(e: Entity): string {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots)).join('|');
-    const prog = e.kind === 'drill' || e.kind === 'furnace' ? e.progress >> 3 : 0;
-    return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}`;
+    const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
+    const extra = e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '';
+    const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
+    const power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
+    return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
   }
 
   private onEntitySlot(e: Entity, inv: Inventory, i: number, ctrl: boolean): void {
@@ -394,7 +412,7 @@ export class Hud {
 
   closeWindows(): boolean {
     let any = false;
-    for (const w of [this.help, this.invWin, this.entWin, this.menu]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -402,6 +420,99 @@ export class Hud {
     }
     this.openEntityId = null;
     return any;
+  }
+
+  // ---------------------------------------------------------- Montage, Forschung
+
+  private recipePicker(e: Extract<Entity, { kind: 'assembler' }>, body: HTMLElement): void {
+    const g = this.game;
+    el('div', 'sub-head', body).textContent = e.recipe ? 'Rezept (Klick zum Wechseln)' : 'Rezept wählen';
+    const grid = el('div', 'grid recipes', body);
+    for (const r of RECIPE_LIST) {
+      if (r.category !== 'crafting' || !g.world.research.recipeUnlocked(r.id)) continue;
+      const s = el('div', `slot recipe${e.recipe?.id === r.id ? ' active' : ''}`, grid);
+      s.appendChild(this.icon(`item.${r.results[0].item}`));
+      s.title = `${ITEMS[r.results[0].item]?.name}\n` + r.ingredients.map((i) => `${i.amount}× ${ITEMS[i.item]?.name}`).join(', ') +
+        `\n${(r.time / e.def.craftingSpeed).toFixed(1)} s`;
+      s.addEventListener('click', () => {
+        const back = e.setRecipe(e.recipe?.id === r.id ? null : r.id);
+        const p = g.world.player;
+        for (const st of back) {
+          const n = p ? p.inventory.add(st.item, st.count) : 0;
+          for (let k = n; k < st.count; k++) g.world.dropGround(e.cx, e.cy, st.item);
+        }
+        this.entWin.dataset.key = '';
+        this.buildEntity();
+        this.updateInventory(true);
+      });
+    }
+  }
+
+  toggleResearch(): void {
+    const hidden = this.techWin.classList.toggle('hidden');
+    if (!hidden) this.buildResearch();
+  }
+
+  private researchKey = '';
+  private updateResearch(): void {
+    const r = this.game.world.research;
+    if (r.finished.length) {
+      for (const id of r.finished) this.game.world.player?.note(`Forschung abgeschlossen: ${TECH_BY_ID[id]?.name ?? id}`);
+      r.finished.length = 0;
+      this.refreshAll();
+    }
+    const t = r.currentTech;
+    const key = t ? `${t.id}${Math.floor(r.fraction(t.id) * 200)}` : '-';
+    if (key === this.researchKey) return;
+    this.researchKey = key;
+    this.researchEl.replaceChildren();
+    this.researchEl.style.display = t ? 'flex' : 'none';
+    if (!t) return;
+    el('span', '', this.researchEl).textContent = t.name;
+    const b = el('div', 'progress', this.researchEl);
+    el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
+    if (!this.techWin.classList.contains('hidden')) this.buildResearch();
+  }
+
+  private buildResearch(): void {
+    const r = this.game.world.research;
+    this.techWin.replaceChildren();
+    const head = el('div', 'win-head', this.techWin);
+    head.textContent = 'Forschung';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => this.toggleResearch();
+    const body = el('div', 'win-body tech-body', this.techWin);
+    for (const t of TECHS) {
+      const done = r.done.has(t.id);
+      const avail = r.available(t.id);
+      const card = el('div', `tech-card${done ? ' done' : avail ? '' : ' locked'}${r.current === t.id ? ' active' : ''}`, body);
+      const top = el('div', 'tech-top', card);
+      el('b', '', top).textContent = t.name;
+      el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : avail ? '' : 'gesperrt';
+      const cost = el('div', 'tech-cost', card);
+      for (const pk of t.packs) cost.appendChild(this.icon(`item.${pk}`));
+      el('span', '', cost).textContent = ` × ${t.count} · ${t.time} s je Einheit`;
+      const un = el('div', 'tech-unlocks', card);
+      for (const u of t.unlocks) {
+        const ic = this.icon(`item.${u}`);
+        ic.title = ITEMS[u]?.name ?? u;
+        un.appendChild(ic);
+      }
+      if (t.prerequisites.length) el('div', 'dim', card).textContent = `Voraussetzung: ${t.prerequisites.map((p) => TECH_BY_ID[p].name).join(', ')}`;
+      if (!done) {
+        const b = el('div', 'progress', card);
+        el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
+      }
+      if (avail) {
+        card.addEventListener('click', () => {
+          r.start(r.current === t.id ? null : t.id);
+          this.researchKey = '';
+          this.buildResearch();
+        });
+      }
+    }
+    el('div', 'hint', body).textContent = `Klick: Forschung starten/anhalten · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte)`;
   }
 
   toggleHelp(): void {
@@ -419,7 +530,7 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>

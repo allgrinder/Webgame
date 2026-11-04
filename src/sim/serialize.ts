@@ -1,3 +1,4 @@
+import type { ResearchData } from './research';
 import type { Status } from './entity';
 import type { Dir } from './geom';
 import type { Inventory } from './inventory';
@@ -44,6 +45,7 @@ export interface SaveData {
   /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
   ground?: [number, [string, number, number][]][];
   player: PlayerData | null;
+  research?: ResearchData;
 }
 
 interface PlayerData {
@@ -83,6 +85,7 @@ export function serializeWorld(w: World): SaveData {
     beltItems,
     map: w.map.serializeModifications(),
     water: w.map.serializeWater(),
+    research: w.research.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
@@ -109,6 +112,7 @@ export function deserializeWorld(d: SaveData): World {
   w.tick = d.tick;
   w.map.loadModifications(d.map);
   if (d.water) w.map.loadWater(d.water);
+  if (d.research) w.research.load(d.research);
   for (const ed of d.entities) {
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;

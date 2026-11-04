@@ -115,7 +115,22 @@ export interface PoleDef extends EntityBase {
   readonly supplyRadius: number;
 }
 
-export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef;
+export interface AssemblerDef extends EntityBase {
+  readonly kind: 'assembler';
+  readonly craftingSpeed: number;
+  readonly energyUsage: number;
+  readonly drain: number;
+}
+
+export interface LabDef extends EntityBase {
+  readonly kind: 'lab';
+  readonly researchSpeed: number;
+  readonly energyUsage: number;
+  readonly drain: number;
+  readonly inputs: readonly string[];
+}
+
+export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef;
 
 const list: EntityDef[] = [
   {
@@ -181,6 +196,15 @@ const list: EntityDef[] = [
   {
     kind: 'pole', id: 'small-electric-pole', name: 'Kleiner Strommast', width: 1, height: 1, health: 100,
     item: 'small-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 7.5, supplyRadius: 2.5,
+  },
+  {
+    kind: 'assembler', id: 'assembling-machine-1', name: 'Montagemaschine', width: 3, height: 3, health: 300,
+    item: 'assembling-machine-1', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 0.5, energyUsage: 75_000, drain: 2_500,
+  },
+  {
+    kind: 'lab', id: 'lab', name: 'Labor', width: 3, height: 3, health: 150,
+    item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000,
+    inputs: ['automation-science-pack', 'logistic-science-pack'],
   },
   {
     kind: 'container', id: 'iron-chest', name: 'Eisenkiste', width: 1, height: 1, health: 200,

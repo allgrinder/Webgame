@@ -7,6 +7,7 @@ import { DrillEntity, type Entity, itemId, itemIndex } from './machines';
 import { FluidSystem } from './fluids';
 import { GameMap } from './map';
 import { PowerSystem } from './power';
+import { ResearchSystem } from './research';
 import type { Player } from './player';
 
 export interface PlaceCheck {
@@ -36,12 +37,20 @@ export class World {
   readonly belts = new BeltSystem();
   readonly fluids = new FluidSystem();
   readonly power = new PowerSystem();
+  readonly research = new ResearchSystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
   /** Items auf dem Boden je Feld. */
   readonly ground = new Map<number, GroundItem[]>();
   nextId = 1;
-  player: Player | null = null;
+  private _player: Player | null = null;
+  get player(): Player | null {
+    return this._player;
+  }
+  set player(p: Player | null) {
+    this._player = p;
+    if (p) p.recipeUnlocked = (r) => this.research.recipeUnlocked(r);
+  }
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
 

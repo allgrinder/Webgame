@@ -75,3 +75,18 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .status.s1 { color: #7fd07a; }
 .status.s2, .status.s3 { color: var(--bad); }
 .hint { margin-top: 8px; color: var(--dim); font-size: 11px; }
+.progress.power .fill { background: #d9c24a; }
+.slot.recipe.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.research-bar { position: absolute; top: 34px; left: 10px; display: none; align-items: center; gap: 8px; width: 260px;
+  padding: 4px 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 4px; font-size: 12px; }
+.tech { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; max-height: 80vh; overflow: auto; }
+.tech-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tech-card { border: 1px solid var(--slot-edge); border-radius: 3px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.tech-card:hover { border-color: var(--accent); }
+.tech-card.active { border-color: var(--accent); background: rgba(255, 190, 90, 0.08); }
+.tech-card.done { opacity: 0.6; cursor: default; }
+.tech-card.locked { opacity: 0.45; cursor: default; }
+.tech-top { display: flex; justify-content: space-between; }
+.tech-cost, .tech-unlocks { display: flex; align-items: center; gap: 2px; font-size: 12px; }
+.tech-cost .icon, .tech-unlocks .icon { width: 24px; height: 24px; }
+.tech-body .hint { grid-column: 1 / -1; }

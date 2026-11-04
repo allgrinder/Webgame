@@ -68,6 +68,26 @@ const list: RecipeDef[] = [
     ingredients: [{ item: 'iron-gear-wheel', amount: 1 }, { item: 'iron-plate', amount: 1 }, { item: 'inserter', amount: 1 }],
     results: [{ item: 'long-handed-inserter', amount: 1 }],
   },
+  {
+    id: 'assembling-machine-1', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 3 }, { item: 'iron-gear-wheel', amount: 5 }, { item: 'iron-plate', amount: 9 }],
+    results: [{ item: 'assembling-machine-1', amount: 1 }],
+  },
+  {
+    id: 'lab', category: 'crafting', time: 2,
+    ingredients: [{ item: 'electronic-circuit', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'transport-belt', amount: 4 }],
+    results: [{ item: 'lab', amount: 1 }],
+  },
+  {
+    id: 'automation-science-pack', category: 'crafting', time: 5,
+    ingredients: [{ item: 'copper-plate', amount: 1 }, { item: 'iron-gear-wheel', amount: 1 }],
+    results: [{ item: 'automation-science-pack', amount: 1 }],
+  },
+  {
+    id: 'logistic-science-pack', category: 'crafting', time: 6,
+    ingredients: [{ item: 'inserter', amount: 1 }, { item: 'transport-belt', amount: 1 }],
+    results: [{ item: 'logistic-science-pack', amount: 1 }],
+  },
   { id: 'iron-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 8 }], results: [{ item: 'iron-chest', amount: 1 }] },
 ];
 

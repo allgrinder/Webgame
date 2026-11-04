@@ -47,6 +47,8 @@ export class Player {
   readonly messages: string[] = [];
   /** Taste zum Aufheben von Bodenitems gehalten (Eingabe wie moveX). */
   pickingUp = false;
+  /** Von der Welt gesetzt: Rezept freigeschaltet (Forschung). */
+  recipeUnlocked: (recipe: string) => boolean = () => true;
   /** Vom Spieler abgebaute Gebäude (für Rückgängig; vom Spiel geleert). */
   readonly minedLog: { name: string; x: number; y: number; dir: number }[] = [];
 
@@ -242,7 +244,7 @@ export class Player {
   /** Wieviele Exemplare per Hand herstellbar sind (inkl. Zwischenprodukten). */
   craftableCount(recipeId: string): number {
     const r = RECIPES[recipeId];
-    if (!r || r.category !== 'crafting') return 0;
+    if (!r || r.category !== 'crafting' || !this.recipeUnlocked(r.id)) return 0;
     let n = 0;
     const stock = this.stock();
     while (n < 500 && this.plan(r, stock)) n++;
@@ -266,7 +268,8 @@ export class Player {
     for (const ing of r.ingredients) {
       let have = stock.get(ing.item) ?? 0;
       while (have < ing.amount) {
-        const sub = craftingRecipeFor(ing.item);
+        const found = craftingRecipeFor(ing.item);
+        const sub = found && this.recipeUnlocked(found.id) ? found : undefined;
         const p = sub ? this.plan(sub, stock, depth + 1) : null;
         if (!sub || !p) {
           restore(stock, backup);
@@ -285,7 +288,7 @@ export class Player {
   /** Herstellung einreihen. Zutaten werden sofort aus dem Inventar entnommen. */
   craft(recipeId: string, count = 1): number {
     const r = RECIPES[recipeId];
-    if (!r || r.category !== 'crafting') return 0;
+    if (!r || r.category !== 'crafting' || !this.recipeUnlocked(r.id)) return 0;
     let done = 0;
     for (let i = 0; i < count; i++) {
       const before = this.stock();

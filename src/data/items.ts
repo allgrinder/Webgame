@@ -40,6 +40,10 @@ const list: ItemDef[] = [
   { id: 'small-electric-pole', name: 'Kleiner Strommast', stackSize: 50, placeResult: 'small-electric-pole', order: 44 },
   { id: 'electric-mining-drill', name: 'Elektrischer Bohrer', stackSize: 50, placeResult: 'electric-mining-drill', order: 45 },
   { id: 'inserter', name: 'Greifarm', stackSize: 50, placeResult: 'inserter', order: 46 },
+  { id: 'assembling-machine-1', name: 'Montagemaschine', stackSize: 50, placeResult: 'assembling-machine-1', order: 48 },
+  { id: 'lab', name: 'Labor', stackSize: 10, placeResult: 'lab', order: 49 },
+  { id: 'automation-science-pack', name: 'Automatisierungs-Wissenschaftspaket', stackSize: 200, order: 60 },
+  { id: 'logistic-science-pack', name: 'Logistik-Wissenschaftspaket', stackSize: 200, order: 61 },
   { id: 'long-handed-inserter', name: 'Langer Greifarm', stackSize: 50, placeResult: 'long-handed-inserter', order: 47 },
 ];
 

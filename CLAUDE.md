@@ -30,6 +30,7 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Gebäudefenster, Speichern/Laden in IndexedDB, Playwright-Ablauftest).
 - Natürlicher Boden: Steppenwiese (periodisch 16×16), Decals (Erd-/Kiesflecken, Kiesel, Blüten, Grasbüschel),
   Flora (Sträucher, Findlinge, Bäume mit Schattenebene) per Seed in `src/render/decor.ts`, Parameter in `src/data/decor.ts`.
+- Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 
 ## Prüfen

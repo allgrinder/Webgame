@@ -81,6 +81,8 @@ export class GameRenderer {
   private readonly fxPool = new SpritePool();
   private readonly fxAddPool = new SpritePool();
   private effects: Effects | null = null;
+  /** Blickrichtung der Figur (0..7, 0 = Norden, im Uhrzeigersinn). */
+  private playerDir = 4;
   private readonly icons = new SpritePool();
   private readonly overlay = new Graphics();
   private readonly wires = new Graphics();
@@ -495,8 +497,28 @@ export class GameRenderer {
     if (pl) {
       const px = (pl.prevPx + (pl.px - pl.prevPx) * alpha) / 256;
       const py = (pl.prevPy + (pl.py - pl.prevPy) * alpha) / 256;
-      const fr = pl.walking ? Math.floor((world.tick + alpha) / 5) : 0;
-      const sp = this.ents.get(s.frame(`player.${pl.facing}`, fr));
+      const t = world.tick + alpha;
+      let tex: Texture;
+      if (s.has('player.walk.0')) {
+        // 8 Richtungen aus der Bewegung bzw. zum Abbauziel; Ruhe, Laufen, Abbauen
+        const mt = pl.mineTarget;
+        const mining = mt !== null && pl.mineProgress > 0;
+        let dx = pl.px - pl.prevPx;
+        let dy = pl.py - pl.prevPy;
+        if (mining) {
+          const e = mt.kind === 'entity' ? world.entities.get(mt.id) : undefined;
+          const tx = mt.kind === 'resource' ? mt.x + 0.5 : e?.cx ?? px;
+          const ty = mt.kind === 'resource' ? mt.y + 0.5 : e?.cy ?? py;
+          dx = tx - px;
+          dy = ty - py;
+        }
+        if (dx !== 0 || dy !== 0) this.playerDir = (Math.round(Math.atan2(dx, -dy) / (Math.PI / 4)) + 8) % 8;
+        const k = this.playerDir;
+        if (mining) tex = s.frame(`player.mine.${k}`, Math.floor(t / 7.5));
+        else if (pl.walking) tex = s.frame(`player.walk.${k}`, Math.floor(t / 2.5));
+        else tex = s.frame(`player.idle.${k}`, Math.floor(t / 10));
+      } else tex = s.frame(`player.${pl.facing}`, pl.walking ? Math.floor(t / 5) : 0);
+      const sp = this.ents.get(tex);
       sp.position.set(px * TILE, py * TILE);
       sp.zIndex = py * TILE;
     }

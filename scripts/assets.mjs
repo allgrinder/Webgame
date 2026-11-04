@@ -17,8 +17,13 @@ const force = args.includes('--force');
 const onlyIdx = args.indexOf('--only');
 const only = onlyIdx >= 0 ? new Set(args[onlyIdx + 1].split(',')) : null;
 
+// Bevorzugt bpy 5.2 aus .venv-blender (wie Gartenwerk, mit Denoiser), sonst das Blender-Programm.
+const VENV_PY = path.join(root, '.venv-blender/bin/python');
+const useVenv = fs.existsSync(VENV_PY);
+
 function blenderVersion() {
   try {
+    if (useVenv) return 'bpy ' + execFileSync(VENV_PY, ['-c', 'import bpy; print(bpy.app.version_string)'], { encoding: 'utf8' }).trim().split('\n').pop();
     return execFileSync('blender', ['--version'], { encoding: 'utf8' }).split('\n')[0].trim();
   } catch {
     return null;
@@ -31,8 +36,8 @@ function sha(...parts) {
   return h.digest('hex').slice(0, 16);
 }
 
-const libFiles = [path.join(BL, 'render.py'), ...fs.readdirSync(path.join(BL, 'lib')).filter((f) => f.endsWith('.py')).sort().map((f) => path.join(BL, 'lib', f))];
-const libHash = sha(...libFiles.map((f) => fs.readFileSync(f)));
+const libFiles = [path.join(BL, 'render.py'), ...fs.readdirSync(path.join(BL, 'lib')).filter((f) => f.endsWith('.py')).sort().map((f) => path.join(BL, 'lib', f)), ...fs.readdirSync(path.join(BL, 'lib/gartenwerk')).filter((f) => f.endsWith('.py')).sort().map((f) => path.join(BL, 'lib/gartenwerk', f))];
+const libHash = sha(...libFiles.map((f) => fs.readFileSync(f)), useVenv ? 'bpy' : 'blender');
 const models = fs.readdirSync(path.join(BL, 'models')).filter((f) => f.endsWith('.py')).map((f) => f.slice(0, -3)).sort();
 
 const oldManifest = fs.existsSync(path.join(OUT, 'manifest.json')) ? JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8')) : null;
@@ -87,7 +92,11 @@ for (const m of models) {
   if (source === 'render') {
     console.log(`> Rendere ${m} …`);
     fs.rmSync(dir, { recursive: true, force: true });
-    const r = spawnSync('blender', ['-b', '--factory-startup', '-noaudio', '-P', path.join(BL, 'render.py'), '--', '--model', m, '--out', dir], { encoding: 'utf8', maxBuffer: 1 << 28 });
+    const cmd = useVenv ? VENV_PY : 'blender';
+    const cargs = useVenv
+      ? [path.join(BL, 'render.py'), '--', '--model', m, '--out', dir]
+      : ['-b', '--factory-startup', '-noaudio', '-P', path.join(BL, 'render.py'), '--', '--model', m, '--out', dir];
+    const r = spawnSync(cmd, cargs, { encoding: 'utf8', maxBuffer: 1 << 28 });
     const log = (r.stdout ?? '') + (r.stderr ?? '');
     const done = log.split('\n').find((l) => l.startsWith('[eisenwerk]'));
     if (r.status !== 0 || !done) {

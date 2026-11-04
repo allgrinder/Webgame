@@ -13,6 +13,8 @@ export const PLAYER = {
   /** Kollisionsradius in Feldern. */
   radius: 0.2,
   craftingSpeed: 1,
+  /** Reichweite für das Aufheben von Bodenitems (Felder). */
+  groundPickupDistance: 1,
 } as const;
 
 /** Freeplay-Startausrüstung. */

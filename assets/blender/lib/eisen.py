@@ -28,7 +28,13 @@ def reset(samples=SAMPLES, ground=True):
     import gw_plants
     s = gw_lib.reset_scene(samples, ground=ground, outlines=False)
     gw_plants.reset_cache()
-    s.cycles.use_denoising = False
+    if bpy.app.version >= (4, 2, 0):
+        # bpy 5.x (wie Gartenwerk): Denoiser verfügbar, daher halbe Samples
+        s.cycles.samples = max(12, samples // 2)
+        s.cycles.use_denoising = True
+        s.cycles.denoiser = 'OPENIMAGEDENOISE'
+    else:
+        s.cycles.use_denoising = False
     s.cycles.seed = 7
     s.render.filter_size = 1.0
     s.render.image_settings.color_depth = '8'

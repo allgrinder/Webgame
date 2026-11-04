@@ -45,6 +45,10 @@ export class Player {
   mineTotal = 0;
   /** Meldungen für das HUD (werden vom Spiel geleert). */
   readonly messages: string[] = [];
+  /** Taste zum Aufheben von Bodenitems gehalten (Eingabe wie moveX). */
+  pickingUp = false;
+  /** Vom Spieler abgebaute Gebäude (für Rückgängig; vom Spiel geleert). */
+  readonly minedLog: { name: string; x: number; y: number; dir: number }[] = [];
 
   constructor(x: number, y: number) {
     this.px = this.prevPx = Math.round(x * SUB);
@@ -64,6 +68,7 @@ export class Player {
     this.quickbar[1] = 'burner-inserter';
     this.quickbar[2] = 'burner-mining-drill';
     this.quickbar[3] = 'stone-furnace';
+    this.quickbar[4] = 'iron-chest';
     this.quickbar[5] = 'coal';
     this.quickbar[6] = 'iron-plate';
   }
@@ -85,6 +90,28 @@ export class Player {
     this.updateMovement(world);
     this.updateMining(world);
     this.updateCrafting();
+    if (this.pickingUp && world.tick % 4 === 0) this.pickUpGround(world);
+  }
+
+  /** Nächstes Bodenitem im Umkreis aufheben. */
+  pickUpGround(world: World): boolean {
+    const near = world.groundNear(this.x, this.y, PLAYER.groundPickupDistance);
+    near.sort((a, b) => Math.hypot(a.g.x / SUB - this.x, a.g.y / SUB - this.y) - Math.hypot(b.g.x / SUB - this.x, b.g.y / SUB - this.y));
+    for (const { key, g } of near) {
+      if (this.inventory.add(g.item, 1) === 1) {
+        world.removeGround(key, g);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Ein Item aus dem Inventar an einer Stelle auf den Boden (oder in ein Gebäude/Band) legen. */
+  dropItem(world: World, item: string, px: number, py: number): boolean {
+    if (this.inventory.count(item) < 1 || !this.canReach(px, py)) return false;
+    if (!world.deliverAt(px, py, item, 'player', true)) return false;
+    this.inventory.remove(item, 1);
+    return true;
   }
 
   private updateMovement(world: World): void {
@@ -186,7 +213,8 @@ export class Player {
       this.mineTotal = Math.max(1, secondsToTicks(def.mineTime / PLAYER.miningSpeed));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
-        this.pickUpEntity(world, t.id);
+        const rec = { name: e.name, x: e.x, y: e.y, dir: e.dir };
+        if (this.pickUpEntity(world, t.id)) this.minedLog.push(rec);
         this.mineTarget = null;
       }
     }

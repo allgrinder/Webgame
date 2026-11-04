@@ -60,7 +60,12 @@ export interface InserterDef extends EntityBase {
   readonly fuelInsertLimit: number;
 }
 
-export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef;
+export interface ContainerDef extends EntityBase {
+  readonly kind: 'container';
+  readonly slots: number;
+}
+
+export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef;
 
 const list: EntityDef[] = [
   {
@@ -83,6 +88,10 @@ const list: EntityDef[] = [
     rotationSpeed: 0.013, energyPerTransfer: 69.4 * KJ, initialEnergy: 500 * KJ,
     pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 1,
     ingredientLimitCrafts: 2, fuelInsertLimit: 5,
+  },
+  {
+    kind: 'container', id: 'iron-chest', name: 'Eisenkiste', width: 1, height: 1, health: 200,
+    item: 'iron-chest', mineTime: 0.2, solid: true, rotatable: false, slots: 32,
   },
 ];
 

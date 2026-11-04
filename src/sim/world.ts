@@ -1,24 +1,9 @@
 import { type EntityDef, entityDef } from '../data/entities';
-import { isFuel } from '../data/items';
-import { type RecipeDef, smeltingRecipeFor } from '../data/recipes';
-import { RESOURCE_BY_INDEX } from '../data/resources';
 import { BeltSystem } from './belts';
-import { Status } from './entity';
-import { type Dir, rotateVec, tileKey } from './geom';
-import {
-  type BeltEntity,
-  DrillEntity,
-  type Entity,
-  FurnaceEntity,
-  HALF_TURN,
-  InserterEntity,
-  InserterPhase,
-  acceptAmount,
-  entityContents,
-  insertInto,
-  itemId,
-  itemIndex,
-} from './machines';
+import type { InsertMode } from './entities/base';
+import { ENTITY_CLASSES } from './entities/registry';
+import { type Dir, tileKey } from './geom';
+import { DrillEntity, type Entity, itemId, itemIndex } from './machines';
 import { GameMap } from './map';
 import type { Player } from './player';
 
@@ -28,6 +13,16 @@ export interface PlaceCheck {
   /** Vorhandenes Band wird nur gedreht. */
   replace?: number;
 }
+
+/** Item auf dem Boden (Position in 1/256 Feldern). */
+export interface GroundItem {
+  item: string;
+  x: number;
+  y: number;
+}
+
+/** Mindestabstand zweier Items auf dem Boden (Felder). */
+const GROUND_SPACING = 0.28;
 
 /**
  * Die gesamte Simulation. Kennt weder DOM noch PixiJS.
@@ -39,6 +34,8 @@ export class World {
   readonly belts = new BeltSystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
+  /** Items auf dem Boden je Feld. */
+  readonly ground = new Map<number, GroundItem[]>();
   nextId = 1;
   player: Player | null = null;
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
@@ -101,24 +98,10 @@ export class World {
   /** Legt ein Gebäude mit fester ID an (auch beim Laden). */
   create(id: number, name: string, x: number, y: number, dir: Dir): Entity {
     const def = entityDef(name);
-    let e: Entity;
-    switch (def.kind) {
-      case 'belt':
-        e = { kind: 'belt', id, name, x, y, dir, status: Status.Idle } satisfies BeltEntity;
-        this.belts.add(id, x, y, dir);
-        break;
-      case 'drill':
-        e = new DrillEntity(id, name, x, y, dir);
-        break;
-      case 'furnace':
-        e = new FurnaceEntity(id, name, x, y, dir);
-        break;
-      case 'inserter':
-        e = new InserterEntity(id, name, x, y, dir);
-        break;
-    }
+    const e = new ENTITY_CLASSES[def.kind](id, name, x, y, dir) as Entity;
     this.entities.set(id, e);
     for (const [tx, ty] of World.footprint(def, x, y)) this.occupancy.set(tileKey(tx, ty), id);
+    e.onCreated(this);
     if (id >= this.nextId) this.nextId = id + 1;
     this.structureVersion++;
     return e;
@@ -141,7 +124,8 @@ export class World {
     const out: { item: string; count: number }[] = [{ item: def.item, count: 1 }];
     if (e.kind === 'belt') {
       for (const idx of this.belts.remove(id)) out.push({ item: itemId(idx), count: 1 });
-    } else out.push(...entityContents(e));
+    } else out.push(...e.contents());
+    e.onRemoved(this);
     this.entities.delete(id);
     for (const [tx, ty] of World.footprint(def, e.x, e.y)) this.occupancy.delete(tileKey(tx, ty));
     this.structureVersion++;
@@ -152,14 +136,7 @@ export class World {
 
   step(): void {
     this.belts.update();
-    for (const e of this.entities.values()) {
-      switch (e.kind) {
-        case 'drill': this.updateDrill(e); break;
-        case 'furnace': this.updateFurnace(e); break;
-        case 'inserter': this.updateInserter(e); break;
-        case 'belt': break;
-      }
-    }
+    for (const e of this.entities.values()) e.update(this);
     this.player?.update(this);
     this.tick++;
   }
@@ -168,205 +145,85 @@ export class World {
     for (let i = 0; i < ticks; i++) this.step();
   }
 
-  /** Item an einen Weltpunkt abgeben (Band, Ofen, Bohrer). */
-  private deliverAt(px: number, py: number, item: string, mode: 'machine' | 'inserter'): boolean {
+  /**
+   * Item an einen Weltpunkt abgeben: Band (an der Stelle), Gebäude oder – wenn erlaubt – freier Boden.
+   */
+  deliverAt(px: number, py: number, item: string, mode: InsertMode, allowGround: boolean): boolean {
     const tx = Math.floor(px);
     const ty = Math.floor(py);
     const target = this.entityAt(tx, ty);
-    if (!target) return false;
+    if (!target) return allowGround ? this.dropGround(px, py, item) : false;
     if (target.kind === 'belt') {
       const t = this.belts.tileById(target.id)!;
       return this.belts.insertAtPoint(t, px - tx, py - ty, itemIndex(item));
     }
-    return insertInto(target, item, 1, mode) === 1;
+    return target.insert(item, 1, mode) === 1;
   }
 
-  drillOutputPoint(e: DrillEntity): [number, number] {
-    const [vx, vy] = rotateVec(e.def.outputVector[0], e.def.outputVector[1], e.dir);
-    return [e.x + e.def.width / 2 + vx, e.y + e.def.height / 2 + vy];
-  }
-
-  private updateDrill(e: DrillEntity): void {
-    if (e.output) {
-      const [px, py] = this.drillOutputPoint(e);
-      if (!this.deliverAt(px, py, e.output, 'machine')) {
-        e.status = Status.OutputBlocked;
-        return;
-      }
-      e.output = null;
-    }
-    const area = e.areaTiles();
-    let idx = -1;
-    for (let k = 0; k < area.length; k++) {
-      const c = (e.cursor + k) % area.length;
-      if (this.map.resourceAt(area[c][0], area[c][1]).amount > 0) {
-        idx = c;
-        break;
-      }
-    }
-    if (idx < 0) {
-      e.status = Status.Depleted;
-      return;
-    }
-    if (!e.burner.consume(e.joulesPerTick)) {
-      e.status = Status.NoFuel;
-      return;
-    }
-    e.status = Status.Working;
-    e.progress++;
-    e.workTicks++;
-    const [tx, ty] = area[idx];
-    const res = this.map.resourceAt(tx, ty).res;
-    if (e.progress >= e.ticksPerItem(res)) {
-      e.progress = 0;
-      const mined = this.map.mineOne(tx, ty);
-      e.cursor = (idx + 1) % area.length;
-      if (mined) {
-        e.output = RESOURCE_BY_INDEX[mined]!.result;
-        const [px, py] = this.drillOutputPoint(e);
-        if (this.deliverAt(px, py, e.output, 'machine')) e.output = null;
-      }
-    }
-  }
-
-  private updateFurnace(e: FurnaceEntity): void {
-    if (!e.recipe) {
-      const ing = e.source.firstItem();
-      if (!ing) {
-        e.status = Status.NoInput;
-        return;
-      }
-      const r = this.smelting(ing);
-      const res = r.results[0];
-      if (e.result.space(res.item) < res.amount) {
-        e.status = Status.OutputBlocked;
-        return;
-      }
-      if (!e.burner.canSupply(e.joulesPerTick)) {
-        e.status = Status.NoFuel;
-        return;
-      }
-      if (e.source.count(ing) < r.ingredients[0].amount) {
-        e.status = Status.NoInput;
-        return;
-      }
-      e.source.remove(ing, r.ingredients[0].amount);
-      e.recipe = r;
-      e.progress = 0;
-    }
-    if (!e.burner.consume(e.joulesPerTick)) {
-      e.status = Status.NoFuel;
-      return;
-    }
-    e.status = Status.Working;
-    e.progress++;
-    e.workTicks++;
-    if (e.progress >= e.recipeTicks(e.recipe)) {
-      for (const r of e.recipe.results) e.result.add(r.item, r.amount);
-      e.recipe = null;
-      e.progress = 0;
-    }
-  }
-
-  private smelting(item: string): RecipeDef {
-    const r = smeltingRecipeFor(item);
-    if (!r) throw new Error(`Kein Schmelzrezept für ${item}`);
-    return r;
-  }
-
-  inserterPoints(e: InserterEntity): { pickup: [number, number]; drop: [number, number] } {
-    const cx = e.x + 0.5;
-    const cy = e.y + 0.5;
-    const [px, py] = rotateVec(e.def.pickupVector[0], e.def.pickupVector[1], e.dir);
-    const [dx, dy] = rotateVec(e.def.dropVector[0], e.def.dropVector[1], e.dir);
-    return { pickup: [cx + px, cy + py], drop: [cx + dx, cy + dy] };
-  }
-
-  private updateInserter(e: InserterEntity): void {
-    const { pickup, drop } = this.inserterPoints(e);
-    const dst = this.entityAt(drop[0], drop[1]);
-    const half = e.halfSwingEnergy;
-    // Drehbudget dieses Ticks; Rest wird bei sofortigem Phasenwechsel weitergegeben.
-    let budget = e.turnPerTick;
-    for (let guard = 0; guard < 6; guard++) {
-      switch (e.phase) {
-        case InserterPhase.WaitPickup: {
-          if (!dst || dst.kind === 'inserter') {
-            e.status = Status.NoTarget;
-            return;
-          }
-          const src = this.entityAt(pickup[0], pickup[1]);
-          // Selbstversorgung: leerer Brennstoffslot -> eigenen Brennstoff greifen
-          if (e.burner.fuel.isEmpty() && src) {
-            const fuel = this.takeFrom(src, (it) => isFuel(it));
-            if (fuel) {
-              e.burner.fuel.add(fuel, 1);
-              e.status = Status.Working;
-              return;
-            }
-          }
-          if (!e.burner.canSupply(half)) {
-            e.status = Status.NoFuel;
-            return;
-          }
-          const accept = (it: string) => dst.kind === 'belt' || acceptAmount(dst, it, 'inserter') > 0;
-          const item = src ? this.takeFrom(src, accept) : null;
-          if (!item) {
-            e.status = Status.NoInput;
-            return;
-          }
-          e.burner.consume(half);
-          e.held = item;
-          e.phase = InserterPhase.ToDrop;
-          e.progress = 0;
-          e.status = Status.Working;
-          continue;
-        }
-        case InserterPhase.ToDrop:
-        case InserterPhase.ToPickup: {
-          const step = Math.min(budget, HALF_TURN - e.progress);
-          e.progress += step;
-          budget -= step;
-          if (e.progress < HALF_TURN) return;
-          e.progress = 0;
-          e.phase = e.phase === InserterPhase.ToDrop ? InserterPhase.WaitDrop : InserterPhase.WaitPickup;
-          continue;
-        }
-        case InserterPhase.WaitDrop: {
-          if (e.held) {
-            if (!dst || !this.deliverAt(drop[0], drop[1], e.held, 'inserter')) {
-              e.status = dst ? Status.OutputBlocked : Status.NoTarget;
-              return;
-            }
-            e.held = null;
-          }
-          if (!e.burner.consume(half)) {
-            e.status = Status.NoFuel;
-            return;
-          }
-          e.status = Status.Working;
-          e.phase = InserterPhase.ToPickup;
-          e.progress = 0;
-          continue;
-        }
-      }
-    }
-  }
-
-  /** Nimmt ein passendes Item aus einem Gebäude (für Greifarme). */
-  private takeFrom(src: Entity, accept: (item: string) => boolean): string | null {
+  /** Nimmt ein passendes Item vom Feld an einem Weltpunkt: Band, Gebäude oder Boden. */
+  takeAt(px: number, py: number, accept: (item: string) => boolean): string | null {
+    const src = this.entityAt(px, py);
+    if (!src) return this.takeGround(Math.floor(px), Math.floor(py), accept);
     if (src.kind === 'belt') {
       const t = this.belts.tileById(src.id)!;
       const idx = this.belts.takeFromTile(t, (i) => accept(itemId(i)));
       return idx < 0 ? null : itemId(idx);
     }
-    if (src.kind === 'furnace') {
-      const it = src.result.firstItem(accept);
-      if (it) {
-        src.result.remove(it, 1);
-        return it;
+    return src.take(this, accept);
+  }
+
+  /** Für Renderer und Tests. */
+  drillOutputPoint(e: DrillEntity): [number, number] {
+    return e.outputPoint();
+  }
+
+  // ------------------------------------------------------------ Items auf dem Boden
+
+  /** Legt ein Item auf freien Boden, wenn die Stelle frei ist. */
+  dropGround(px: number, py: number, item: string): boolean {
+    const tx = Math.floor(px);
+    const ty = Math.floor(py);
+    if (this.map.isWater(tx, ty) || this.entityAt(tx, ty)) return false;
+    const k = tileKey(tx, ty);
+    const list = this.ground.get(k) ?? [];
+    const x = Math.round(px * 256);
+    const y = Math.round(py * 256);
+    const min = GROUND_SPACING * 256;
+    if (list.some((g) => Math.abs(g.x - x) < min && Math.abs(g.y - y) < min)) return false;
+    list.push({ item, x, y });
+    this.ground.set(k, list);
+    return true;
+  }
+
+  takeGround(tx: number, ty: number, accept: (item: string) => boolean = () => true): string | null {
+    const k = tileKey(tx, ty);
+    const list = this.ground.get(k);
+    if (!list) return null;
+    const i = list.findIndex((g) => accept(g.item));
+    if (i < 0) return null;
+    const [g] = list.splice(i, 1);
+    if (!list.length) this.ground.delete(k);
+    return g.item;
+  }
+
+  /** Alle Bodenitems im Umkreis (für Spieler-Aufheben). */
+  groundNear(x: number, y: number, r: number): { key: number; g: GroundItem }[] {
+    const out: { key: number; g: GroundItem }[] = [];
+    for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++)
+      for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
+        const k = tileKey(tx, ty);
+        for (const g of this.ground.get(k) ?? []) {
+          if (Math.hypot(g.x / 256 - x, g.y / 256 - y) <= r) out.push({ key: k, g });
+        }
       }
-    }
-    return null;
+    return out;
+  }
+
+  removeGround(key: number, g: GroundItem): void {
+    const list = this.ground.get(key);
+    if (!list) return;
+    const i = list.indexOf(g);
+    if (i >= 0) list.splice(i, 1);
+    if (!list.length) this.ground.delete(key);
   }
 }

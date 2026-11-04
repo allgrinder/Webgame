@@ -3,6 +3,7 @@ import { Inventory } from './inventory';
 
 /** Brennstoff-Energiequelle: Brennstoffslot plus Restenergie des aktuell brennenden Items. */
 export class Burner {
+  readonly type = 'burner' as const;
   readonly fuel: Inventory;
   /** Restenergie in Joule. */
   energy: number;

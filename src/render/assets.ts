@@ -7,7 +7,7 @@ export interface SpriteInfo {
   h: number;
   anchor: [number, number];
   fps?: number;
-  meta?: { reach?: number; pivotLift?: number; blend?: string; scale?: number };
+  meta?: { reach?: number; pivotLift?: number; blend?: string; scale?: number; angles?: number; handLift?: number };
 }
 
 export interface Manifest {

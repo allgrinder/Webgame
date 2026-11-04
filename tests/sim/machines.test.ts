@@ -128,13 +128,13 @@ describe('Brennstoff-Greifarm', () => {
     const t0 = 600;
     for (let t = 0; t < t0; t++) { w.step(); drain(w, w.belts.tileAt(0, 3)!, counts); drain(w, w.belts.tileAt(1, 3)!, counts); }
     const before = counts.get('iron-plate') ?? 0;
-    const e0 = ins.burner.energy + ins.burner.fuel.count('coal') * 4e6;
+    const e0 = ins.burner!.energy + ins.burner!.fuel.count('coal') * 4e6;
     for (let t = 0; t < 3600; t++) { w.step(); drain(w, w.belts.tileAt(0, 3)!, counts); drain(w, w.belts.tileAt(1, 3)!, counts); }
     const n = (counts.get('iron-plate') ?? 0) - before;
     const rate = n / 60;
     expect(rate).toBeGreaterThan(0.75);
     expect(rate).toBeLessThan(0.8);
-    const used = e0 - (ins.burner.energy + ins.burner.fuel.count('coal') * 4e6);
+    const used = e0 - (ins.burner!.energy + ins.burner!.fuel.count('coal') * 4e6);
     expect(used / n).toBeGreaterThan(65_000);
     expect(used / n).toBeLessThan(74_000);
   });
@@ -144,7 +144,7 @@ describe('Brennstoff-Greifarm', () => {
     for (let x = 0; x < 6; x++) w.place('transport-belt', x, 0, 1);
     const f = w.place('stone-furnace', 3, 2, 0) as FurnaceEntity;
     const ins = w.place('burner-inserter', 4, 1, 2) as InserterEntity;
-    expect(ins.burner.fuel.isEmpty()).toBe(true);
+    expect(ins.burner!.fuel.isEmpty()).toBe(true);
     const start = w.belts.tileAt(0, 0)!;
     // 300 s lang Erz und Kohle aufs Band legen
     for (let t = 0; t < 300 * 60; t++) {

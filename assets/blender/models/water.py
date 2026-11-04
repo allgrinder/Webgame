@@ -98,7 +98,8 @@ def with_alpha(m, alpha_socket):
     nt.links.new(tr.outputs[0], mix.inputs[1])
     nt.links.new(bsdf.outputs[0], mix.inputs[2])
     nt.links.new(mix.outputs[0], out.inputs['Surface'])
-    m.blend_method = 'BLEND'
+    if hasattr(m, 'blend_method'):
+        m.blend_method = 'BLEND'
 
 
 def bank_material():

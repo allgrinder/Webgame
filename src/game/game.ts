@@ -12,6 +12,12 @@ import { Input } from './input';
 import type { Scene } from './scenes';
 
 const STEP_MS = 1000 / 60;
+/** Autosave alle 5 Minuten Spielzeit. */
+const AUTOSAVE_TICKS = 5 * 60 * 60;
+
+type HistoryEntry =
+  | { type: 'build'; id: number; name: string; x: number; y: number; dir: Dir }
+  | { type: 'remove'; name: string; x: number; y: number; dir: Dir };
 const MAX_STEPS_PER_FRAME = 5;
 
 export class Game {
@@ -27,6 +33,11 @@ export class Game {
   private acc = 0;
   private dragLast: { x: number; y: number } | null = null;
   private dragBelts: number[] = [];
+  private dragStart: { x: number; y: number } | null = null;
+  private dragAxis: 'x' | 'y' | null = null;
+  /** Bau- und Abbauaktionen des Spielers (Rückgängig mit Strg+Z). */
+  private readonly history: HistoryEntry[] = [];
+  private lastAutosaveTick = 0;
   private fps = 60;
   private frameCount = 0;
   private fpsTime = 0;
@@ -77,6 +88,14 @@ export class Game {
         steps++;
       }
       if (steps === MAX_STEPS_PER_FRAME) this.acc = Math.min(this.acc, STEP_MS);
+      const p = this.world.player;
+      if (p) {
+        for (const r of p.minedLog.splice(0)) this.pushHistory({ type: 'remove', name: r.name, x: r.x, y: r.y, dir: r.dir as Dir });
+        if (!this.creative && this.world.tick - this.lastAutosaveTick >= AUTOSAVE_TICKS) {
+          this.lastAutosaveTick = this.world.tick;
+          void this.hud.saveGame('autosave', true);
+        }
+      }
     }
     const alpha = this.paused ? 1 : this.acc / STEP_MS;
     this.updateCamera(dt, alpha);
@@ -120,6 +139,7 @@ export class Game {
     const d = this.input.down;
     p.moveX = (d.has('d') ? 1 : 0) - (d.has('a') ? 1 : 0);
     p.moveY = (d.has('s') ? 1 : 0) - (d.has('w') ? 1 : 0);
+    p.pickingUp = d.has('f');
   }
 
   // ------------------------------------------------------------ Eingabe
@@ -159,7 +179,10 @@ export class Game {
     if (inp.right) {
       const e = this.world.entityAt(tx, ty);
       if (this.creative && !p) {
-        if (e) this.world.remove(e.id);
+        if (e) {
+          this.pushHistory({ type: 'remove', name: e.name, x: e.x, y: e.y, dir: e.dir });
+          this.world.remove(e.id);
+        }
       } else if (p) {
         if (e) p.setMineTarget({ kind: 'entity', id: e.id });
         else if (this.world.map.resourceAt(tx, ty).amount > 0) p.setMineTarget({ kind: 'resource', x: tx, y: ty });
@@ -171,6 +194,7 @@ export class Game {
   private onKey(k: string, ctrl: boolean, shift: boolean): void {
     if (this.hud.typing) return;
     if (ctrl && k === 's') { void this.hud.saveGame(); return; }
+    if (ctrl && k === 'z') { this.undo(); return; }
     if (ctrl && k === 'l') { void this.hud.loadGame(); return; }
     switch (k) {
       case 'r': {
@@ -194,8 +218,15 @@ export class Game {
       case 'f3': this.hud.toggleDebug(); break;
       case 'p': if (this.debug) this.paused = !this.paused; break;
       case 'h': this.hud.toggleHelp(); break;
-      case 'z': case 'x': case 'c': case 'v':
-        if (this.debug) this.debugItem({ z: 'iron-ore', x: 'coal', c: 'stone', v: 'iron-plate' }[k]);
+      case 'z':
+        // Z: ein Item ablegen (mit Spieler); im Sandkasten Debug-Erz
+        if (this.world.player && this.cursorItem) {
+          const m = this.mouseWorld();
+          this.world.player.dropItem(this.world, this.cursorItem, m.x, m.y);
+        } else if (this.debug) this.debugItem('iron-ore');
+        break;
+      case 'x': case 'c': case 'v':
+        if (this.debug) this.debugItem({ x: 'coal', c: 'stone', v: 'iron-plate' }[k]);
         break;
       default:
         if (/^[0-9]$/.test(k)) {
@@ -281,7 +312,10 @@ export class Game {
     const item = entityDef(g.name).item;
     const chk = this.world.canPlace(g.name, g.x, g.y, g.dir);
     const e = this.world.place(g.name, g.x, g.y, g.dir);
-    if (e && !this.creative && chk.replace === undefined) this.world.player?.inventory.remove(item, 1);
+    if (e && chk.replace === undefined) {
+      if (!this.creative) this.world.player?.inventory.remove(item, 1);
+      this.pushHistory({ type: 'build', id: e.id, name: g.name, x: g.x, y: g.y, dir: g.dir });
+    }
     return e;
   }
 
@@ -316,11 +350,21 @@ export class Game {
     }
     const e = this.tryBuild(g);
     this.dragLast = { x: tx, y: ty };
+    this.dragStart = { x: tx, y: ty };
+    this.dragAxis = null;
     this.dragBelts = e && e.kind === 'belt' ? [e.id] : [];
   }
 
   private onDrag(tx: number, ty: number): void {
     const last = this.dragLast!;
+    // Umschalt: Linie auf die zuerst gezogene Achse festlegen
+    if (this.input.shift && this.dragStart) {
+      if (!this.dragAxis && (tx !== this.dragStart.x || ty !== this.dragStart.y)) {
+        this.dragAxis = Math.abs(tx - this.dragStart.x) >= Math.abs(ty - this.dragStart.y) ? 'x' : 'y';
+      }
+      if (this.dragAxis === 'x') ty = this.dragStart.y;
+      if (this.dragAxis === 'y') tx = this.dragStart.x;
+    }
     if (last.x === tx && last.y === ty) return;
     const item = this.cursorItem;
     const place = item ? ITEMS[item]?.placeResult : undefined;
@@ -391,6 +435,32 @@ export class Game {
       if (p && p.mineTarget && p.mineTotal > 0) mining = p.mineProgress / p.mineTotal;
     }
     return { ghost, alt: this.alt, hover, mining };
+  }
+
+  private pushHistory(h: HistoryEntry): void {
+    this.history.push(h);
+    if (this.history.length > 100) this.history.shift();
+  }
+
+  /** Letzte Bau- oder Abbauaktion zurücknehmen. */
+  undo(): void {
+    const h = this.history.pop();
+    if (!h) return;
+    const p = this.world.player;
+    if (h.type === 'build') {
+      const e = this.world.entities.get(h.id);
+      if (!e || e.name !== h.name) return;
+      if (p && !this.creative) p.pickUpEntity(this.world, h.id);
+      else this.world.remove(h.id);
+    } else {
+      const item = entityDef(h.name).item;
+      if (p && !this.creative && p.inventory.count(item) < 1) {
+        p.note('Kein Gebäude im Inventar');
+        return;
+      }
+      const e = this.world.place(h.name, h.x, h.y, h.dir);
+      if (e && p && !this.creative) p.inventory.remove(item, 1);
+    }
   }
 
   /** Text für die Hover-Info im HUD. */

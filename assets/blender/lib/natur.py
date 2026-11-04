@@ -80,7 +80,8 @@ def patch_material(name, tones, seed, noise_amp=0.42, opacity=1.0, bump_strength
     L.new(tr.outputs[0], mix.inputs[1])
     L.new(b.outputs[0], mix.inputs[2])
     L.new(mix.outputs[0], out.inputs['Surface'])
-    m.blend_method = 'BLEND'
+    if hasattr(m, 'blend_method'):
+        m.blend_method = 'BLEND'
     return m
 
 

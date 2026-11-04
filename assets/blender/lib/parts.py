@@ -7,7 +7,10 @@ import random
 
 import bmesh
 import bpy
+import bauten
 import eisen
+import gw_ground
+import gw_lib
 from mathutils import Vector
 
 
@@ -16,16 +19,17 @@ class Mats:
 
     def __init__(self):
         S = eisen.srgb
-        self.steel = eisen.material('steel', S('#4a4a45'), rough=0.5, metal=0.7, noise=0.25, wear=0.7, rust=0.3)
-        self.dark = eisen.material('dark', S('#2c2c29'), rough=0.6, metal=0.6, noise=0.2, wear=0.6, rust=0.2)
-        self.ochre = eisen.material('ochre', S('#8c6a2e'), rough=0.55, metal=0.3, noise=0.25, wear=0.8, rust=0.25)
-        self.rust = eisen.material('rust', S('#6b3c1f'), rough=0.85, noise=0.3)
+        # Verwitterte Materialien (bauten.weathered) im bisherigen Farbton: Rost, Laufspuren, Staub, Kantenabrieb
+        self.steel = bauten.weathered('steel', '#4a4a45', metal=0.7, rough=0.5, rust=0.35, dust=0.45, edge=0.5)
+        self.dark = bauten.weathered('dark', '#2c2c29', metal=0.6, rough=0.6, rust=0.3, dust=0.4, edge=0.4)
+        self.ochre = bauten.weathered('ochre', '#7d6130', metal=0.3, rough=0.55, rust=0.4, dust=0.45, edge=0.7, streaks=0.5)
+        self.rust = bauten.weathered('rust', '#6b3c1f', metal=0.2, rough=0.85, rust=0.6, dust=0.3, edge=0.2)
         self.rubber = eisen.material('rubber', S('#222120'), rough=0.85)
-        self.brass = eisen.material('brass', S('#8f7440'), rough=0.4, metal=0.8, noise=0.2, wear=0.5)
+        self.brass = bauten.weathered('brass', '#8f7440', metal=0.85, rough=0.38, rust=0.15, dust=0.35, edge=0.6, rust_hex='#4b5a40')
         self.stone = eisen.material('stone', S('#8a7b66'), rough=0.95, noise=0.35, noise_scale=10, bump=0.4)
         self.stone_dark = eisen.material('stoned', S('#5e5446'), rough=0.95, noise=0.35, noise_scale=10, bump=0.4)
         self.soot = eisen.material('soot', S('#1b1917'), rough=0.9, noise=0.2)
-        self.plate = eisen.material('plate', S('#7c8085'), rough=0.35, metal=0.9, noise=0.12, wear=0.4)
+        self.plate = bauten.weathered('plate', '#7c8085', metal=0.9, rough=0.32, rust=0.1, dust=0.2, edge=0.3, grime=0.2)
         self.cloth = eisen.material('cloth', S('#6b5a3a'), rough=0.9, noise=0.2)
         self.suit = eisen.material('suit', S('#7c4f2a'), rough=0.8, noise=0.2)
         self.skin = eisen.material('skin', S('#b48a68'), rough=0.7)
@@ -104,6 +108,10 @@ def drill(m, phase=0.0, working=True):
     o.append(eisen.box('cyl', (0.36, 0.36, 0.3), (0.42, -0.35, 0.88), m.dark, bevel=0.03))
     o.append(eisen.cylinder('piston', 0.09, 0.3, (0.42, -0.35, 1.05 + piston), m.plate, segments=12))
     rivets(o, m.dark, [(-0.75, -0.78), (0.75, -0.78), (-0.75, 0.62), (0.75, 0.62)], 0.78)
+    # Abraum und Erde rund um den Rahmen (Bohrgut), fester Zufall
+    rnd = random.Random(41)
+    earth = [gw_ground.pmat(f'sp{i}', gw_ground.lin(h), 1.0, 0.3, 0.6, 25) for i, h in enumerate(['#4f3f2e', '#5d4a35', '#6b6458', '#3e3226'])]
+    o.extend(bauten.stones(90, rnd, earth, lambda x, y: (0.9 < max(abs(x), abs(y)) < 0.99) and not (y > 0.85 and -0.6 < x < -0.1), (0.025, 0.06)))
     return eisen.parent_all(o, 'drill')
 
 
@@ -114,28 +122,43 @@ def furnace(m, fire=0.0, seed=3):
     rnd = random.Random(seed)
     o = []
     o.append(eisen.box('base', (1.84, 1.84, 0.12), (0, 0, 0.06), m.stone_dark, bevel=0.03))
-    # Mauerwerk aus Steinlagen
+    # Mauerwerk aus unregelmäßigen Bruchsteinen (Gartenwerk-Kieselform), Lehmfugen dahinter
+    tones = ['#8a7d68', '#7a6e5c', '#958771', '#6c6152', '#857660', '#9b8e78']
+    smats = [gw_ground.pmat(f'fs{i}', gw_ground.lin(h), 0.92, 0.25, 0.7, 14) for i, h in enumerate(tones)]
+    soot = [gw_ground.pmat(f'fso{i}', gw_ground.lin(h), 0.95, 0.3, 0.7, 14) for i, h in enumerate(['#3a332b', '#2b2622', '#4a4135'])]
+    for mm in smats + soot:
+        gw_lib._ao(mm, 0.8, 0.08)
+    clay = gw_ground.pmat('clay', gw_ground.lin('#6e5d48'), 1.0, 0.3, 0.8, 18)
+    meshes = [gw_ground.pebble_mesh(f'fm{i}', 1.0, rnd, 0.6, 1, False, 0.2) for i in range(12)]
     layers = 4
     for k in range(layers):
         z = 0.12 + k * 0.2
         w = 1.74 - k * 0.12
+        o.append(eisen.box(f'mortar{k}', (w - 0.1, w - 0.1, 0.2), (0, 0, z + 0.1), clay))
         for side in range(4):
-            n = 4
+            n = 4 + (k % 2)
             for i in range(n):
                 t = (i + 0.5) / n - 0.5
-                L = w / n * 0.96
+                L = w / n
                 if side in (0, 2):
                     x, y = t * w, (w / 2 - 0.12) * (1 if side == 0 else -1)
-                    size = (L, 0.26, 0.19)
+                    sx, sy = L * 0.55, 0.15
                 else:
                     x, y = (w / 2 - 0.12) * (1 if side == 1 else -1), t * w
-                    size = (0.26, L, 0.19)
+                    sx, sy = 0.15, L * 0.55
                 if side == 2 and k < 2 and abs(t) < 0.3:
                     continue  # Feueröffnung vorne
-                mat = m.stone if rnd.random() > 0.3 else m.stone_dark
-                b = eisen.box(f's{k}{side}{i}', size, (x, y, z + 0.1), mat, bevel=0.035)
-                b.rotation_euler = (0, 0, (rnd.random() - 0.5) * 0.08)
-                o.append(b)
+                ob = bpy.data.objects.new('fs', meshes[(k * 7 + side * 3 + i) % 12])
+                ob.scale = (sx * rnd.uniform(0.9, 1.1), sy * rnd.uniform(0.9, 1.1), 0.1 * rnd.uniform(0.9, 1.1))
+                ob.location = (x + rnd.uniform(-0.02, 0.02), y + rnd.uniform(-0.02, 0.02), z + 0.1)
+                ob.rotation_euler = (rnd.uniform(-0.05, 0.05), rnd.uniform(-0.05, 0.05), rnd.uniform(-0.08, 0.08))
+                eisen.link(ob)
+                if not ob.data.materials:
+                    ob.data.materials.append(smats[0])
+                ob.material_slots[0].link = 'OBJECT'
+                sooty = (side == 2 and k >= 1 and abs(t) < 0.42) or (k == layers - 1 and rnd.random() < 0.4)
+                ob.material_slots[0].material = rnd.choice(soot if sooty else smats)
+                o.append(ob)
     # Innenraum
     o.append(eisen.box('inner', (1.3, 1.3, 0.8), (0, 0, 0.5), m.soot))
     # Deckplatte mit Rauchabzug
@@ -271,3 +294,23 @@ def ore_pile(res, count, size, seed, spread=0.4, z0=0.0):
 def gear_item(m):
     g = gear('gearItem', 0.36, 0.28, 10, 0.1, m.plate, hole=0.1)
     return g
+
+
+# --------------------------------------------------------------------------- Eisenkiste
+
+def iron_chest(m):
+    """Genietete Eisenkiste mit Deckelfuge, Scharnieren, Griff und Eckwinkeln (1×1)."""
+    o = []
+    body = bauten.weathered('chest', '#4e4f4b', metal=0.75, rough=0.45, rust=0.4, dust=0.5, edge=0.6, streaks=0.5)
+    o.append(eisen.box('body', (0.82, 0.78, 0.5), (0, 0, 0.25), body, bevel=0.025))
+    o.append(eisen.box('lid', (0.86, 0.82, 0.12), (0, 0, 0.56), body, bevel=0.03))
+    o.append(eisen.box('seam', (0.84, 0.8, 0.015), (0, 0, 0.495), m.dark))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            o.append(eisen.box(f'corner{sx}{sy}', (0.08, 0.08, 0.62), (sx * 0.4, sy * 0.38, 0.31), m.dark, bevel=0.01))
+    for sx in (-0.22, 0.22):
+        o.append(eisen.box(f'hinge{sx}', (0.12, 0.04, 0.08), (sx, 0.41, 0.52), m.dark, bevel=0.008))
+    o.append(eisen.box('handle', (0.2, 0.03, 0.04), (0, -0.43, 0.45), m.plate, bevel=0.008))
+    o.append(eisen.box('lock', (0.08, 0.02, 0.09), (0, -0.42, 0.52), m.brass, bevel=0.006))
+    rivets(o, m.plate, [(x, -0.395) for x in (-0.3, -0.15, 0.15, 0.3)], 0.12, 0.012)
+    return eisen.parent_all(o, 'chest')

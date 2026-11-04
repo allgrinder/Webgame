@@ -85,3 +85,7 @@ def render(out):
     m = icon_scene()
     root, _ = parts.furnace(m, 0.0)
     finish(out, 'item.stone-furnace', root, scale=0.44, z=-0.05)
+
+    m = icon_scene()
+    root = parts.iron_chest(m)
+    finish(out, 'item.iron-chest', root, scale=0.8, z=-0.05)

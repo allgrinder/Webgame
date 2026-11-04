@@ -8,6 +8,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, 'lib'))
 sys.path.insert(0, os.path.join(HERE, 'lib', 'gartenwerk'))
 
+import bpy  # noqa: E402,F401  (bpy vor bmesh laden)
 import eisen  # noqa: E402
 
 

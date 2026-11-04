@@ -26,6 +26,7 @@ const list: ItemDef[] = [
   { id: 'burner-inserter', name: 'Brennstoff-Greifarm', stackSize: 50, placeResult: 'burner-inserter', order: 31 },
   { id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', stackSize: 50, placeResult: 'burner-mining-drill', order: 32 },
   { id: 'stone-furnace', name: 'Steinofen', stackSize: 50, placeResult: 'stone-furnace', order: 33 },
+  { id: 'iron-chest', name: 'Eisenkiste', stackSize: 50, placeResult: 'iron-chest', order: 34 },
 ];
 
 export const ITEMS: Readonly<Record<string, ItemDef>> = Object.freeze(

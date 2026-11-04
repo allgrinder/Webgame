@@ -52,6 +52,7 @@ export class GameRenderer {
   private water: ParticlePool | null = null;
   private waterTex: Texture[][] = [];
   private readonly decals = new SpritePool();
+  private readonly groundItems = new SpritePool();
   private decor: DecorField | null = null;
   private decorMap: unknown = null;
   private belts!: ParticlePool;
@@ -122,6 +123,7 @@ export class GameRenderer {
       ...(this.water ? [this.water.container] : []),
       this.decals.container,
       this.res.container,
+      this.groundItems.container,
       this.belts.container,
       this.items.container,
       this.shadows.container,
@@ -211,6 +213,33 @@ export class GameRenderer {
     this.stats.ground = g.count + rp.count;
     this.drawWater(world, v);
     this.drawDecals(world, v);
+    this.drawGroundItems(world, v);
+  }
+
+  // ------------------------------------------------------------------ Items auf dem Boden
+
+  private drawGroundItems(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const p = this.groundItems;
+    p.begin();
+    if (world.ground.size) {
+      const shadow = this.sprites.has('item.shadow') ? this.sprites.frame('item.shadow') : null;
+      for (const list of world.ground.values()) {
+        for (const g of list) {
+          const x = g.x / 256;
+          const y = g.y / 256;
+          if (x < v.x0 || x > v.x1 + 1 || y < v.y0 || y > v.y1 + 1) continue;
+          if (shadow) {
+            const sh = p.get(shadow);
+            sh.position.set(x * TILE + 2, y * TILE + 3);
+            sh.alpha = 0.55;
+          }
+          const sp = p.get(this.sprites.frame(`item.${g.item}`));
+          sp.position.set(x * TILE, y * TILE);
+          sp.scale.set(ITEM_SCALE_BELT);
+        }
+      }
+    }
+    p.end();
   }
 
   // ------------------------------------------------------------------ Wasser
@@ -460,18 +489,33 @@ export class GameRenderer {
         }
         const rot = ((e.dir + 2) * Math.PI) / 2 + t * Math.PI;
         const reach = e.def.pickupVector[1] + (-e.def.dropVector[1] - e.def.pickupVector[1]) * t;
-        const arm = this.ents.get(s.frame('inserter.arm'));
         const info = s.info('inserter.arm');
-        const armLen = (info?.meta?.reach ?? 1) * TILE;
-        const lift = (s.info('inserter.base')?.meta?.pivotLift ?? 0) * TILE;
-        cy -= lift;
-        arm.position.set(cx, cy);
-        arm.rotation = rot;
-        arm.scale.set(1, (reach * TILE) / armLen);
-        arm.zIndex = z + 1;
+        const angles = info?.meta?.angles ?? 0;
+        let hx: number;
+        let hy: number;
+        if (angles > 0) {
+          // vorgerenderte Winkel (geneigte Kamera), Reichweite über leichte Skalierung
+          const k = ((Math.round((rot / (Math.PI * 2)) * angles) % angles) + angles) % angles;
+          const arm = this.ents.get(s.frame('inserter.arm', k));
+          const sc = reach / (info?.meta?.reach ?? 1);
+          arm.position.set(cx, cy);
+          arm.scale.set(sc);
+          arm.zIndex = z + 1;
+          const lift = (info?.meta?.handLift ?? 0) * TILE;
+          hx = cx + Math.sin(rot) * reach * TILE;
+          hy = cy - Math.cos(rot) * reach * TILE - lift;
+        } else {
+          const arm = this.ents.get(s.frame('inserter.arm'));
+          const armLen = (info?.meta?.reach ?? 1) * TILE;
+          const lift = (s.info('inserter.base')?.meta?.pivotLift ?? 0) * TILE;
+          arm.position.set(cx, cy - lift);
+          arm.rotation = rot;
+          arm.scale.set(1, (reach * TILE) / armLen);
+          arm.zIndex = z + 1;
+          hx = cx + Math.sin(rot) * reach * TILE;
+          hy = cy - lift - Math.cos(rot) * reach * TILE;
+        }
         if (e.held) {
-          const hx = cx + Math.sin(rot) * reach * TILE;
-          const hy = cy - Math.cos(rot) * reach * TILE;
           const it = this.ents.get(s.frame(`item.${e.held}`));
           it.position.set(hx, hy);
           it.scale.set(ITEM_SCALE_BELT);
@@ -479,9 +523,22 @@ export class GameRenderer {
         }
         break;
       }
+      case 'container': {
+        const sh = this.shadows.get(s.frame(s.has(`${e.name}.shadow`) ? `${e.name}.shadow` : 'inserter.shadow'));
+        sh.position.set(cx, cy);
+        const sp = this.ents.get(this.chestTex(e.name));
+        sp.position.set(cx, cy);
+        sp.zIndex = z;
+        break;
+      }
       case 'belt':
         break;
     }
+  }
+
+  /** Sprite einer Kiste (eigenes Modell oder vorläufig das Item-Symbol). */
+  private chestTex(name: string): Texture {
+    return this.sprites.has(name) ? this.sprites.frame(name) : this.sprites.frame(`item.${name}`);
   }
 
   private drawGhost(ui: RenderUi): void {
@@ -499,14 +556,16 @@ export class GameRenderer {
         case 'drill': tex = this.sprites.frame(`drill.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame('furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
+        case 'container': tex = this.chestTex(g.name); break;
       }
       const sp = gp.get(tex);
       sp.position.set(cx, cy);
       sp.tint = tint;
       if (def.kind === 'inserter') {
-        const arm = gp.get(this.sprites.frame('inserter.arm'));
+        const angles = this.sprites.info('inserter.arm')?.meta?.angles ?? 0;
+        const arm = gp.get(this.sprites.frame('inserter.arm', angles ? (g.dir * angles) / 4 : 0));
         arm.position.set(cx, cy);
-        arm.rotation = (g.dir * Math.PI) / 2;
+        if (!angles) arm.rotation = (g.dir * Math.PI) / 2;
         arm.tint = tint;
       }
     }
@@ -565,9 +624,13 @@ export class GameRenderer {
       const r = e.recipe?.results[0].item ?? e.result.firstItem() ?? e.source.firstItem();
       if (r) list.push(r);
     }
-    if (e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'inserter') {
+    if (e.kind === 'drill' || e.kind === 'furnace') {
       const f = e.burner.fuel.firstItem();
-      if (f && e.kind !== 'inserter') list.push(f);
+      if (f) list.push(f);
+    }
+    if (e.kind === 'container') {
+      const f = e.inventory.firstItem();
+      if (f) list.push(f);
     }
     const cx = (e.x + def.width / 2) * TILE;
     const cy = (e.y + def.height / 2) * TILE;

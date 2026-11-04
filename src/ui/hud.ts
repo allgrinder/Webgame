@@ -3,6 +3,7 @@ import { ITEMS } from '../data/items';
 import { RECIPE_LIST } from '../data/recipes';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
+import { deserializeWorld, serializeWorld } from '../sim/serialize';
 import type { SpriteLib } from '../render/assets';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto } from '../sim/machines';
@@ -355,36 +356,18 @@ export class Hud {
       const b = el('div', `progress ${cls}`, r);
       el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
     };
-    switch (e.kind) {
-      case 'drill':
-        row('Brennstoff', e.burner.fuel);
-        bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
-        bar('Energie', e.burner.energy / 4e6, 'energy');
-        break;
-      case 'furnace':
-        row('Zutat', e.source);
-        row('Brennstoff', e.burner.fuel);
-        row('Ergebnis', e.result);
-        bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
-        bar('Energie', e.burner.energy / 4e6, 'energy');
-        break;
-      case 'inserter':
-        row('Brennstoff', e.burner.fuel);
-        bar('Energie', e.burner.energy / 4e6, 'energy');
-        break;
-      case 'belt':
-        break;
-    }
+    for (const g of e.guiSlots()) row(g.label, g.inv);
+    if (e.kind === 'drill') bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
+    if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
+    const burner = e.burner;
+    if (burner) bar('Energie', burner.energy / 4e6, 'energy');
     el('div', 'hint', body).textContent = 'Klick: Stapel nehmen · Mit Cursor-Item: einlegen · Strg+Klick im Inventar: Stapel übertragen';
   }
 
   private entityKey(e: Entity): string {
-    switch (e.kind) {
-      case 'drill': return `d${e.status}|${JSON.stringify(e.burner.fuel.slots)}|${e.progress >> 3}|${e.burner.energy >> 16}`;
-      case 'furnace': return `f${e.status}|${JSON.stringify([e.source.slots, e.burner.fuel.slots, e.result.slots])}|${e.progress >> 3}|${e.burner.energy >> 16}`;
-      case 'inserter': return `i${e.status}|${JSON.stringify(e.burner.fuel.slots)}|${e.burner.energy >> 14}`;
-      case 'belt': return 'b';
-    }
+    const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots)).join('|');
+    const prog = e.kind === 'drill' || e.kind === 'furnace' ? e.progress >> 3 : 0;
+    return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}`;
   }
 
   private onEntitySlot(e: Entity, inv: Inventory, i: number, ctrl: boolean): void {
@@ -438,7 +421,8 @@ export class Hud {
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p><b>E</b> Inventar & Handwerk · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
-        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
+        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
+        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>P</b> Pause</p>
       </div>`;
     this.help.querySelector('.close')!.addEventListener('click', () => this.toggleHelp());
@@ -462,6 +446,9 @@ export class Hud {
     btn('Weiterspielen', () => this.toggleMenu());
     btn('Speichern', () => void this.saveGame());
     btn('Laden (Schnellspeicher)', () => void this.loadGame());
+    btn('Laden (Autosave)', () => void this.loadGame('autosave'));
+    btn('Spielstand exportieren (Datei)', () => this.exportGame());
+    btn('Spielstand importieren (Datei)', () => this.importGame());
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
     btn('Neues Spiel', () => { location.search = ''; });
     const saves = await listSaves().catch(() => []);
@@ -480,10 +467,10 @@ export class Hud {
     }
   }
 
-  async saveGame(name = 'schnellspeicher'): Promise<void> {
+  async saveGame(name = 'schnellspeicher', quiet = false): Promise<void> {
     try {
       await saveWorld(name, this.game.world, this.game.creative);
-      this.flash('Gespeichert');
+      if (!quiet) this.flash('Gespeichert');
     } catch (err) {
       this.flash(`Speichern fehlgeschlagen: ${String(err)}`);
     }
@@ -502,6 +489,39 @@ export class Hud {
     } catch (err) {
       this.flash(`Laden fehlgeschlagen: ${String(err)}`);
     }
+  }
+
+  /** Spielstand als JSON-Datei herunterladen. */
+  exportGame(): void {
+    const data = JSON.stringify({ format: 'eisenwerk', creative: this.game.creative, data: serializeWorld(this.game.world) });
+    const blob = new Blob([data], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `eisenwerk-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    this.flash('Exportiert');
+  }
+
+  /** Spielstand aus einer JSON-Datei laden. */
+  importGame(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.onchange = async () => {
+      const f = input.files?.[0];
+      if (!f) return;
+      try {
+        const j = JSON.parse(await f.text());
+        if (j.format !== 'eisenwerk') throw new Error('keine Eisenwerk-Datei');
+        this.closeWindows();
+        this.game.setWorld(deserializeWorld(j.data), !!j.creative);
+        this.flash('Importiert');
+      } catch (err) {
+        this.flash(`Import fehlgeschlagen: ${String(err)}`);
+      }
+    };
+    input.click();
   }
 
   private flash(msg: string): void {

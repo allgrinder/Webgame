@@ -1,4 +1,3 @@
-import { RECIPES } from '../data/recipes';
 import type { Status } from './entity';
 import type { Dir } from './geom';
 import type { Inventory } from './inventory';
@@ -40,6 +39,8 @@ export interface SaveData {
   beltItems: [number, [number, number, string][]][];
   /** [Chunk-x, Chunk-y, Index, Menge, Ressource] */
   map: [number, number, number, number, number][];
+  /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
+  ground?: [number, [string, number, number][]][];
   player: PlayerData | null;
 }
 
@@ -52,6 +53,7 @@ interface PlayerData {
   my: number;
   facing: number;
   walking: boolean;
+  pu?: boolean;
   inv: InvData;
   quickbar: (string | null)[];
   queue: CraftJob[];
@@ -77,10 +79,11 @@ export function serializeWorld(w: World): SaveData {
     entities,
     beltItems,
     map: w.map.serializeModifications(),
+    ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
         px: p.px, py: p.py, ppx: p.prevPx, ppy: p.prevPy, mx: p.moveX, my: p.moveY,
-        facing: p.facing, walking: p.walking,
+        facing: p.facing, walking: p.walking, pu: p.pickingUp,
         inv: p.inventory.serialize(),
         quickbar: [...p.quickbar],
         queue: p.craftQueue.map((j) => ({ ...j, refund: j.refund?.map((r) => [...r] as [string, number]) })),
@@ -93,20 +96,7 @@ export function serializeWorld(w: World): SaveData {
 }
 
 function entityData(e: Entity): EntityData {
-  const base: EntityData = { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status };
-  switch (e.kind) {
-    case 'belt':
-      return base;
-    case 'drill':
-      return { ...base, b: e.burner.serialize(), progress: e.progress, output: e.output, cursor: e.cursor, work: e.workTicks };
-    case 'furnace':
-      return {
-        ...base, b: e.burner.serialize(), src: e.source.serialize(), res: e.result.serialize(),
-        recipe: e.recipe?.id ?? null, progress: e.progress, work: e.workTicks,
-      };
-    case 'inserter':
-      return { ...base, b: e.burner.serialize(), phase: e.phase, progress: e.progress, held: e.held };
-  }
+  return { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status, ...e.save() } as EntityData;
 }
 
 export function deserializeWorld(d: SaveData): World {
@@ -117,32 +107,9 @@ export function deserializeWorld(d: SaveData): World {
   for (const ed of d.entities) {
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;
-    switch (e.kind) {
-      case 'drill':
-        e.burner.load(ed.b!);
-        e.progress = ed.progress!;
-        e.output = ed.output ?? null;
-        e.cursor = ed.cursor!;
-        e.workTicks = ed.work ?? 0;
-        break;
-      case 'furnace':
-        e.burner.load(ed.b!);
-        e.source.load(ed.src!);
-        e.result.load(ed.res!);
-        e.recipe = ed.recipe ? RECIPES[ed.recipe] : null;
-        e.progress = ed.progress!;
-        e.workTicks = ed.work ?? 0;
-        break;
-      case 'inserter':
-        e.burner.load(ed.b!);
-        e.phase = ed.phase!;
-        e.progress = ed.progress!;
-        e.held = ed.held ?? null;
-        break;
-      case 'belt':
-        break;
-    }
+    e.load(ed as unknown as Record<string, unknown>);
   }
+  for (const [k, list] of d.ground ?? []) w.ground.set(k, list.map(([item, x, y]) => ({ item, x, y })));
   for (const [id, list] of d.beltItems) {
     w.belts.loadTileItems(id, list.map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
   }
@@ -159,6 +126,7 @@ export function deserializeWorld(d: SaveData): World {
     p.moveY = pd.my;
     p.facing = pd.facing;
     p.walking = pd.walking;
+    p.pickingUp = pd.pu ?? false;
     p.inventory.load(pd.inv);
     pd.quickbar.forEach((q, i) => (p.quickbar[i] = q));
     for (const j of pd.queue) p.craftQueue.push({ ...j });

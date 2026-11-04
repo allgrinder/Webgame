@@ -3,6 +3,7 @@ import type { Dir } from '../geom';
 import type { EntityBase } from './base';
 import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './basic';
 import { InserterEntity } from './inserter';
+import { SplitterEntity, UndergroundEntity } from './logistics';
 import { AssemblerEntity, LabEntity } from './production';
 import { BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity } from './power';
 
@@ -22,4 +23,6 @@ export const ENTITY_CLASSES: Record<EntityDef['kind'], Ctor> = {
   pole: PoleEntity,
   assembler: AssemblerEntity,
   lab: LabEntity,
+  underground: UndergroundEntity,
+  splitter: SplitterEntity,
 };

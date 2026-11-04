@@ -42,6 +42,21 @@ const list: RecipeDef[] = [
     ingredients: [{ item: 'iron-gear-wheel', amount: 1 }, { item: 'iron-plate', amount: 1 }],
     results: [{ item: 'transport-belt', amount: 2 }],
   },
+  {
+    id: 'fast-transport-belt', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'iron-gear-wheel', amount: 5 }, { item: 'transport-belt', amount: 1 }],
+    results: [{ item: 'fast-transport-belt', amount: 1 }],
+  },
+  {
+    id: 'underground-belt', category: 'crafting', time: 1,
+    ingredients: [{ item: 'iron-plate', amount: 10 }, { item: 'transport-belt', amount: 5 }],
+    results: [{ item: 'underground-belt', amount: 2 }],
+  },
+  {
+    id: 'splitter', category: 'crafting', time: 1,
+    ingredients: [{ item: 'electronic-circuit', amount: 5 }, { item: 'iron-plate', amount: 5 }, { item: 'transport-belt', amount: 4 }],
+    results: [{ item: 'splitter', amount: 1 }],
+  },
   { id: 'electronic-circuit', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'copper-cable', amount: 3 }], results: [{ item: 'electronic-circuit', amount: 1 }] },
   { id: 'pipe', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }], results: [{ item: 'pipe', amount: 1 }] },
   { id: 'offshore-pump', category: 'crafting', time: 0.5, ingredients: [{ item: 'pipe', amount: 3 }, { item: 'iron-gear-wheel', amount: 2 }], results: [{ item: 'offshore-pump', amount: 1 }] },

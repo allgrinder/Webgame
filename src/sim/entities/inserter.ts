@@ -91,7 +91,8 @@ export class InserterEntity extends EntityBase {
             this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
             return;
           }
-          const accept = dst && dst.kind !== 'belt' ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
+          const onBelt = !!w.belts.tileAt(Math.floor(drop[0]), Math.floor(drop[1]));
+          const accept = dst && !onBelt ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
           const item = w.takeAt(pickup[0], pickup[1], accept);
           if (!item) {
             this.status = Status.NoInput;

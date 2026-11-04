@@ -21,6 +21,20 @@ interface EntityBase {
 
 export interface BeltDef extends EntityBase {
   readonly kind: 'belt';
+  /** Positionen pro Tick (256 pro Feld). */
+  readonly speed: number;
+}
+
+export interface UndergroundDef extends EntityBase {
+  readonly kind: 'underground';
+  readonly speed: number;
+  /** Größter Abstand Eingang–Ausgang in Feldern. */
+  readonly maxDistance: number;
+}
+
+export interface SplitterDef extends EntityBase {
+  readonly kind: 'splitter';
+  readonly speed: number;
 }
 
 /** Energieart: Brennstoff (Burner) oder Strom (elektrisches Netz). */
@@ -130,12 +144,24 @@ export interface LabDef extends EntityBase {
   readonly inputs: readonly string[];
 }
 
-export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef;
+export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef;
 
 const list: EntityDef[] = [
   {
     kind: 'belt', id: 'transport-belt', name: 'Förderband', width: 1, height: 1, health: 150,
-    item: 'transport-belt', mineTime: 0.1, solid: false, rotatable: true,
+    item: 'transport-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 8,
+  },
+  {
+    kind: 'belt', id: 'fast-transport-belt', name: 'Schnelles Förderband', width: 1, height: 1, health: 160,
+    item: 'fast-transport-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 16,
+  },
+  {
+    kind: 'underground', id: 'underground-belt', name: 'Untergrundband', width: 1, height: 1, health: 150,
+    item: 'underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 8, maxDistance: 5,
+  },
+  {
+    kind: 'splitter', id: 'splitter', name: 'Splitter', width: 2, height: 1, health: 170,
+    item: 'splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 8,
   },
   {
     kind: 'drill', id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', width: 2, height: 2, health: 150,

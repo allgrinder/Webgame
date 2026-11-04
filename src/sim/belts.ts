@@ -1,5 +1,5 @@
 import { BELT } from '../data/belt';
-import { DX, DY, type Dir, rotCW, rotateVec, tileKey } from './geom';
+import { DX, DY, type Dir, opposite, rotCW, rotateVec, tileKey } from './geom';
 
 /**
  * Bandsystem nach dem Transportlinien-Prinzip:
@@ -9,6 +9,13 @@ import { DX, DY, type Dir, rotCW, rotateVec, tileKey } from './geom';
  * gaps[i] = Abstand von Item i zu Item i-1. Pro Tick ändern sich nur wenige Abstände.
  *
  * Positionen sind ganzzahlig (256 pro Feld). Spur 0 = links, Spur 1 = rechts (in Laufrichtung).
+ *
+ * Erweiterungen:
+ *  - Geschwindigkeit je Feld; Linien brechen bei Geschwindigkeitswechsel, das Ende übergibt gerade
+ *    an den Anfang der nächsten Linie (gleiche Spur).
+ *  - Untergrundband: Eingang und Ausgang gehören zur selben Linie. Der Eingang ist so lang wie der
+ *    Weg bis zur Mitte des Ausgangs (unsichtbar ab seiner Mitte), der Ausgang ein halbes Feld.
+ *  - Splitter: zwei Hälften, an denen Linien enden; je Spur wird abwechselnd auf die beiden Ausgänge verteilt.
  */
 
 export enum Shape {
@@ -18,13 +25,38 @@ export enum Shape {
 }
 
 const S: number = BELT.itemSpacing;
-const SPEED: number = BELT.speed;
 const P: number = BELT.positionsPerTile;
+const HALF = P / 2;
 
 export function laneLength(shape: Shape, lane: number): number {
   if (shape === Shape.Straight) return P;
   const inner = shape === Shape.CurveLeft ? 0 : 1;
   return lane === inner ? BELT.curveInnerLength : BELT.curveOuterLength;
+}
+
+/** Untergrundband-Feld. */
+export interface UndergroundInfo {
+  output: boolean;
+  /** Größter Abstand Eingang–Ausgang in Feldern. */
+  readonly maxDist: number;
+  /** Gegenstück (vom Umbau gesetzt). */
+  partner: BeltTile | null;
+}
+
+/** Gemeinsamer Zustand beider Splitterhälften. */
+export class SplitterState {
+  /** Die beiden Hälften (Reihenfolge = Ausgang 0/1). */
+  readonly halves: BeltTile[] = [];
+  /** Nächster Ausgang je Spur (0/1). */
+  toggle: [number, number] = [0, 0];
+  /** Ausgänge (Linienanfang vor der Hälfte), vom Umbau gesetzt. */
+  outs: [LaneTarget | null, LaneTarget | null] = [null, null];
+}
+
+interface LaneTarget {
+  line: TransportLine;
+  /** Einfügeposition (Abstand zum Linienende) am Feldanfang, je Spur. */
+  d: [number, number];
 }
 
 export interface BeltTile {
@@ -36,6 +68,18 @@ export interface BeltTile {
   line: TransportLine | null;
   /** Index im tiles-Array der Linie (0 = Anfang). */
   idx: number;
+  /** Positionen pro Tick. */
+  readonly speed: number;
+  readonly ug: UndergroundInfo | null;
+  readonly splitter: SplitterState | null;
+  /** Spurlängen auf diesem Feld (vom Umbau gesetzt). */
+  lens: [number, number];
+}
+
+export interface BeltOptions {
+  speed?: number;
+  underground?: { output: boolean; maxDist: number };
+  splitter?: SplitterState;
 }
 
 interface LaneOut {
@@ -43,6 +87,8 @@ interface LaneOut {
   lane: number;
   /** Einfügeposition als Abstand zum Ende der Ziellinie. */
   d: number;
+  /** Ziel ist ein Splitter (line/d unbenutzt). */
+  split?: SplitterState;
 }
 
 export class Lane {
@@ -61,7 +107,9 @@ export class Lane {
 export class TransportLine {
   readonly tiles: BeltTile[] = [];
   readonly lanes: [Lane, Lane] = [new Lane(), new Lane()];
-  constructor(readonly startKey: number) {}
+  /** Wird von hinten gerade beliefert (kein offener Anfang). */
+  fedStraight = false;
+  constructor(readonly startKey: number, readonly speed: number) {}
 }
 
 /** Item auf einem einzelnen Feld (für Extraktion/Speichern). offset = Abstand zum Feldende. */
@@ -95,11 +143,15 @@ export class BeltSystem {
     return this.byId.values();
   }
 
-  add(id: number, x: number, y: number, dir: Dir): BeltTile {
+  add(id: number, x: number, y: number, dir: Dir, opts: BeltOptions = {}): BeltTile {
     this.extractAll();
-    const t: BeltTile = { id, x, y, dir, shape: Shape.Straight, line: null, idx: 0 };
+    const t: BeltTile = {
+      id, x, y, dir, shape: Shape.Straight, line: null, idx: 0, speed: opts.speed ?? BELT.speed,
+      ug: opts.underground ? { ...opts.underground, partner: null } : null, splitter: opts.splitter ?? null, lens: [P, P],
+    };
     this.byKey.set(tileKey(x, y), t);
     this.byId.set(id, t);
+    if (t.splitter && !t.splitter.halves.includes(t)) t.splitter.halves.push(t);
     this.dirty = true;
     return t;
   }
@@ -109,6 +161,16 @@ export class BeltSystem {
     const t = this.byId.get(id);
     if (!t || t.dir === dir) return;
     this.extractAll();
+    t.dir = dir;
+    this.dirty = true;
+  }
+
+  /** Untergrundband zwischen Eingang und Ausgang umschalten (mit neuer Richtung). */
+  setUnderground(id: number, output: boolean, dir: Dir): void {
+    const t = this.byId.get(id);
+    if (!t?.ug) return;
+    this.extractAll();
+    t.ug.output = output;
     t.dir = dir;
     this.dirty = true;
   }
@@ -131,9 +193,8 @@ export class BeltSystem {
     this.extractAll();
     const t = this.byId.get(id);
     if (!t) return;
-    // Alle Bänder müssen bereits hinzugefügt sein, damit die Form stimmt.
-    const shape = this.shapeOf(t);
-    this.pending.set(id, { lens: [laneLength(shape, 0), laneLength(shape, 1)], items });
+    // Alle Bänder müssen bereits hinzugefügt sein, damit Form und Paarung stimmen.
+    this.pending.set(id, { lens: this.lensOf(t, this.shapeOf(t), this.partnerOf(t)), items });
     this.dirty = true;
   }
 
@@ -144,13 +205,39 @@ export class BeltSystem {
   // ---------------------------------------------------------------- Topologie
 
   private beltFacingInto(x: number, y: number, fromDir: Dir): BeltTile | undefined {
-    // Band auf (x,y), das in Richtung fromDir zeigt.
+    // Band auf (x,y), das in Richtung fromDir nach vorn ausgibt (Untergrund-Eingänge geben nach unten ab).
     const b = this.byKey.get(tileKey(x, y));
-    return b && b.dir === fromDir ? b : undefined;
+    return b && b.dir === fromDir && !(b.ug && !b.ug.output) ? b : undefined;
+  }
+
+  /** Gegenstück eines Untergrundbands: nächstes gleichartiges Untergrundband in Laufrichtung (Eingang) bzw. dagegen (Ausgang). */
+  private partnerOf(t: BeltTile): BeltTile | null {
+    const ug = t.ug;
+    if (!ug) return null;
+    const step = ug.output ? opposite(t.dir) : t.dir;
+    for (let k = 1; k <= ug.maxDist; k++) {
+      const b = this.byKey.get(tileKey(t.x + DX[step] * k, t.y + DY[step] * k));
+      if (!b?.ug || b.speed !== t.speed || (b.dir !== t.dir && b.dir !== opposite(t.dir))) continue;
+      if (b.dir !== t.dir) return null;
+      return b.ug.output !== ug.output ? b : null;
+    }
+    return null;
+  }
+
+  private lensOf(t: BeltTile, shape: Shape, partner: BeltTile | null): [number, number] {
+    if (t.ug) {
+      if (t.ug.output) return [HALF, HALF];
+      const dist = partner ? Math.abs(partner.x - t.x) + Math.abs(partner.y - t.y) : 0;
+      const n = partner ? dist * P + HALF : HALF;
+      return [n, n];
+    }
+    return [laneLength(shape, 0), laneLength(shape, 1)];
   }
 
   private inputs(t: BeltTile): { back?: BeltTile; left?: BeltTile; right?: BeltTile } {
     const d = t.dir;
+    if (t.ug?.output) return t.ug.partner ? { back: t.ug.partner } : {};
+    if (t.ug || t.splitter) return { back: this.beltFacingInto(t.x - DX[d], t.y - DY[d], d) };
     const back = this.beltFacingInto(t.x - DX[d], t.y - DY[d], d);
     const ld = rotCW(d, 3);
     const rd = rotCW(d, 1);
@@ -166,18 +253,47 @@ export class BeltSystem {
     return Shape.Straight;
   }
 
-  /** Spurerhaltender Vorgänger eines Feldes. */
-  private pred(t: BeltTile): BeltTile | undefined {
+  /** Spurerhaltender Zulauf eines Feldes (unabhängig von der Geschwindigkeit). */
+  private feeder(t: BeltTile): BeltTile | undefined {
     const inp = this.inputs(t);
     if (t.shape === Shape.CurveLeft) return inp.left;
     if (t.shape === Shape.CurveRight) return inp.right;
     return inp.back;
   }
 
+  /** Vorgänger in derselben Linie: gleicher Zulauf, gleiche Geschwindigkeit, kein Splitter dazwischen. */
+  private pred(t: BeltTile): BeltTile | undefined {
+    const f = this.feeder(t);
+    return f && f.speed === t.speed && !f.splitter ? f : undefined;
+  }
+
+  /** Feld, in das t nach vorn ausgibt (Untergrund-Eingang: sein Ausgang). */
+  private front(t: BeltTile): BeltTile | undefined {
+    if (t.ug && !t.ug.output) return t.ug.partner ?? undefined;
+    return this.byKey.get(tileKey(t.x + DX[t.dir], t.y + DY[t.dir]));
+  }
+
   private succ(t: BeltTile): BeltTile | undefined {
-    const n = this.byKey.get(tileKey(t.x + DX[t.dir], t.y + DY[t.dir]));
+    const n = this.front(t);
     if (!n) return undefined;
     return this.pred(n) === t ? n : undefined;
+  }
+
+  /** Spurlänge eines Feldes. */
+  static tileLen(t: BeltTile, lane: number): number {
+    return t.lens[lane];
+  }
+
+  /**
+   * Darstellungsabstand zum Feldende (für pointOn) oder -1, wenn das Item unter der Erde ist.
+   * offset ist der logische Abstand zum Feldende.
+   */
+  static visualOffset(t: BeltTile, lane: number, offset: number): number {
+    if (!t.ug) return offset;
+    if (t.ug.output) return offset;
+    const len = t.lens[lane];
+    const travelled = len - offset;
+    return travelled < HALF ? P - travelled : -1;
   }
 
   // ---------------------------------------------------------------- Umbau
@@ -192,11 +308,11 @@ export class BeltSystem {
         let j = line.tiles.length - 1;
         for (let i = 0; i < lane.gaps.length; i++) {
           pos += lane.gaps[i];
-          while (j > 0 && pos >= lane.tileEnd[j] + laneLength(line.tiles[j].shape, l)) j--;
+          while (j > 0 && pos >= lane.tileEnd[j] + line.tiles[j].lens[l]) j--;
           const t = line.tiles[j];
           let p = this.pending.get(t.id);
           if (!p) {
-            p = { lens: [laneLength(t.shape, 0), laneLength(t.shape, 1)], items: [] };
+            p = { lens: [t.lens[0], t.lens[1]], items: [] };
             this.pending.set(t.id, p);
           }
           p.items.push({ lane: l, offset: pos - lane.tileEnd[j], item: lane.items[i] });
@@ -211,13 +327,22 @@ export class BeltSystem {
   private rebuild(): void {
     this.dirty = false;
     const tiles = [...this.byId.values()].sort((a, b) => tileKey(a.x, a.y) - tileKey(b.x, b.y));
-    for (const t of tiles) t.shape = this.shapeOf(t);
+    for (const t of tiles) if (t.ug) t.ug.partner = null;
+    for (const t of tiles) if (t.ug) t.ug.partner = this.partnerOf(t);
+    for (const t of tiles) {
+      // Paarung nur gegenseitig
+      if (t.ug?.partner && t.ug.partner.ug!.partner !== t) t.ug.partner = null;
+    }
+    for (const t of tiles) {
+      t.shape = this.shapeOf(t);
+      t.lens = this.lensOf(t, t.shape, t.ug?.partner ?? null);
+    }
     const preds = new Map<BeltTile, BeltTile | undefined>();
     for (const t of tiles) preds.set(t, this.pred(t));
     const visited = new Set<BeltTile>();
     const lines: TransportLine[] = [];
     const build = (start: BeltTile) => {
-      const line = new TransportLine(tileKey(start.x, start.y));
+      const line = new TransportLine(tileKey(start.x, start.y), start.speed);
       let cur: BeltTile | undefined = start;
       while (cur && !visited.has(cur)) {
         visited.add(cur);
@@ -240,29 +365,48 @@ export class BeltSystem {
         let acc = 0;
         for (let j = n - 1; j >= 0; j--) {
           lane.tileEnd[j] = acc;
-          acc += laneLength(line.tiles[j].shape, l);
+          acc += line.tiles[j].lens[l];
         }
         lane.len = acc;
       }
     }
+    // Splitter-Ausgänge: Linie, die vor der Hälfte beginnt
+    for (const t of tiles) {
+      const st = t.splitter;
+      if (!st) continue;
+      const k = st.halves.indexOf(t);
+      const b = this.byKey.get(tileKey(t.x + DX[t.dir], t.y + DY[t.dir]));
+      st.outs[k] = b && b.line && b.idx === 0 && this.feeder(b) === t
+        ? { line: b.line, d: [b.line.lanes[0].tileEnd[0] + b.lens[0], b.line.lanes[1].tileEnd[0] + b.lens[1]] }
+        : null;
+    }
     // Ausgänge
     for (const line of lines) {
       const end = line.tiles[line.tiles.length - 1];
-      const nx = end.x + DX[end.dir];
-      const ny = end.y + DY[end.dir];
-      const b = this.byKey.get(tileKey(nx, ny));
+      if (end.splitter) {
+        for (let l = 0; l < 2; l++) line.lanes[l].out = { line, lane: l, d: 0, split: end.splitter };
+        continue;
+      }
+      const b = this.front(end);
       if (!b || !b.line) continue;
       if (b.line === line && b.idx === 0 && this.succ(end) === b) {
         // geschlossene Schleife: Ende speist in den eigenen Anfang
         for (let l = 0; l < 2; l++) line.lanes[l].out = { line, lane: l, d: line.lanes[l].len };
         continue;
       }
+      if (this.feeder(b) === end) {
+        // gerade Übergabe an eine andere Linie (Geschwindigkeitswechsel)
+        b.line.fedStraight = true;
+        for (let l = 0; l < 2; l++) line.lanes[l].out = { line: b.line, lane: l, d: b.line.lanes[l].tileEnd[b.idx] + b.lens[l] };
+        continue;
+      }
+      if (b.ug || b.splitter) continue; // kein seitliches Einspeisen in Untergrund/Splitter
       if (b.dir === end.dir || b.dir === rotCW(end.dir, 2)) continue; // frontal oder (unmöglich) gerade
       const fromLeft = end.dir === rotCW(b.dir, 1);
       const near = fromLeft ? 0 : 1;
       const tl = b.line.lanes[near];
       const base = tl.tileEnd[b.idx];
-      const len = laneLength(b.shape, near);
+      const len = b.lens[near];
       const late = Math.round((BELT.sideloadLate * len) / P);
       const early = Math.round((BELT.sideloadEarly * len) / P);
       line.lanes[0].out = { line: b.line, lane: near, d: base + (fromLeft ? late : early) };
@@ -277,7 +421,7 @@ export class BeltSystem {
           const t = line.tiles[j];
           const p = this.pending.get(t.id);
           if (!p) continue;
-          const newLen = laneLength(t.shape, l);
+          const newLen = t.lens[l];
           const oldLen = p.lens[l];
           const own = p.items.filter((i) => i.lane === l).sort((a, b) => a.offset - b.offset);
           for (const it of own) {
@@ -292,25 +436,32 @@ export class BeltSystem {
         lane.active = 0;
       }
     }
+    // Linien, die von einem Splitter beliefert werden, haben ebenfalls keinen offenen Anfang
+    for (const t of tiles) {
+      if (!t.splitter) continue;
+      const b = this.byKey.get(tileKey(t.x + DX[t.dir], t.y + DY[t.dir]));
+      if (b?.line && this.feeder(b) === t) b.line.fedStraight = true;
+    }
     this.pending.clear();
     this.lines = lines;
   }
+
 
   // ---------------------------------------------------------------- Simulation
 
   update(): void {
     this.ensure();
     for (const line of this.lines) {
-      this.stepLane(line.lanes[0]);
-      this.stepLane(line.lanes[1]);
+      this.stepLane(line.lanes[0], line.speed);
+      this.stepLane(line.lanes[1], line.speed);
     }
   }
 
-  private stepLane(lane: Lane): void {
+  private stepLane(lane: Lane, speed: number): void {
     const gaps = lane.gaps;
     let n = gaps.length;
     if (n === 0) return;
-    let rem = SPEED;
+    let rem = speed;
     let i = lane.active;
     let firstMoving = -1;
     let deferred = -1; // Item, das in die eigene Spur (Schleife) zurückkehrt
@@ -331,7 +482,16 @@ export class BeltSystem {
           const over = rem - g0;
           let d = out.d - over;
           const target = out.line.lanes[out.lane];
-          if (target === lane) {
+          if (out.split) {
+            if (this.splitInsert(out.split, out.lane, over, lane.items[0])) {
+              this.removeFront(lane);
+              n--;
+              if (firstMoving < 0) firstMoving = 0;
+              if (n === 0) { rem = 0; break; }
+              rem = speed;
+              continue;
+            }
+          } else if (target === lane) {
             if (d >= lane.len) d = lane.len - 1;
             if (deferred < 0 && this.canInsertSelfLoop(lane, d)) {
               deferred = lane.items[0];
@@ -340,15 +500,15 @@ export class BeltSystem {
               n--;
               if (firstMoving < 0) firstMoving = 0;
               if (n === 0) { rem = 0; break; }
-              rem = SPEED;
+              rem = speed;
               continue;
             }
-          } else if (this.insertAt(target, Math.max(0, d), lane.items[0])) {
+          } else if (this.insertAt(target, Math.max(0, Math.min(target.len - 1, d)), lane.items[0])) {
             this.removeFront(lane);
             n--;
             if (firstMoving < 0) firstMoving = 0;
             if (n === 0) { rem = 0; break; }
-            rem = SPEED;
+            rem = speed;
             continue;
           }
         }
@@ -382,6 +542,23 @@ export class BeltSystem {
     lane.active = n === 0 ? 0 : a;
 
     if (deferred >= 0) this.insertAt(lane, deferredD, deferred);
+  }
+
+  /** Splitter: abwechselnd auf beide Ausgänge (gleiche Spur); ist einer blockiert, geht alles zum anderen. */
+  private splitInsert(st: SplitterState, laneIdx: number, over: number, item: number): boolean {
+    const first = st.toggle[laneIdx];
+    for (let k = 0; k < 2; k++) {
+      const side = k === 0 ? first : 1 - first;
+      const o = st.outs[side];
+      if (!o) continue;
+      const tl = o.line.lanes[laneIdx];
+      const d = Math.max(0, Math.min(tl.len - 1, o.d[laneIdx] - over));
+      if (this.insertAt(tl, d, item)) {
+        st.toggle[laneIdx] = 1 - side;
+        return true;
+      }
+    }
+    return false;
   }
 
   private removeFront(lane: Lane): void {
@@ -486,8 +663,20 @@ export class BeltSystem {
     const laneIdx = forceLane ?? loc.lane;
     const lane = t.line.lanes[laneIdx];
     const len = laneLength(t.shape, laneIdx);
-    const off = forceLane === undefined ? loc.offset : Math.min(len - 1, Math.round((loc.offset * len) / laneLength(t.shape, loc.lane)));
+    let off = forceLane === undefined ? loc.offset : Math.min(len - 1, Math.round((loc.offset * len) / laneLength(t.shape, loc.lane)));
+    if (t.ug) {
+      // Eingang: nur auf die sichtbare erste Hälfte; Ausgang: zweite Hälfte
+      off = t.ug.output ? Math.min(off, HALF - 1) : Math.max(off, HALF) - P + t.lens[laneIdx];
+    }
     return this.insertAt(lane, lane.tileEnd[t.idx] + off, item);
+  }
+
+  /** Bereich [lo, hi) einer Spur, in dem Items auf diesem Feld sichtbar und greifbar sind. */
+  private tileRange(t: BeltTile, l: number): [number, number] {
+    const lane = t.line!.lanes[l];
+    const lo = lane.tileEnd[t.idx];
+    const hi = lo + t.lens[l];
+    return t.ug && !t.ug.output ? [Math.max(lo, hi - HALF), hi] : [lo, hi];
   }
 
   /** Items, die logisch auf diesem Feld liegen. */
@@ -498,7 +687,7 @@ export class BeltSystem {
     for (let l = 0; l < 2; l++) {
       const lane = t.line.lanes[l];
       const lo = lane.tileEnd[t.idx];
-      const hi = lo + laneLength(t.shape, l);
+      const hi = lo + t.lens[l];
       let pos = 0;
       for (let i = 0; i < lane.gaps.length; i++) {
         pos += lane.gaps[i];
@@ -521,8 +710,7 @@ export class BeltSystem {
     let bestOff = Infinity;
     for (let l = 0; l < 2; l++) {
       const lane = t.line.lanes[l];
-      const lo = lane.tileEnd[t.idx];
-      const hi = lo + laneLength(t.shape, l);
+      const [lo, hi] = this.tileRange(t, l);
       let pos = 0;
       for (let i = 0; i < lane.gaps.length; i++) {
         pos += lane.gaps[i];
@@ -560,7 +748,7 @@ export class BeltSystem {
         let j = line.tiles.length - 1;
         for (let i = 0; i < lane.gaps.length; i++) {
           pos += lane.gaps[i];
-          while (j > 0 && pos >= lane.tileEnd[j] + laneLength(line.tiles[j].shape, l)) j--;
+          while (j > 0 && pos >= lane.tileEnd[j] + line.tiles[j].lens[l]) j--;
           const t = line.tiles[j];
           let arr = out.get(t.id);
           if (!arr) out.set(t.id, (arr = []));

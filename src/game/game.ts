@@ -341,12 +341,12 @@ export class Game {
     }
     if (!item) {
       if (target && ctrl && p) this.takeAllFrom(target);
-      else if (target && target.kind !== 'belt') this.hud.openEntity(target.id);
+      else if (target && hasWindow(target)) this.hud.openEntity(target.id);
       return;
     }
     const g = this.ghostAt(at);
     if (!g) return;
-    if (!g.ok && target && target.kind !== 'belt' && entityDef(g.name).kind !== 'belt') {
+    if (!g.ok && target && hasWindow(target) && entityDef(g.name).kind !== 'belt') {
       this.hud.openEntity(target.id);
       return;
     }
@@ -480,3 +480,8 @@ export class Game {
 const CREATIVE_QUICKBAR: (string | null)[] = [
   'transport-belt', 'burner-inserter', 'burner-mining-drill', 'stone-furnace', null, null, null, null, null, null,
 ];
+
+/** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
+function hasWindow(e: Entity): boolean {
+  return e.guiSlots().length > 0 || e.kind === 'assembler' || e.kind === 'lab';
+}

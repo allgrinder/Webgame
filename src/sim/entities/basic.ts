@@ -1,4 +1,4 @@
-import type { ContainerDef, DrillDef, FurnaceDef, InserterDef } from '../../data/entities';
+import type { BeltDef, ContainerDef, DrillDef, FurnaceDef, InserterDef } from '../../data/entities';
 import { entityDef } from '../../data/entities';
 import { isFuel } from '../../data/items';
 import { type RecipeDef, RECIPES, smeltingRecipeFor } from '../../data/recipes';
@@ -27,8 +27,9 @@ export function fuelAccept(b: Burner, item: string, mode: InsertMode): number {
 
 export class BeltEntity extends EntityBase {
   readonly kind = 'belt' as const;
+  declare readonly def: BeltDef;
   override onCreated(w: World): void {
-    w.belts.add(this.id, this.x, this.y, this.dir);
+    w.belts.add(this.id, this.x, this.y, this.dir, { speed: this.def.speed });
   }
 }
 

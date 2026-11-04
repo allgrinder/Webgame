@@ -76,7 +76,7 @@ export class World {
     const def = entityDef(name);
     if (def.kind === 'belt') {
       const e = this.entityAt(x, y);
-      if (e && e.kind === 'belt') return e.dir === dir ? { ok: false, reason: 'Gleiches Band' } : { ok: true, replace: e.id };
+      if (e && e.kind === 'belt' && e.name === name) return e.dir === dir ? { ok: false, reason: 'Gleiches Band' } : { ok: true, replace: e.id };
     }
     for (const [tx, ty] of World.footprint(def, x, y, dir)) {
       if (this.occupancy.has(tileKey(tx, ty))) return { ok: false, reason: 'Belegt' };
@@ -130,6 +130,11 @@ export class World {
   rotate(id: number, dir: Dir): boolean {
     const e = this.entities.get(id);
     if (!e || !entityDef(e.name).rotatable) return false;
+    if (e.kind === 'underground') {
+      e.flip();
+      this.structureVersion++;
+      return true;
+    }
     if (e.def.width !== e.def.height) return false; // nicht quadratisch: zum Drehen neu bauen
     e.dir = dir;
     if (e.kind === 'belt') this.belts.setDir(id, dir);
@@ -143,8 +148,10 @@ export class World {
     if (!e) return [];
     const def = entityDef(e.name);
     const out: { item: string; count: number }[] = [{ item: def.item, count: 1 }];
-    if (e.kind === 'belt') {
+    if (e.kind === 'belt' || e.kind === 'underground') {
       for (const idx of this.belts.remove(id)) out.push({ item: itemId(idx), count: 1 });
+    } else if (e.kind === 'splitter') {
+      for (const hid of e.halfIds) for (const idx of this.belts.remove(hid)) out.push({ item: itemId(idx), count: 1 });
     } else out.push(...e.contents());
     e.onRemoved(this);
     this.entities.delete(id);
@@ -177,10 +184,8 @@ export class World {
     const ty = Math.floor(py);
     const target = this.entityAt(tx, ty);
     if (!target) return allowGround ? this.dropGround(px, py, item) : false;
-    if (target.kind === 'belt') {
-      const t = this.belts.tileById(target.id)!;
-      return this.belts.insertAtPoint(t, px - tx, py - ty, itemIndex(item));
-    }
+    const bt = this.belts.tileAt(tx, ty);
+    if (bt) return this.belts.insertAtPoint(bt, px - tx, py - ty, itemIndex(item));
     return target.insert(item, 1, mode) === 1;
   }
 
@@ -188,8 +193,8 @@ export class World {
   takeAt(px: number, py: number, accept: (item: string) => boolean): string | null {
     const src = this.entityAt(px, py);
     if (!src) return this.takeGround(Math.floor(px), Math.floor(py), accept);
-    if (src.kind === 'belt') {
-      const t = this.belts.tileById(src.id)!;
+    const t = this.belts.tileAt(Math.floor(px), Math.floor(py));
+    if (t) {
       const idx = this.belts.takeFromTile(t, (i) => accept(itemId(i)));
       return idx < 0 ? null : itemId(idx);
     }

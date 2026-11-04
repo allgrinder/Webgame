@@ -4,7 +4,7 @@ import { entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
-import { BeltSystem, Shape, laneLength } from '../sim/belts';
+import { BeltSystem, Shape } from '../sim/belts';
 import { Status } from '../sim/entity';
 import { DX, DY, type Dir } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
@@ -67,9 +67,10 @@ export class GameRenderer {
   /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
   private groundPeriod = 1;
   private readonly groundTex: Texture[] = [];
-  private readonly beltTex: Texture[][] = [];
-  /** Endkappen: [Ende 0..3, Anfang 0..3] */
-  private readonly capTex: Texture[] = [];
+  /** Bandbilder je Geschwindigkeit: [Form*4+Richtung] -> Frames. */
+  private readonly beltTex = new Map<number, Texture[][]>();
+  /** Endkappen je Geschwindigkeit: [Ende 0..3, Anfang 0..3] */
+  private readonly capTex = new Map<number, Texture[]>();
   private readonly resCache = new Map<number, Texture>();
   private resVariants = 4;
 
@@ -141,8 +142,16 @@ export class GameRenderer {
     const gp = this.groundPeriod;
     for (let y = 0; y < gp; y++) for (let x = 0; x < gp; x++) this.groundTex[x + gp * y] = s.frame(`ground.${x}.${y}`);
     while (s.has(`res.iron-ore.${this.resVariants}.0`)) this.resVariants++;
-    if (s.has('belt.cap.end.0')) for (const k of ['end', 'start']) for (let d = 0; d < 4; d++) this.capTex.push(s.frame(`belt.cap.${k}.${d}`));
-    for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) this.beltTex[sh * 4 + d] = s.frames(`belt.${SHAPE_KEY[sh]}.${d}`);
+    // Bandstufen: Präfix der Sprites je Geschwindigkeit (fehlt eine Stufe, wird das gelbe Band genutzt)
+    for (const [speed, prefix] of [[BELT.speed, 'belt'], [BELT.speed * 2, 'fast-belt']] as const) {
+      const pre = s.has(`${prefix}.s.0`) ? prefix : 'belt';
+      const tex: Texture[][] = [];
+      for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) tex[sh * 4 + d] = s.frames(`${pre}.${SHAPE_KEY[sh]}.${d}`);
+      this.beltTex.set(speed, tex);
+      const caps: Texture[] = [];
+      if (s.has(`${pre}.cap.end.0`)) for (const k of ['end', 'start']) for (let d = 0; d < 4; d++) caps.push(s.frame(`${pre}.cap.${k}.${d}`));
+      this.capTex.set(speed, caps);
+    }
   }
 
   /** Bildschirm -> Weltkoordinaten (Felder). */
@@ -344,27 +353,30 @@ export class GameRenderer {
     const b = this.belts;
     b.begin();
     world.belts.ensure();
-    // 16 Frames pro 32 px Rillenabstand: 1 Frame pro Tick = 8 Positionen = 2 px
-    const frame = Math.floor(world.tick + alpha);
+    // 16 Frames pro 32 px Rillenabstand: 1 Frame pro Tick = 8 Positionen = 2 px (schnelles Band: 2 Frames)
+    const t0 = world.tick + alpha;
+    const fallback = this.beltTex.get(BELT.speed)!;
     for (const t of world.belts.allTiles()) {
       if (t.x < v.x0 || t.x > v.x1 || t.y < v.y0 || t.y > v.y1) continue;
-      const frames = this.beltTex[t.shape * 4 + t.dir];
+      const frames = (this.beltTex.get(t.speed) ?? fallback)[t.shape * 4 + t.dir];
+      const frame = Math.floor((t0 * t.speed) / BELT.speed);
       b.push(frames[frame % frames.length], t.x * TILE + TILE / 2, t.y * TILE + TILE / 2);
     }
-    // Umlenktrommeln an offenen Bandanfängen und -enden (nur gerade Felder)
-    if (this.capTex.length) {
-      for (const line of world.belts.lines) {
-        const first = line.tiles[0];
-        const last = line.tiles[line.tiles.length - 1];
-        const out = line.lanes[0].out;
-        const loop = out !== null && out.line === line;
-        if (loop) continue;
-        if (first.shape === Shape.Straight && !(first.x < v.x0 || first.x > v.x1 || first.y < v.y0 || first.y > v.y1)) {
-          b.push(this.capTex[4 + first.dir], first.x * TILE + TILE / 2, first.y * TILE + TILE / 2);
-        }
-        if (!out && last.shape === Shape.Straight && !(last.x < v.x0 || last.x > v.x1 || last.y < v.y0 || last.y > v.y1)) {
-          b.push(this.capTex[last.dir], last.x * TILE + TILE / 2, last.y * TILE + TILE / 2);
-        }
+    // Umlenktrommeln an offenen Bandanfängen und -enden (nur gerade Felder, nicht an Untergrund/Splitter)
+    const off = (t: { x: number; y: number }) => t.x < v.x0 || t.x > v.x1 || t.y < v.y0 || t.y > v.y1;
+    for (const line of world.belts.lines) {
+      const caps = this.capTex.get(line.speed);
+      if (!caps?.length) continue;
+      const first = line.tiles[0];
+      const last = line.tiles[line.tiles.length - 1];
+      const out = line.lanes[0].out;
+      const loop = out !== null && out.line === line && !out.split;
+      if (loop) continue;
+      if (!line.fedStraight && first.shape === Shape.Straight && !first.ug && !first.splitter && !off(first)) {
+        b.push(caps[4 + first.dir], first.x * TILE + TILE / 2, first.y * TILE + TILE / 2);
+      }
+      if (!out && last.shape === Shape.Straight && !last.ug && !last.splitter && !off(last)) {
+        b.push(caps[last.dir], last.x * TILE + TILE / 2, last.y * TILE + TILE / 2);
       }
     }
     b.end();
@@ -374,12 +386,12 @@ export class GameRenderer {
   private drawItems(world: World, v: ReturnType<GameRenderer['viewRect']>, alpha: number): void {
     const pool = this.items;
     pool.begin();
-    const lag = (1 - alpha) * BELT.speed;
     const p = this.tmp;
     const itemTex: Texture[] = [];
     const shadow = this.sprites.has('item.shadow') ? this.sprites.frame('item.shadow') : null;
     for (const line of world.belts.lines) {
       const tiles = line.tiles;
+      const lag = (1 - alpha) * line.speed;
       for (let l = 0; l < 2; l++) {
         const lane = line.lanes[l];
         const gaps = lane.gaps;
@@ -390,11 +402,13 @@ export class GameRenderer {
           pos += gaps[i];
           let d = i >= lane.firstMoving ? pos + lag : pos;
           if (d >= lane.len) d = lane.len - 0.001;
-          while (j > 0 && d >= lane.tileEnd[j] + laneLength(tiles[j].shape, l)) j--;
+          while (j > 0 && d >= lane.tileEnd[j] + tiles[j].lens[l]) j--;
           while (j < tiles.length - 1 && d < lane.tileEnd[j]) j++;
           const t = tiles[j];
           if (t.x < v.x0 || t.x > v.x1 || t.y < v.y0 || t.y > v.y1) continue;
-          BeltSystem.pointOn(t.shape, t.dir, l, Math.max(0, d - lane.tileEnd[j]), p);
+          const vo = BeltSystem.visualOffset(t, l, Math.max(0, d - lane.tileEnd[j]));
+          if (vo < 0) continue; // unter der Erde
+          BeltSystem.pointOn(t.shape, t.dir, l, vo, p);
           const idx = lane.items[i];
           const tex = itemTex[idx] ?? (itemTex[idx] = this.sprites.frame(`item.${itemId(idx)}`));
           const ix = (t.x + p.x) * TILE;
@@ -541,6 +555,15 @@ export class GameRenderer {
       }
       case 'belt':
         break;
+      case 'underground': {
+        const key = `underground-belt.${e.output ? 'out' : 'in'}.${e.dir}`;
+        if (s.has(key)) {
+          const sp = this.ents.get(s.frame(key));
+          sp.position.set(cx, cy);
+          sp.zIndex = z;
+        } else this.drawGeneric(e, cx, cy, z);
+        break;
+      }
       default:
         this.drawGeneric(e, cx, cy, z);
     }
@@ -603,7 +626,8 @@ export class GameRenderer {
       const tint = g.ok ? 0x7dff8a : 0xff6a5a;
       let tex: Texture;
       switch (def.kind) {
-        case 'belt': tex = this.sprites.frame(`belt.s.${g.dir}`); break;
+        case 'belt': tex = this.sprites.frame(def.speed > BELT.speed && this.sprites.has(`fast-belt.s.${g.dir}`) ? `fast-belt.s.${g.dir}` : `belt.s.${g.dir}`); break;
+        case 'underground': tex = this.sprites.frame(this.sprites.has(`underground-belt.in.${g.dir}`) ? `underground-belt.in.${g.dir}` : `item.${def.item}`); break;
         case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame('furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;

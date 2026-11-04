@@ -39,6 +39,10 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   (Geschwindigkeit je Linie), Untergrundband (Teil der Transportlinie), Splitter (`src/sim/entities/logistics.ts`).
 - Gebäudeklassen in `src/sim/entities/` (Registry `registry.ts`); Modelle der neuen Anlagen in `assets/blender/lib/anlagen.py`.
 - Blender: bpy-Modul 5.2 in `.venv-blender` (mit OIDN-Denoiser, halbe Samples); `EISEN_PREVIEW=1` für schnelle Probeläufe.
+- Phase A: Effekte (`src/render/effects.ts`, `src/data/fx.ts`), Figur 8 Richtungen (`models/player.py`), Nadelbäume/Felsgruppen
+  (`models/landscape.py`, nutzt die Blender-Add-ons Sapling und Rock Generator aus /usr/share/blender als Werkzeug),
+  Tooltips/Minimap (`src/ui/tooltip.ts`, `src/ui/minimap.ts`).
+- Asset-Pipeline rendert ein Modell nur neu, wenn sein Skript oder eine importierte Bibliothek sich ändert (`npm run assets -- --deps`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

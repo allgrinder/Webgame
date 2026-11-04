@@ -24,7 +24,7 @@ Möglichst natürlich, bestehender Grafikstil bleibt. Reihenfolge:
 
 Ziel: Gebäude, Figur und Effekte erreichen dieselbe Qualität wie die neue Landschaft.
 
-**A1 Gebäude neu modellieren**
+**A1 Gebäude neu modellieren** ✔ (verwitterte Materialien, Bohrgut, Bruchstein-Ofen, Greifarm in 32 Winkeln; neue Anlagen in `anlagen.py`)
 - Brennstoff-Bohrer: verwitterter Stahl mit Rost, Ölflecken und Staub, sichtbares Bohrgestänge im Boden,
   Abraum rund um den Bohrkopf, deutlichere Ausgaberutsche. Arbeitsanimation mit Kolben, Zahnrad und
   vibrierendem Gehäuse.
@@ -35,31 +35,31 @@ Ziel: Gebäude, Figur und Effekte erreichen dieselbe Qualität wie die neue Land
 - Förderband: Gummi mit Abnutzungsspuren, Stahlwangen mit Schrauben, Endkappen am Bandanfang und -ende,
   eigene Übergänge für seitliches Einspeisen.
 
-**A2 Gebäude in die Landschaft einbinden**
+**A2 Gebäude in die Landschaft einbinden** ✔ (Erd-/Kies-Decal unter Gebäuden, Kontaktschatten im Schattenbild)
 - Unter jedem Gebäude ein Boden-Decal: Erde, Staub, plattgetretenes Gras.
 - Kontaktschatten (Umgebungsverdeckung) am Fuß.
 - Zertrampelte Wege, wo die Figur oft läuft (optional, nur Darstellung).
 
-**A3 Effekte**
+**A3 Effekte** ✔ (Volumen-Rauch, Funken, Staub als Partikel; Werte in `src/data/fx.ts`)
 - Rauch aus den Schornsteinen von Ofen und Bohrer: in Blender gerenderte Rauchwolken als Sprite-Folge,
   im Spiel als Partikel mit Wind.
 - Staub und Splitter beim Bohren und beim Handabbau.
 - Funken aus dem Ofen, warmes Lichtfeld auf dem Boden.
 - Items auf dem Band mit kleinem Schatten.
 
-**A4 Spielfigur**
+**A4 Spielfigur** ✔ (8 Richtungen, 16 Lauf-, 8 Ruhe-, 8 Abbau-Frames mit Spitzhacke)
 - 8 Laufrichtungen mit 16 Frames, Leerlauf-Animation.
 - Abbauanimation mit Spitzhacke.
 - Schatten passend zur Sonne der Landschaft.
 
-**A5 Landschaft vervollständigen**
+**A5 Landschaft vervollständigen** ✔ (Nadelbäume mit Sapling, Felsgruppen mit dem Rock Generator, weichere Erzränder; Wolkenschatten offen)
 - Mehr Varianten: weitere Baumarten (Kiefer und Eiche als Gruppen), Totholz, Farn- und Distelinseln,
   größere Felsgruppen.
 - Erzfelder mit weichem Rand zur Wiese, Abbau sichtbar über die Dichtestufen.
 - Teiche und kleine Seen mit Uferkante, Schilf und Steinen. Zunächst nur Dekoration, später Wasser für Phase C.
 - Optional: sanfte Wolkenschatten, die über die Landschaft ziehen.
 
-**A6 Oberfläche**
+**A6 Oberfläche** ✔ (Metallfenster, Tooltips mit Rezept und Werten, Minimap; Rezeptbaum offen)
 - Inventar und Fenster im gleichen Materialstil (dunkles Metall, Holz), größere und schärfere Item-Symbole.
 - Tooltips mit Rezept und Werten, Rezeptbaum beim Handwerk.
 - Kleine Übersichtskarte (Minimap) aus den Kartendaten.

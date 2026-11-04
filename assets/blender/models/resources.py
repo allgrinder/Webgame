@@ -38,8 +38,9 @@ def render(out):
                 eisen.reset(samples=40, ground=False)
                 rnd = random.Random(1000 * ri + 17 * v + d + 1)
                 # Erdgrund: wird mit der Dichte deckender
-                m = patch_material(f'og{ri}{v}{d}', ground, v * 4 + d, noise_amp=0.3)
-                disc(0.62 + 0.03 * d, m)
+                # weicher, unregelmäßiger Rand; dünne Stufen lassen die Wiese durchscheinen (keine Kreisflecken)
+                m = patch_material(f'og{ri}{v}{d}', ground, v * 4 + d, noise_amp=0.48, opacity=0.5 + 0.13 * d, bump_strength=0.4)
+                disc(0.7 + 0.04 * d, m)
                 mats = [gw_ground.pmat(f'or{i}', lin(h), 0.6 if res == 'coal' else 0.8, 0.25, 0.5, 25, 0.5 if res == 'coal' else 0.3)
                         for i, h in enumerate(tones)]
                 meshes = [gw_ground.pebble_mesh(f'om{i}', 1.0, rnd, 0.55, 1 if angular else 2, not angular, 0.25 if angular else 0.05)

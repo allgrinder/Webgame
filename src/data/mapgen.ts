@@ -32,5 +32,5 @@ export const MAPGEN = {
   /** Seen: großräumiges Rauschen über dem Schwellwert; ab spawnClear Feldern, weich über spawnFade. */
   lakes: { scale: 70, detail: 17, threshold: 0.68, spawnClear: 26, spawnFade: 30 },
   /** Kleine Teiche (verzerrte Ellipsen). */
-  ponds: { cell: 60, chance: 0.3, radiusMin: 2.5, radiusMax: 6 },
+  ponds: { cell: 64, chance: 0.32, radiusMin: 4, radiusMax: 8 },
 } as const;

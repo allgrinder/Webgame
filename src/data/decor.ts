@@ -36,7 +36,7 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false },
   { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false },
   { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false },
-  { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.4, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
+  { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
   { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
   { id: 'tree', sprite: 'flora.tree', layer: 'flora', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, clearOfResources: 3, clearOfSpawn: 14, shadow: true },

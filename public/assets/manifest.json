@@ -1,11 +1,11 @@
 {
  "version": 1,
- "tileSize": 64,
+ "tileSize": 128,
  "generator": "blender",
  "blender": "Blender 4.0.2",
  "models": {
   "belt": {
-   "hash": "0e49861e20cee5c0",
+   "hash": "f9d9982aa40142e0",
    "sprites": [
     "belt.s.0",
     "belt.s.1",
@@ -18,11 +18,19 @@
     "belt.r.0",
     "belt.r.1",
     "belt.r.2",
-    "belt.r.3"
+    "belt.r.3",
+    "belt.cap.end.0",
+    "belt.cap.end.1",
+    "belt.cap.end.2",
+    "belt.cap.end.3",
+    "belt.cap.start.0",
+    "belt.cap.start.1",
+    "belt.cap.start.2",
+    "belt.cap.start.3"
    ]
   },
   "decals": {
-   "hash": "7f014a7951b93151",
+   "hash": "c634ff09f2cd4b57",
    "sprites": [
     "decal.dirt.0",
     "decal.dirt.1",
@@ -55,7 +63,7 @@
    ]
   },
   "drill": {
-   "hash": "d9876b5276f60517",
+   "hash": "1943ee81d1b8a3e9",
    "sprites": [
     "drill.0",
     "drill.0.shadow",
@@ -68,7 +76,7 @@
    ]
   },
   "flora": {
-   "hash": "8922679161ff3356",
+   "hash": "920d928d6d35d287",
    "sprites": [
     "flora.shrub.0",
     "flora.shrub.0.shadow",
@@ -78,6 +86,14 @@
     "flora.shrub.2.shadow",
     "flora.shrub.3",
     "flora.shrub.3.shadow",
+    "flora.reed.0",
+    "flora.reed.0.shadow",
+    "flora.reed.1",
+    "flora.reed.1.shadow",
+    "flora.reed.2",
+    "flora.reed.2.shadow",
+    "flora.reed.3",
+    "flora.reed.3.shadow",
     "flora.boulder.0",
     "flora.boulder.0.shadow",
     "flora.boulder.1",
@@ -105,7 +121,7 @@
    ]
   },
   "furnace": {
-   "hash": "dee150f161db4e8c",
+   "hash": "60422ce569d82aa8",
    "sprites": [
     "furnace.off",
     "furnace.on",
@@ -114,7 +130,7 @@
    ]
   },
   "ground": {
-   "hash": "649675204a5a03c2",
+   "hash": "3bda58f8409a832a",
    "sprites": [
     "ground.0.0",
     "ground.1.0",
@@ -375,14 +391,14 @@
    ]
   },
   "icons": {
-   "hash": "ca8bd50f46b16a26",
+   "hash": "d7d21efd88912bbc",
    "sprites": [
     "icon.nofuel",
     "icon.blocked"
    ]
   },
   "inserter": {
-   "hash": "5ff922e9cdadb1dd",
+   "hash": "8d392df12365dd25",
    "sprites": [
     "inserter.base",
     "inserter.arm",
@@ -390,8 +406,9 @@
    ]
   },
   "items": {
-   "hash": "3da89a819b43eba4",
+   "hash": "94adc536cc3809c5",
    "sprites": [
+    "item.shadow",
     "item.iron-ore",
     "item.coal",
     "item.stone",
@@ -404,7 +421,7 @@
    ]
   },
   "player": {
-   "hash": "55905cde5b42ffd8",
+   "hash": "debb598f24bb97a7",
    "sprites": [
     "player.0",
     "player.1",
@@ -413,7 +430,7 @@
    ]
   },
   "resources": {
-   "hash": "5faf4f19e2081ab4",
+   "hash": "9d8611a530cda217",
    "sprites": [
     "res.iron-ore.0.0",
     "res.iron-ore.0.1",
@@ -488,6 +505,56 @@
     "res.stone.5.2",
     "res.stone.5.3"
    ]
+  },
+  "water": {
+   "hash": "298a58754521fcab",
+   "sprites": [
+    "water.1.0",
+    "water.1.1",
+    "water.1.2",
+    "water.2.0",
+    "water.2.1",
+    "water.2.2",
+    "water.3.0",
+    "water.3.1",
+    "water.3.2",
+    "water.4.0",
+    "water.4.1",
+    "water.4.2",
+    "water.5.0",
+    "water.5.1",
+    "water.5.2",
+    "water.6.0",
+    "water.6.1",
+    "water.6.2",
+    "water.7.0",
+    "water.7.1",
+    "water.7.2",
+    "water.8.0",
+    "water.8.1",
+    "water.8.2",
+    "water.9.0",
+    "water.9.1",
+    "water.9.2",
+    "water.10.0",
+    "water.10.1",
+    "water.10.2",
+    "water.11.0",
+    "water.11.1",
+    "water.11.2",
+    "water.12.0",
+    "water.12.1",
+    "water.12.2",
+    "water.13.0",
+    "water.13.1",
+    "water.13.2",
+    "water.14.0",
+    "water.14.1",
+    "water.14.2",
+    "water.15.0",
+    "water.15.1",
+    "water.15.2"
+   ]
   }
  },
  "placeholders": [],
@@ -519,9 +586,109 @@
   {
    "group": "terrain",
    "file": "atlas-terrain-0.json"
+  },
+  {
+   "group": "water",
+   "file": "atlas-water-0.json"
   }
  ],
  "sprites": {
+  "belt.cap.end.0": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.end.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.end.1": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.end.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.end.2": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.end.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.end.3": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.end.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.start.0": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.start.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.start.1": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.start.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.start.2": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.start.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "belt.cap.start.3": {
+   "group": "belts",
+   "frames": [
+    "belt.cap.start.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "belt.l.0": {
    "group": "belts",
    "frames": [
@@ -1643,6 +1810,102 @@
     0.39425035704165384
    ]
   },
+  "flora.reed.0": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.0#0"
+   ],
+   "w": 128,
+   "h": 160,
+   "anchor": [
+    0.475,
+    0.6464101615137754
+   ]
+  },
+  "flora.reed.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.0.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.31666666666666665,
+    0.31666666666666665
+   ]
+  },
+  "flora.reed.1": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.1#0"
+   ],
+   "w": 128,
+   "h": 160,
+   "anchor": [
+    0.475,
+    0.6464101615137754
+   ]
+  },
+  "flora.reed.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.1.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.31666666666666665,
+    0.31666666666666665
+   ]
+  },
+  "flora.reed.2": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.2#0"
+   ],
+   "w": 128,
+   "h": 160,
+   "anchor": [
+    0.475,
+    0.6464101615137754
+   ]
+  },
+  "flora.reed.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.2.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.31666666666666665,
+    0.31666666666666665
+   ]
+  },
+  "flora.reed.3": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.3#0"
+   ],
+   "w": 128,
+   "h": 160,
+   "anchor": [
+    0.475,
+    0.6464101615137754
+   ]
+  },
+  "flora.reed.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.reed.3.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.31666666666666665,
+    0.31666666666666665
+   ]
+  },
   "flora.shrub.0": {
    "group": "flora",
    "frames": [
@@ -2046,6 +2309,18 @@
    ],
    "w": 64,
    "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.shadow": {
+   "group": "items",
+   "frames": [
+    "item.shadow#0"
+   ],
+   "w": 48,
+   "h": 48,
    "anchor": [
     0.5,
     0.5
@@ -6018,6 +6293,546 @@
    ],
    "w": 96,
    "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.1.0": {
+   "group": "water",
+   "frames": [
+    "water.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.1.1": {
+   "group": "water",
+   "frames": [
+    "water.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.1.2": {
+   "group": "water",
+   "frames": [
+    "water.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.10.0": {
+   "group": "water",
+   "frames": [
+    "water.10.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.10.1": {
+   "group": "water",
+   "frames": [
+    "water.10.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.10.2": {
+   "group": "water",
+   "frames": [
+    "water.10.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.11.0": {
+   "group": "water",
+   "frames": [
+    "water.11.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.11.1": {
+   "group": "water",
+   "frames": [
+    "water.11.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.11.2": {
+   "group": "water",
+   "frames": [
+    "water.11.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.12.0": {
+   "group": "water",
+   "frames": [
+    "water.12.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.12.1": {
+   "group": "water",
+   "frames": [
+    "water.12.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.12.2": {
+   "group": "water",
+   "frames": [
+    "water.12.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.13.0": {
+   "group": "water",
+   "frames": [
+    "water.13.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.13.1": {
+   "group": "water",
+   "frames": [
+    "water.13.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.13.2": {
+   "group": "water",
+   "frames": [
+    "water.13.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.14.0": {
+   "group": "water",
+   "frames": [
+    "water.14.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.14.1": {
+   "group": "water",
+   "frames": [
+    "water.14.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.14.2": {
+   "group": "water",
+   "frames": [
+    "water.14.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.15.0": {
+   "group": "water",
+   "frames": [
+    "water.15.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.15.1": {
+   "group": "water",
+   "frames": [
+    "water.15.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.15.2": {
+   "group": "water",
+   "frames": [
+    "water.15.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.2.0": {
+   "group": "water",
+   "frames": [
+    "water.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.2.1": {
+   "group": "water",
+   "frames": [
+    "water.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.2.2": {
+   "group": "water",
+   "frames": [
+    "water.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.3.0": {
+   "group": "water",
+   "frames": [
+    "water.3.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.3.1": {
+   "group": "water",
+   "frames": [
+    "water.3.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.3.2": {
+   "group": "water",
+   "frames": [
+    "water.3.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.4.0": {
+   "group": "water",
+   "frames": [
+    "water.4.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.4.1": {
+   "group": "water",
+   "frames": [
+    "water.4.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.4.2": {
+   "group": "water",
+   "frames": [
+    "water.4.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.5.0": {
+   "group": "water",
+   "frames": [
+    "water.5.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.5.1": {
+   "group": "water",
+   "frames": [
+    "water.5.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.5.2": {
+   "group": "water",
+   "frames": [
+    "water.5.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.6.0": {
+   "group": "water",
+   "frames": [
+    "water.6.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.6.1": {
+   "group": "water",
+   "frames": [
+    "water.6.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.6.2": {
+   "group": "water",
+   "frames": [
+    "water.6.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.7.0": {
+   "group": "water",
+   "frames": [
+    "water.7.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.7.1": {
+   "group": "water",
+   "frames": [
+    "water.7.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.7.2": {
+   "group": "water",
+   "frames": [
+    "water.7.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.8.0": {
+   "group": "water",
+   "frames": [
+    "water.8.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.8.1": {
+   "group": "water",
+   "frames": [
+    "water.8.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.8.2": {
+   "group": "water",
+   "frames": [
+    "water.8.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.9.0": {
+   "group": "water",
+   "frames": [
+    "water.9.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.9.1": {
+   "group": "water",
+   "frames": [
+    "water.9.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.9.2": {
+   "group": "water",
+   "frames": [
+    "water.9.2#0"
+   ],
+   "w": 64,
+   "h": 64,
    "anchor": [
     0.5,
     0.5

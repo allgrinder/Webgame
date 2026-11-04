@@ -9,7 +9,7 @@ export class ParticlePool {
   constructor(texture: Texture) {
     this.container = new ParticleContainer({
       texture,
-      dynamicProperties: { position: true, uvs: true, vertex: true, color: true, rotation: false },
+      dynamicProperties: { position: true, uvs: true, vertex: true, color: true, rotation: true },
     });
   }
 
@@ -17,7 +17,7 @@ export class ParticlePool {
     this.n = 0;
   }
 
-  push(tex: Texture, x: number, y: number, scale = 1, alpha = 1): void {
+  push(tex: Texture, x: number, y: number, scale = 1, alpha = 1, rotation = 0): void {
     let p = this.pool[this.n];
     if (!p) {
       p = new Particle({ texture: tex });
@@ -31,6 +31,7 @@ export class ParticlePool {
     p.anchorX = tex.defaultAnchor?.x ?? 0.5;
     p.anchorY = tex.defaultAnchor?.y ?? 0.5;
     p.alpha = alpha;
+    p.rotation = rotation;
     this.n++;
   }
 

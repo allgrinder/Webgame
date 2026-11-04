@@ -197,7 +197,10 @@ export class GameRenderer {
               const lvl = densityLevel(def, chunk.amount[i]);
               const variant = (chunk.ground[i] >> 3) % this.resVariants;
               const h = chunk.ground[i];
-              rp.push(this.resTex(res, def.id, variant, lvl), px + ((h & 7) - 3.5) * 1.6, py + (((h >> 5) & 7) - 3.5) * 1.6);
+              const hh = (h * 2654435761) >>> 0;
+              const rot = (((hh >>> 8) & 255) / 255 - 0.5) * 1.0;
+              const sc = 0.88 + ((hh >>> 16) & 255) / 255 * 0.26;
+              rp.push(this.resTex(res, def.id, variant, lvl), px + ((h & 7) - 3.5) * 1.6, py + (((h >> 5) & 7) - 3.5) * 1.6, sc, 1, rot);
             }
           }
         }

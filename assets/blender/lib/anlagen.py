@@ -536,15 +536,24 @@ def write_glow_diff(full, base, w, h, path, tint=(1.0, 0.55, 0.22), gain=1.6):
 
 
 def building(out, name, build, canvas, anchor, sh_canvas, sh_anchor, dirs=(0,), frames=1, samples=40, fps=15,
-             glow=None, meta=None):
+             glow=None, meta=None, tier=None):
     """Rendert ein Gebäude: je Richtung frames Bilder (Phase 0..1), Schatten je Richtung, optional Leuchtebene.
-    build(m, phase) -> Wurzelobjekt (Richtung Nord). Name: name.{d} bzw. name bei einer Richtung."""
+    build(m, phase) -> Wurzelobjekt (Richtung Nord). Name: name.{d} bzw. name bei einer Richtung.
+    tier: Ausbaustufe 1–3 für den automatischen Detail-Durchgang (kit.detail_pass), None = keiner."""
+    import kit
+
+    def make(fn, arg):
+        root = fn(Mats(), arg)
+        if tier:
+            kit.detail_pass(root, tier, seed=sum(map(ord, name)))
+        return root
+
     for d in dirs:
         key = f'{name}.{d}' if len(dirs) > 1 else name
         paths = []
         for f in range(frames):
             eisen.reset(samples=samples)
-            root = build(Mats(), f / frames)
+            root = make(build, f / frames)
             eisen.rotate_root(root, d)
             eisen.camera(*canvas, anchor=anchor)
             paths.append(out.render_frame(key, f))
@@ -555,7 +564,7 @@ def building(out, name, build, canvas, anchor, sh_canvas, sh_anchor, dirs=(0,), 
             gp = []
             for f, lv in enumerate(levels):
                 eisen.reset(samples=samples)
-                root = glow_build(Mats(), lv)
+                root = make(glow_build, lv)
                 eisen.rotate_root(root, d)
                 eisen.camera(*canvas, anchor=anchor)
                 tmp = out.frame_path(f'{key}.glowsrc', f)
@@ -566,7 +575,7 @@ def building(out, name, build, canvas, anchor, sh_canvas, sh_anchor, dirs=(0,), 
                 gp.append(p)
             out.add(f'{key}.glow', 'entities', gp, anchor, fps=10, meta={'blend': 'add'})
         eisen.reset(samples=32)
-        root = build(Mats(), 0.0)
+        root = make(build, 0.0)
         eisen.rotate_root(root, d)
         eisen.shadow_render(out, f'{key}.shadow', 'entities', sh_canvas, sh_anchor, half=sh_canvas[0] > 4)
 

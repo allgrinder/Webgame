@@ -3,8 +3,10 @@ import math
 
 import bmesh
 import anlagen
+import stufe23
 import eisen
 import stufe1
+import bohrer
 import parts
 import stufen
 
@@ -82,7 +84,7 @@ def render(out):
     finish(out, 'item.burner-inserter', root, scale=0.92, z=-0.1)
 
     m = icon_scene()
-    root = stufe1.drill1(None, 0.0, working=False)
+    root = bohrer.burner_drill(None, 0.0, working=False)
     finish(out, 'item.burner-mining-drill', root, scale=0.42, z=-0.05)
 
     m = icon_scene()
@@ -143,7 +145,7 @@ def render_new(out):
         ('boiler', lambda m: stufe1.boiler1(None, 0.0), 0.3),
         ('steam-engine', lambda m: stufe1.steam_engine1(None, 0.0), 0.19),
         ('small-electric-pole', lambda m: anlagen.small_pole(m), 0.5),
-        ('electric-mining-drill', lambda m: anlagen.electric_drill(m, 0.0), 0.26),
+        ('electric-mining-drill', lambda m: bohrer.electric_drill(None, 0.0), 0.26),
         ('assembling-machine-1', lambda m: stufen.assembler1(m, 0.0), 0.3),
         ('lab', lambda m: stufe1.lab1(None, 0.0), 0.3),
         ('splitter', lambda m: anlagen.splitter(m, 0.0), 0.42),
@@ -201,9 +203,9 @@ def render_early(out):
         ('lamp', lambda m: anlagen.lamp(m, 0.0), 0.9),
         ('medium-electric-pole', lambda m: anlagen.medium_pole(m), 0.42),
         ('big-electric-pole', lambda m: anlagen.big_pole(m), 0.26),
-        ('steel-furnace', lambda m: anlagen.steel_furnace(m, 0.0), 0.42),
+        ('steel-furnace', lambda m: stufe23.steel_furnace2(m, 0.0), 0.42),
         ('pump', lambda m: anlagen.fluid_pump(m, 0.0), 0.5),
-        ('storage-tank', lambda m: anlagen.storage_tank(m), 0.3),
+        ('storage-tank', lambda m: stufe23.storage_tank2(m), 0.3),
     ]
     for item, fn, sc in simple:
         eisen.reset(samples=48)

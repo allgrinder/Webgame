@@ -342,3 +342,74 @@ def light_strip(o, name, a, b, mat, size=(0.025, 0.025)):
 
 def rng(seed):
     return random.Random(seed)
+
+
+# --------------------------------------------------------------------------- Automatischer Detail-Durchgang
+
+_DP_SKIP = ('glass', 'glow', 'lamp', 'fire', 'ember', 'screen', 'water', 'soot', 'hole', 'inner', 'haz', 'light')
+
+
+def detail_pass(root, level=2, seed=1, greeble=True):
+    """Bricht große, flache Flächen eines fertigen Modells auf (docs/ART_STYLE.md, Regel 4):
+    Paneelfugen und Schrauben auf Oberseiten großer Quader, senkrechte Fugen auf der Südseite (zur Kamera),
+    Kleinteile auf großen Dächern. Nur Quader aus eisen.box ohne Kippung. level 1 unregelmäßig, 3 fein."""
+    rnd = random.Random(seed)
+    t = Tier(level, prefix=f'dp{level}_')
+    seam = eisen.material(f'dpseam{level}', (0.012, 0.011, 0.01), rough=0.9)
+    gap = {1: 0.02, 2: 0.016, 3: 0.01}[level]
+    panel = {1: 0.55, 2: 0.65, 3: 0.5}[level]
+    boxes = [o for o in root.children_recursive if o.get('kit_box') is not None]
+    added = []
+
+    def add(ob, parent):
+        ob.parent = parent
+        added.append(ob)
+
+    for b in boxes:
+        name = b.name.lower()
+        mat = b.data.materials[0].name.lower() if b.data.materials else ''
+        if any(k in name or k in mat for k in _DP_SKIP):
+            continue
+        rx, ry, rz = b.rotation_euler
+        if abs(rx) > 0.01 or abs(ry) > 0.01:
+            continue
+        sx, sy, sz = b['kit_box']
+        top = sz / 2 + 0.003
+        # Oberseite
+        if sx * sy >= 0.45 and sz >= 0.05:
+            nx = max(1, round(sx / panel))
+            ny = max(1, round(sy / panel))
+            for i in range(1, nx):
+                x = -sx / 2 + i * sx / nx + (rnd.uniform(-0.04, 0.04) if level == 1 else 0)
+                add(eisen.box(f'{b.name}_sx{i}', (gap, sy - 0.06, 0.006), (x, 0, top), seam), b)
+            for j in range(1, ny):
+                y = -sy / 2 + j * sy / ny + (rnd.uniform(-0.04, 0.04) if level == 1 else 0)
+                add(eisen.box(f'{b.name}_sy{j}', (sx - 0.06, gap, 0.006), (0, y, top), seam), b)
+            if level < 3 and nx * ny <= 16:
+                for i in range(nx + 1):
+                    for j in range(ny + 1):
+                        x = -sx / 2 + i * sx / nx
+                        y = -sy / 2 + j * sy / ny
+                        x = max(-sx / 2 + 0.04, min(sx / 2 - 0.04, x))
+                        y = max(-sy / 2 + 0.04, min(sy / 2 - 0.04, y))
+                        add(eisen.cylinder(f'{b.name}_bo{i}{j}', 0.014, 0.014, (x, y, top + 0.004), t.metal, segments=6), b)
+            if greeble and sx * sy >= 1.2:
+                n = int(sx * sy * (1.4 if level < 3 else 0.6))
+                g = []
+                greebles(g, rnd, -sx / 2 + 0.15, -sy / 2 + 0.15, sx / 2 - 0.15, sy / 2 - 0.15, top, n, t, hmax=0.07 if level < 3 else 0.04)
+                for ob in g:
+                    add(ob, b)
+            if level == 1 and sx * sy >= 0.8:
+                g = []
+                for k in range(2):
+                    patch(g, rnd, t.panels, rnd.uniform(-sx / 3, sx / 3), rnd.uniform(-sy / 3, sy / 3), top - 0.004,
+                          rnd.uniform(0.18, 0.32), rnd.uniform(0.14, 0.26), t.metal)
+                for ob in g:
+                    add(ob, b)
+        # Südseite (nur ungedrehte Quader: -Y zeigt zur Kamera)
+        if abs(rz) < 0.01 and sx >= 0.8 and sz >= 0.3:
+            n = max(1, round(sx / 0.6))
+            for i in range(1, n):
+                x = -sx / 2 + i * sx / n
+                add(eisen.box(f'{b.name}_vs{i}', (gap, 0.006, sz - 0.08), (x, -sy / 2 - 0.003, 0), seam), b)
+    return added

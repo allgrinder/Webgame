@@ -2,6 +2,7 @@
 import math
 
 import anlagen
+import stufe23
 import eisen
 import spaet
 import stufen
@@ -122,8 +123,8 @@ def render(out):
         eisen.reset(samples=40)
         finish(out, f'item.{item}', anlagen.flask(anlagen.Mats(), color), scale=1.2, z=-0.08)
     builds = [
-        ('assembling-machine-3', lambda m: stufen.assembler3(m, 0.0), 0.3), ('beacon', lambda m: spaet.beacon(m, 0.6), 0.3),
-        ('roboport', spaet.roboport, 0.22), ('radar', lambda m: spaet.radar(m, 0.1), 0.28),
+        ('assembling-machine-3', lambda m: stufen.assembler3(m, 0.0), 0.3), ('beacon', lambda m: stufe23.beacon3(m, 0.6), 0.3),
+        ('roboport', stufe23.roboport3, 0.22), ('radar', lambda m: spaet.radar(m, 0.1), 0.28),
         ('rocket-silo', spaet.rocket_silo, 0.1), ('cargo-landing-pad', spaet.landing_pad, 0.11),
     ]
     for item, fn, sc in builds:
@@ -131,7 +132,7 @@ def render(out):
         finish(out, f'item.{item}', fn(anlagen.Mats()), scale=sc, z=-0.05)
     for item, color in spaet.CHESTS.items():
         eisen.reset(samples=40)
-        finish(out, f'item.{item}', spaet.logistic_chest(anlagen.Mats(), color), scale=0.8, z=-0.05)
+        finish(out, f'item.{item}', stufe23.logistic_chest3(anlagen.Mats(), color), scale=0.8, z=-0.05)
     for kind in ('construction', 'logistic'):
         eisen.reset(samples=40)
         root = spaet.robot(anlagen.Mats(), kind)

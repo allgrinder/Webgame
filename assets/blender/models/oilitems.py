@@ -3,6 +3,7 @@ Gleiche Kamera und Beleuchtung wie items.py."""
 import math
 
 import anlagen
+import stufe23
 import bauten
 import eisen
 import parts
@@ -42,11 +43,11 @@ def render(out):
         ('explosives', anlagen.explosives_box, 1.0),
         ('advanced-circuit', anlagen.advanced_circuit, 1.1),
         ('electric-engine-unit', anlagen.electric_engine, 1.25),
-        ('pumpjack', lambda m: anlagen.pumpjack(m, 0.0), 0.27),
-        ('oil-refinery', lambda m: anlagen.oil_refinery(m, 0.0), 0.16),
-        ('chemical-plant', lambda m: anlagen.chemical_plant(m, 0.0), 0.3),
+        ('pumpjack', lambda m: stufe23.pumpjack2(m, 0.0), 0.27),
+        ('oil-refinery', lambda m: stufe23.oil_refinery2(m, 0.0), 0.16),
+        ('chemical-plant', lambda m: stufe23.chemical_plant2(m, 0.0), 0.3),
         ('electric-furnace', lambda m: anlagen.electric_furnace(m, 0.0), 0.3),
-        ('substation', anlagen.substation, 0.36),
+        ('substation', stufe23.substation2, 0.36),
     ]
     for item, fn, sc in simple:
         eisen.reset(samples=48)

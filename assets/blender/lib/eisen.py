@@ -17,6 +17,10 @@ TILE_PX = 128
 TILT = math.radians(30)
 SAMPLES = 48
 LIGHT_DIR = mathutils.Vector((0.55, -0.45, -0.70)).normalized()  # Richtung des Lichts (von NW oben)
+# Sonnenhöhe für Eisenwerk (Gartenwerk-Standard 52°): flacher = längere Schatten, mehr Tiefe (docs/ART_STYLE.md)
+SUN_ELEVATION = 40
+# Schattenleinwände wachsen um diesen Faktor nach rechts unten (Schatten fallen nach Südosten)
+SHADOW_GROW = 1.5
 
 
 # --------------------------------------------------------------------------- Szene
@@ -26,6 +30,7 @@ def reset(samples=SAMPLES, ground=True):
     unsichtbarer Boden für Streulicht. Dazu Eisenwerk-Einstellungen (kein Denoiser verfügbar, 8 Bit)."""
     import gw_lib
     import gw_plants
+    gw_lib.SUN_ELEVATION_DEG = SUN_ELEVATION
     if os.environ.get('EISEN_PREVIEW'):
         samples = 4  # nur zum schnellen Prüfen der Skripte
     s = gw_lib.reset_scene(samples, ground=ground, outlines=False)
@@ -208,6 +213,7 @@ def box(name, size, loc=(0, 0, 0), mat=None, bevel=0.0, rot=(0, 0, 0)):
     o = mesh_obj(name, bm, mat)
     o.location = loc
     o.rotation_euler = rot
+    o['kit_box'] = tuple(size)  # für den Detail-Durchgang (kit.detail_pass)
     if bevel > 0:
         m = o.modifiers.new('bevel', 'BEVEL')
         m.width = bevel
@@ -317,6 +323,10 @@ class Output:
 def shadow_render(out, sprite, group, canvas, anchor, target=(0, 0, 0), half=False):
     """Schatten-Ebene: Objekte unsichtbar für die Kamera, Boden als Schattenfänger.
     half=True rendert in halber Auflösung (weiche Schatten großer Objekte); das Spiel skaliert ×2."""
+    # größere Leinwand nach rechts unten, Anker bleibt am selben Bildpunkt
+    w0, h0 = canvas
+    canvas = (math.ceil(w0 * SHADOW_GROW * 2) / 2, math.ceil(h0 * SHADOW_GROW * 2) / 2)
+    anchor = (anchor[0] * w0 / canvas[0], anchor[1] * h0 / canvas[1])
     objs = all_mesh_objects()
     lights = [o for o in bpy.context.scene.objects if o.type == 'LIGHT' and o.name != 'sun']
     for l in lights:

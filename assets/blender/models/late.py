@@ -1,4 +1,4 @@
-"""Spätes Spiel: Montagemaschine 3, Leuchtfeuer, Roboterhangar, Roboter (fliegend mit Schatten), Logistikkisten,
+"""Spätes Spiel (Montagemaschine 3 in models/montage.py): Leuchtfeuer, Roboterhangar, Roboter (fliegend mit Schatten), Logistikkisten,
 Radar (drehende Antenne), Raketensilo und Fracht-Landeplatz. Geometrie in lib/spaet.py."""
 import anlagen
 import eisen
@@ -6,8 +6,6 @@ import spaet
 
 
 def render(out):
-    anlagen.building(out, 'assembling-machine-3', spaet.assembler3, (3.75, 4.5), (0.5, 2.6 / 4.5),
-                     (4.75, 4.75), (2.0 / 4.75, 2.0 / 4.75), frames=8, samples=36)
     anlagen.building(out, 'beacon', lambda m, ph: spaet.beacon(m, 0.0), (3.5, 4.5), (0.5, 2.75 / 4.5),
                      (4.5, 4.5), (1.9 / 4.5, 1.9 / 4.5), frames=1, samples=40,
                      glow=((0.4, 0.7, 1.0, 0.7), lambda m, lv: spaet.beacon(m, lv)))

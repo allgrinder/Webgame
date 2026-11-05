@@ -1,4 +1,4 @@
-"""Modelle des späten Spiels (Bibliothek): Montagemaschine 3, Leuchtfeuer, Roboterhangar, Roboter (fliegend mit Schatten), Logistikkisten,
+"""Modelle des späten Spiels (Bibliothek): Leuchtfeuer, Roboterhangar, Roboter (fliegend mit Schatten), Logistikkisten,
 Radar (drehende Antenne), Raketensilo und Fracht-Landeplatz."""
 import math
 
@@ -11,12 +11,6 @@ CHESTS = {
     'passive-provider-chest': '#a8473c', 'active-provider-chest': '#7d4a9a', 'storage-chest': '#b8962e',
     'requester-chest': '#3f6aa0', 'buffer-chest': '#4c8a4a',
 }
-
-
-def assembler3(m, phase):
-    m.green = anlagen.paint('#3e6b62', 'a_am3')
-    m.paint = anlagen.paint('#56605e', 'a_am3p')
-    return anlagen.assembler(m, phase)
 
 
 def beacon(m, lv=0.0):

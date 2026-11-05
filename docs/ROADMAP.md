@@ -155,3 +155,15 @@ Rüstungen, Reparaturset, militärische Wissenschaft. Mit Friedensmodus wie im O
 Schaltungsnetz, Züge, Raketensilo. Offene Verfeinerungen (siehe `docs/WIKI_ABGLEICH.md` Abschnitt 4):
 Rail-Planer mit Diagonalen und Signalen, Selbstfahren im Zug, Flüssigkeitswagen, Fässer, Sonderzeichen im Schaltungsnetz,
 Reparatur und persönlicher Roboport, Upgradeplaner. Danach: Gegner, Verschmutzung, Militär.
+
+## Phase G – Stil „Endzeit-Industrie“ (Wunsch 05.11.2026)
+
+Rückmeldung: Gebäude wirken klobig, comicartig, detailarm. Ziel: Zukunft nach dem Zusammenbruch, erst Notbau aus
+Schrott, später Werkstatt-Industrie, am Ende Hochtechnik – je weiter man kommt, desto besser sehen die Gebäude aus.
+Regeln und Zuordnung aller Gebäude: `docs/ART_STYLE.md`.
+
+1. Baukasten `lib/kit.py` und Pilot Montagemaschinen 1–3 – erledigt.
+2. Stufe 1 umstellen: Brennstoffbohrer, Steinofen, Kessel, Dampfmaschine, Wasserpumpe, Kisten, Greifarm, Labor, Mast, Rohr.
+3. Stufe 2 umstellen: E-Bohrer, Stahlofen, Öl/Chemie, Tank/Pumpe, Masten, Solar/Akku, Radar, Bahn.
+4. Stufe 3 umstellen: Elektroofen, Leuchtfeuer, Roboterhangar/Roboter, Logistikkisten, Silo, Landeplatz.
+5. Bänder/Splitter/Untergrund je Stufe angleichen, Symbole neu.

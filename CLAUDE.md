@@ -61,6 +61,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Roboter (`src/sim/robots.ts`, `src/data/robots.ts`), Schaltungsnetz (`src/sim/circuit.ts`, Taste G),
   Züge (`src/sim/rails.ts`, `src/sim/trains.ts`, Gleise auf 2er-Raster, R wechselt Gleisform), Raketensilo
   (`entities/rocket.ts`). Vereinfachungen in `docs/WIKI_ABGLEICH.md` Abschnitt 4. Modelle: `lib/spaet.py`, `lib/bahn.py`.
+- Stil „Endzeit-Industrie“ in drei Ausbaustufen (Notbau → Werkstatt → Hochtechnik): `docs/ART_STYLE.md`, Baukasten
+  `assets/blender/lib/kit.py`; Pilot Montagemaschinen 1–3 (`lib/stufen.py`, `models/montage.py`). Neue/überarbeitete
+  Modelle folgen der Stilbibel.
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

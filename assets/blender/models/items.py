@@ -5,6 +5,7 @@ import bmesh
 import anlagen
 import eisen
 import parts
+import stufen
 
 
 def icon_scene():
@@ -142,7 +143,7 @@ def render_new(out):
         ('steam-engine', lambda m: anlagen.steam_engine(m, 0.0), 0.19),
         ('small-electric-pole', lambda m: anlagen.small_pole(m), 0.5),
         ('electric-mining-drill', lambda m: anlagen.electric_drill(m, 0.0), 0.26),
-        ('assembling-machine-1', lambda m: anlagen.assembler(m, 0.0), 0.3),
+        ('assembling-machine-1', lambda m: stufen.assembler1(m, 0.0), 0.3),
         ('lab', lambda m: anlagen.lab(m, 0.0), 0.3),
         ('splitter', lambda m: anlagen.splitter(m, 0.0), 0.42),
         ('underground-belt', lambda m: anlagen.underground(m, False), 0.8),
@@ -210,9 +211,7 @@ def render_early(out):
             root.rotation_euler = (0, 0, math.radians(35))
         finish(out, f'item.{item}', root, scale=sc, z=-0.05)
     eisen.reset(samples=48)
-    m = anlagen.Mats()
-    m.green = anlagen.paint('#4b5f73', 'a_am2')
-    finish(out, 'item.assembling-machine-2', anlagen.assembler(m, 0.0), scale=0.3, z=-0.05)
+    finish(out, 'item.assembling-machine-2', stufen.assembler2(None, 0.0), scale=0.3, z=-0.05)
     for item, fn, sc in (('fast-splitter', lambda m: anlagen.splitter(m, 0.0), 0.42), ('fast-underground-belt', lambda m: anlagen.underground(m, False), 0.8)):
         eisen.reset(samples=48)
         m = anlagen.Mats()

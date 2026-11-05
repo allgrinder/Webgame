@@ -4,6 +4,7 @@ import math
 import anlagen
 import eisen
 import spaet
+import stufen
 import parts
 
 MODULE_COLORS = {'speed': '#3a6fc0', 'productivity': '#c0452e', 'efficiency': '#4a9a3a'}
@@ -121,7 +122,7 @@ def render(out):
         eisen.reset(samples=40)
         finish(out, f'item.{item}', anlagen.flask(anlagen.Mats(), color), scale=1.2, z=-0.08)
     builds = [
-        ('assembling-machine-3', lambda m: spaet.assembler3(m, 0.0), 0.3), ('beacon', lambda m: spaet.beacon(m, 0.6), 0.3),
+        ('assembling-machine-3', lambda m: stufen.assembler3(m, 0.0), 0.3), ('beacon', lambda m: spaet.beacon(m, 0.6), 0.3),
         ('roboport', spaet.roboport, 0.22), ('radar', lambda m: spaet.radar(m, 0.1), 0.28),
         ('rocket-silo', spaet.rocket_silo, 0.1), ('cargo-landing-pad', spaet.landing_pad, 0.11),
     ]

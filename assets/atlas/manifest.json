@@ -660,7 +660,7 @@
    ]
   },
   "items": {
-   "hash": "6016767a0e7173d6",
+   "hash": "cd8e8748762e3605",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
@@ -735,10 +735,8 @@
    ]
   },
   "late": {
-   "hash": "882e06623c33d6c0",
+   "hash": "73bc36f5cfe526c8",
    "sprites": [
-    "assembling-machine-3",
-    "assembling-machine-3.shadow",
     "beacon",
     "beacon.glow",
     "beacon.shadow",
@@ -767,7 +765,7 @@
    ]
   },
   "lateitems": {
-   "hash": "774af81a71b8362e",
+   "hash": "0f9d5dca846f6801",
    "sprites": [
     "item.speed-module",
     "item.speed-module-2",
@@ -855,6 +853,17 @@
     "express-splitter.2.shadow",
     "express-splitter.3",
     "express-splitter.3.shadow"
+   ]
+  },
+  "montage": {
+   "hash": "3a20985ce5a2bae7",
+   "sprites": [
+    "assembling-machine-1",
+    "assembling-machine-1.shadow",
+    "assembling-machine-2",
+    "assembling-machine-2.shadow",
+    "assembling-machine-3",
+    "assembling-machine-3.shadow"
    ]
   },
   "oil": {
@@ -1048,12 +1057,8 @@
    ]
   },
   "production": {
-   "hash": "e763175b040092e4",
+   "hash": "b31148bb20f5cdfc",
    "sprites": [
-    "assembling-machine-1",
-    "assembling-machine-1.shadow",
-    "assembling-machine-2",
-    "assembling-machine-2.shadow",
     "lab",
     "lab.shadow"
    ]

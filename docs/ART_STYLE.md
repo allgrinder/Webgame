@@ -47,6 +47,8 @@ Zuordnung (Stand des Spiels):
 
 Pilot: Montagemaschinen 1–3 in `assets/blender/lib/stufen.py` (gerendert von `models/montage.py`).
 
+![Vorher/Nachher](img/stil-montage-vorher-nachher.png)
+
 ## Anregungen (nur Prinzipien, keine Vorlagen)
 
 - Verschleiß folgt der Form: Kanten blank gescheuert, Vertiefungen verschmutzt, nicht überall gleich stark

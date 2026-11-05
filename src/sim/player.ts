@@ -22,7 +22,7 @@ export interface CraftJob {
 }
 
 export type MineTarget =
-  | { kind: 'resource'; x: number; y: number }
+  | { kind: 'resource'; x: number; y: number; /** Rohstoff-Index: gleicher Rohstoff → Fortschritt bleibt. */ res?: number }
   | { kind: 'entity'; id: number }
   | { kind: 'tree'; cx: number; cy: number; i: number; x: number; y: number };
 
@@ -177,6 +177,11 @@ export class Player {
           ? this.mineTarget.kind === 'tree' && t.cx === this.mineTarget.cx && t.cy === this.mineTarget.cy && t.i === this.mineTarget.i
           : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
     if (same) return;
+    // Zeiger rutscht auf ein Nachbarfeld desselben Rohstoffs: Fortschritt behalten (kein Neustart des Balkens)
+    if (t?.kind === 'resource' && this.mineTarget?.kind === 'resource' && t.res !== undefined && t.res === this.mineTarget.res) {
+      this.mineTarget = t;
+      return;
+    }
     this.mineTarget = t;
     this.mineProgress = 0;
     this.mineTotal = 0;
@@ -254,7 +259,7 @@ export class Player {
         }
         return;
       }
-      this.mineTotal = secondsToTicks(def.miningTime / PLAYER.miningSpeed);
+      this.mineTotal = secondsToTicks(def.miningTime / (PLAYER.miningSpeed * PLAYER.handMiningFactor));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         if (world.map.mineOne(t.x, t.y)) {

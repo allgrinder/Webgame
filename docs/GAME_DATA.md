@@ -105,7 +105,7 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 
 | Wert | Projekt | Quelle |
 |---|---|---|
-| Abbaugeschwindigkeit | 0,5 → 0,5 Items/s bei Abbauzeit 1 | A |
+| Abbaugeschwindigkeit | 0,5 (Original) × 3 Handabbau-Faktor für Rohstoffe (Wunsch, bewusste Abweichung) → 1,5 Items/s bei Abbauzeit 1 | A |
 | Reichweite Bauen / Gebäude | 10 Felder | P `entities.lua` (character): `build_distance = 10`, `reach_distance = 10` |
 | Reichweite Ressourcen | 2,7 Felder | P `reach_resource_distance = 2.7` |
 | Laufgeschwindigkeit | 0,15 Felder/Tick ≈ 8,9 Felder/s (Diagonale × 181/256) | P `running_speed = 0.15` |

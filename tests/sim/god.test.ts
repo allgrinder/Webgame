@@ -26,12 +26,27 @@ describe('Gottmodus und Handwerk', () => {
     expect(p.inventory.count('iron-ore')).toBe(40);
     const b = deserializeWorld(JSON.parse(JSON.stringify(serializeWorld(w))));
     expect(b.player!.god).toBe(true);
-    // ohne Gottmodus: 0,5 Abbau / 1 s Erz → 2 s je Stück
+    // ohne Gottmodus: 0,5 Abbau × 3 (Handabbau-Faktor) / 1 s Erz → 2/3 s je Stück
     const v = world();
     v.map.setResource(1, 0, 1, 10_000);
     v.player!.setMineTarget({ kind: 'resource', x: 1, y: 0 });
     v.run(60 * 4);
-    expect(v.player!.inventory.count('iron-ore')).toBe(2);
+    expect(v.player!.inventory.count('iron-ore')).toBe(6);
+  });
+
+  it('Handabbau: Zeiger auf Nachbarfeld desselben Rohstoffs setzt den Fortschritt nicht zurück', () => {
+    const w = world();
+    const p = w.player!;
+    w.map.setResource(1, 0, 1, 100);
+    w.map.setResource(1, 1, 1, 100);
+    p.setMineTarget({ kind: 'resource', x: 1, y: 0, res: 1 });
+    w.run(20);
+    const before = p.mineProgress;
+    expect(before).toBeGreaterThan(10);
+    p.setMineTarget({ kind: 'resource', x: 1, y: 1, res: 1 });
+    expect(p.mineProgress).toBe(before);
+    w.run(25);
+    expect(p.inventory.count('iron-ore')).toBe(1);
   });
 
   it('Gottmodus: Labore forschen 20× schneller (Automatisierung 10 × 10 s in 5 s)', async () => {

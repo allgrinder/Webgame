@@ -202,7 +202,8 @@ export class Game {
     const ty = Math.floor(m.y);
     if (!inp.overCanvas) {
       this.dragLast = null;
-      if (this.world.player) this.world.player.setMineTarget(null);
+      // Zeiger kurz über dem HUD: laufenden Abbau bei gehaltener Taste nicht abbrechen
+      if (this.world.player && !inp.right) this.world.player.setMineTarget(null);
       return;
     }
     // Ziehen mit gedrückter linker Taste
@@ -241,8 +242,12 @@ export class Game {
         const tree = e ? undefined : this.treeNear(m.x, m.y);
         if (e) p.setMineTarget({ kind: 'entity', id: e.id });
         else if (tree) p.setMineTarget({ kind: 'tree', cx: tree.cx, cy: tree.cy, i: tree.i, x: tree.x, y: tree.y });
-        else if (this.world.map.resourceAt(tx, ty).amount > 0 && !RESOURCE_BY_INDEX[this.world.map.resourceAt(tx, ty).res]?.fluid) p.setMineTarget({ kind: 'resource', x: tx, y: ty });
-        else p.setMineTarget(null);
+        else {
+          const r = this.world.map.resourceAt(tx, ty);
+          if (r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid) p.setMineTarget({ kind: 'resource', x: tx, y: ty, res: r.res });
+          // leeres Feld unter dem Zeiger: bisheriges Ziel weiter abbauen, solange die Taste gehalten wird
+          else if (this.input.rightPressed) p.setMineTarget(null);
+        }
       }
     } else if (p && p.mineTarget) p.setMineTarget(null);
   }

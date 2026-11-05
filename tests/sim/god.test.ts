@@ -49,6 +49,18 @@ describe('Gottmodus und Handwerk', () => {
     expect(p.inventory.count('iron-ore')).toBe(1);
   });
 
+  it('F halten: Items vom Band in Reichweite aufnehmen', () => {
+    const w = world();
+    const p = w.player!;
+    w.place('transport-belt', 1, 0, 1, true);
+    const t = w.belts.tileAt(1, 0)!;
+    expect(w.belts.insertAtPoint(t, 0.5, 0.25, 0)).toBe(true);
+    expect(w.belts.insertAtPoint(t, 0.5, 0.75, 0)).toBe(true);
+    p.pickingUp = true;
+    w.run(10);
+    expect(p.inventory.count('iron-ore')).toBe(2);
+  });
+
   it('Gottmodus: Labore forschen 20× schneller (Automatisierung 10 × 10 s in 5 s)', async () => {
     const { insertInto } = await import('../../src/sim/machines');
     const w = world();

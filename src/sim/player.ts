@@ -1,5 +1,5 @@
 import { entityDef } from '../data/entities';
-import { ITEMS } from '../data/items';
+import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
@@ -101,7 +101,9 @@ export class Player {
     this.updateMovement(world);
     this.updateMining(world);
     this.updateCrafting(world);
-    if (this.pickingUp && world.tick % 4 === 0) this.pickUpGround(world);
+    if (this.pickingUp && world.tick % PLAYER.pickupInterval === 0) {
+      if (!this.pickUpGround(world)) this.pickUpBelt(world);
+    }
   }
 
   /** Nächstes Bodenitem im Umkreis aufheben. */
@@ -111,6 +113,29 @@ export class Player {
     for (const { key, g } of near) {
       if (this.inventory.add(g.item, 1) === 1) {
         world.removeGround(key, g);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Nächstes Item von einem Band in Reichweite aufnehmen (F halten, wie im Original). */
+  pickUpBelt(world: World): boolean {
+    const r = PLAYER.beltPickupDistance;
+    const tiles: { tx: number; ty: number; d: number }[] = [];
+    for (let ty = Math.floor(this.y - r); ty <= Math.floor(this.y + r); ty++) {
+      for (let tx = Math.floor(this.x - r); tx <= Math.floor(this.x + r); tx++) {
+        const d = Math.hypot(tx + 0.5 - this.x, ty + 0.5 - this.y);
+        if (d <= r) tiles.push({ tx, ty, d });
+      }
+    }
+    tiles.sort((a, b) => a.d - b.d);
+    for (const { tx, ty } of tiles) {
+      const t = world.belts.tileAt(tx, ty);
+      if (!t) continue;
+      const idx = world.belts.takeFromTile(t, (i) => this.inventory.space(ITEM_IDS[i]) > 0);
+      if (idx >= 0) {
+        this.inventory.add(ITEM_IDS[idx], 1);
         return true;
       }
     }

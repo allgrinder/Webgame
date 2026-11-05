@@ -265,7 +265,11 @@ export class Hud {
     const grid = el('div', 'grid inv', left);
     this.invSlots = p.inventory.slots.map((_, i) => {
       const s = el('div', 'slot', grid);
-      s.addEventListener('click', (e) => this.onInvSlot(i, e.ctrlKey || e.metaKey, e.shiftKey));
+      s.addEventListener('click', (e) => this.onInvSlot(i, e.ctrlKey || e.metaKey ? 'all' : e.shiftKey ? 'stack' : null));
+      s.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        this.onInvSlot(i, 'half');
+      });
       this.tip.attach(s, () => (s.dataset.item ? this.tip.item(s.dataset.item, Number(s.dataset.count)) : null));
       return s;
     });
@@ -337,7 +341,11 @@ export class Hud {
     }
   }
 
-  private onInvSlot(i: number, ctrl: boolean, shift: boolean): void {
+  /**
+   * Inventarplatz angeklickt. Mit geöffnetem Gebäude (wie im Original): Umschalt = Stapel übertragen,
+   * Strg = alle dieser Sorte, Rechtsklick = halben Stapel. Sonst: Item in die Hand (Cursor) nehmen.
+   */
+  private onInvSlot(i: number, mode: 'stack' | 'all' | 'half' | null): void {
     const g = this.game;
     const p = g.world.player;
     if (!p) return;
@@ -347,18 +355,23 @@ export class Hud {
       return;
     }
     const target = this.openEntityId !== null ? g.world.entities.get(this.openEntityId) : undefined;
-    if ((ctrl || shift) && target) {
-      // Stapel ins geöffnete Gebäude übertragen
-      const amount = ctrl ? st.count : Math.ceil(st.count / 2);
-      const n = insertInto(target, st.item, Math.min(amount, st.count), 'player');
+    if (mode && target) {
+      const item = st.item;
+      const amount = mode === 'all' ? p.inventory.count(item) : mode === 'half' ? Math.ceil(st.count / 2) : st.count;
+      const n = insertInto(target, item, amount, 'player');
       if (n > 0) {
-        st.count -= n;
-        if (st.count === 0) p.inventory.slots[i] = null;
-      }
+        if (mode === 'all') p.inventory.remove(item, n);
+        else {
+          st.count -= n;
+          if (st.count === 0) p.inventory.slots[i] = null;
+        }
+      } else p.note('Passt nicht hinein');
+      this.entWin.dataset.key = '';
       this.updateInventory(true);
       this.buildEntity();
       return;
     }
+    if (mode === 'half') return;
     g.cursorItem = g.cursorItem === st.item ? null : st.item;
     this.updateInventory(true);
   }
@@ -419,7 +432,11 @@ export class Hud {
           s.appendChild(this.icon(`item.${st.item}`));
           el('span', 'count', s).textContent = String(st.count);
         }
-        s.addEventListener('click', (ev) => this.onEntitySlot(e, inv, i, ev.ctrlKey || ev.metaKey));
+        s.addEventListener('click', (ev) => this.onEntitySlot(e, inv, i, ev.ctrlKey || ev.metaKey ? 'all' : ev.shiftKey ? 'stack' : null));
+        s.addEventListener('contextmenu', (ev) => {
+          ev.preventDefault();
+          this.onEntitySlot(e, inv, i, 'half');
+        });
       });
     };
     const bar = (label: string, frac: number, cls = '') => {
@@ -461,7 +478,7 @@ export class Hud {
     if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
     const burner = e.burner;
     if (burner) bar('Energie', burner.energy / 4e6, 'energy');
-    el('div', 'hint', body).textContent = 'Klick: Stapel nehmen · Mit Cursor-Item: einlegen · Strg+Klick im Inventar: Stapel übertragen';
+    el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte';
   }
 
   private entityKey(e: Entity): string {
@@ -474,20 +491,37 @@ export class Hud {
     return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
   }
 
-  private onEntitySlot(e: Entity, inv: Inventory, i: number, ctrl: boolean): void {
+  /**
+   * Gebäudeplatz angeklickt. Mit Item in der Hand: einlegen (Rechtsklick: halben Stapel, Strg: alle).
+   * Ohne: Klick/Umschalt = Stapel nehmen, Rechtsklick = Hälfte, Strg = alle dieser Sorte aus dem Gebäude.
+   */
+  private onEntitySlot(e: Entity, inv: Inventory, i: number, mode: 'stack' | 'all' | 'half' | null): void {
     const g = this.game;
     const p = g.world.player;
     const st = inv.slots[i];
     const ci = g.cursorItem;
     if (ci && p && acceptAmount(e, ci, 'player') > 0 && (!st || st.item === ci)) {
       const have = p.inventory.count(ci);
-      const amount = ctrl ? have : Math.min(have, ITEMS[ci]?.stackSize ?? 1);
+      const stack = Math.min(have, ITEMS[ci]?.stackSize ?? 1);
+      const amount = mode === 'all' ? have : mode === 'half' ? Math.ceil(stack / 2) : stack;
       const n = insertInto(e, ci, amount, 'player');
       p.inventory.remove(ci, n);
     } else if (st && p) {
-      const n = p.inventory.add(st.item, st.count);
-      st.count -= n;
-      if (st.count === 0) inv.slots[i] = null;
+      if (mode === 'all') {
+        for (let k = 0; k < inv.slots.length; k++) {
+          const o = inv.slots[k];
+          if (!o || o.item !== st.item) continue;
+          const n = p.inventory.add(o.item, o.count);
+          o.count -= n;
+          if (o.count === 0) inv.slots[k] = null;
+        }
+      } else {
+        const want = mode === 'half' ? Math.ceil(st.count / 2) : st.count;
+        const n = p.inventory.add(st.item, want);
+        st.count -= n;
+        if (st.count === 0) inv.slots[i] = null;
+        if (n < want) p.note('Inventar voll');
+      }
     }
     this.entWin.dataset.key = '';
     this.buildEntity();
@@ -1160,7 +1194,8 @@ export class Hud {
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
-        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
+        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
+        <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
       </div>`;

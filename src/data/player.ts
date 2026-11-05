@@ -17,6 +17,9 @@ export const PLAYER = {
   craftingSpeed: 1,
   /** Reichweite für das Aufheben von Bodenitems (Felder). */
   groundPickupDistance: 1,
+  /** Aufheben von Bändern (F halten): Reichweite in Feldern und Takt (Ticks je Item). */
+  beltPickupDistance: 1.5,
+  pickupInterval: 2,
 } as const;
 
 /**

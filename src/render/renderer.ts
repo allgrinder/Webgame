@@ -152,8 +152,6 @@ export class GameRenderer {
     this.effects = new Effects(s, this.fxPool, this.fxAddPool, TILE);
     this.clouds = new CloudShadows(s, this.cloudPool, TILE);
     this.night = new NightLayer(s, this.app.renderer, TILE);
-    // Dunkelheit über der Welt, aber unter Bauvorschau, Symbolen und Overlay
-    this.root.addChildAt(this.night.sprite, this.root.getChildIndex(this.ghostSprites.container));
     this.ents.container.sortableChildren = true;
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
@@ -222,6 +220,8 @@ export class GameRenderer {
     this.effects?.update(world, alpha, view);
     this.clouds?.update(world, alpha, view);
     if (this.night) {
+      // Dunkelheit über der Welt, aber unter Bauvorschau, Symbolen und Overlay
+      if (!this.night.sprite.parent) this.root.addChildAt(this.night.sprite, this.root.getChildIndex(this.ghostSprites.container));
       this.night.update(world, c, w, h);
       this.night.sprite.position.set(-this.root.x / c.zoom, -this.root.y / c.zoom);
       this.night.sprite.scale.set(1 / c.zoom);

@@ -48,6 +48,10 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   in der Darstellung (`src/render/biome.ts`: Bodenfarbe, Deko-Gewichtung `fertility`). Wolkenschatten `src/render/clouds.ts`.
 - Freies Spiel: zufälliger Seed je neuer Runde, Startdialog „Weiterspielen“, Autosave alle 5 min und beim Verlassen der Seite.
 - Asset-Pipeline rendert ein Modell nur neu, wenn sein Skript oder eine importierte Bibliothek sich ändert (`npm run assets -- --deps`).
+- Phase E (Wiki-Abgleich): Korrekturen (Kessel 1:10, Greifarm-Takt/Energie, Füllgrenzen, Splitter-Vorrang/Filter,
+  Auslöser-Forschung), fällbare Bäume/Holz, frühe Phase (Stahl, Masten, Lampe, Montage 2, Motor, Pumpe, Tank,
+  Rohr unterirdisch, Landaufschüttung), Tag/Nacht (`DAY` in `src/data/time.ts`, Nachtebene `src/render/night.ts`).
+  Tests: `tests/sim/wiki.test.ts`, `trees.test.ts`, `early.test.ts`. Gegner bewusst zurückgestellt.
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

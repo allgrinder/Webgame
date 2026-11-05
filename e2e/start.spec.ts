@@ -46,7 +46,7 @@ test('Demo: Stromteil, Forschungsfenster und Übersichtskarte', async ({ page })
   expect(frac).toBeGreaterThan(0.2);
   await page.keyboard.press('t');
   await expect(page.locator('.window.tech')).toBeVisible();
-  await expect(page.locator('.tech-card')).toHaveCount(4);
+  expect(await page.locator('.tech-card').count()).toBeGreaterThan(10);
   await expect(page.locator('canvas.minimap')).toBeVisible();
   await page.screenshot({ path: 'test-results/research.png' });
   expect(errors).toEqual([]);

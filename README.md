@@ -27,7 +27,8 @@ Weitere Parameter: `?seed=123` (feste Karte), `?new` (ohne Startdialog), `&debug
 
 - **WASD** laufen, **Mausrad** zoomen
 - **Linksklick** bauen (Bänder durch Ziehen), **R** drehen, **Q** Gebäude/Item unter dem Cursor aufnehmen bzw. Cursor leeren
-- **Rechtsklick halten** abbauen oder Gebäude aufnehmen
+- **Rechtsklick halten** abbauen, Bäume fällen (Holz) oder Gebäude aufnehmen
+- **Landaufschüttung** im Cursor: Klick/Ziehen über Wasser macht Land
 - **E** Inventar & Handwerk, **Klick** auf ein Gebäude öffnet dessen Slots (Montagemaschine: Rezept wählen), **Strg+Klick** überträgt einen Stapel
 - **T** Forschung (Technologie wählen; Labore brauchen Strom und Wissenschaftspakete), **M** Übersichtskarte (klein/groß/aus)
 - **R** auf einem Untergrundband tauscht Eingang und Ausgang

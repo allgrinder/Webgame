@@ -22,6 +22,8 @@ export interface Nest {
   spawnCd: number;
   /** Tick des letzten Treffers (Verteidiger werden aggressiv) */
   hitAt: number;
+  /** Zwischenspeicher: Gebäude im Wachradius (alle 30 Ticks neu, nicht gespeichert) */
+  threat?: number | null;
 }
 
 export type UnitMode = 'guard' | 'attack' | 'return';
@@ -45,6 +47,8 @@ export interface Unit {
   phase: number;
   /** Ticks ohne Fortschritt (festgefahren) */
   stuck: number;
+  /** nächste Zielsuche frühestens in diesem Tick (nicht gespeichert, nur Rechenaufwand) */
+  retry?: number;
 }
 
 export type Target = { kind: 'unit'; id: number; x: number; y: number } | { kind: 'nest'; id: number; x: number; y: number };
@@ -223,10 +227,12 @@ export class EnemySystem {
     // Nester: Verteidiger nachziehen, Angriffsgruppen bilden und losschicken
     if (w.tick % 30 === 0) {
       const peaceful = w.settings.enemies === 'friedlich';
+      const guardsOf = new Map<number, number>();
+      for (const u of this.units.values()) if (u.mode === 'guard') guardsOf.set(u.nest, (guardsOf.get(u.nest) ?? 0) + 1);
       for (const n of this.nests.values()) {
         if (n.spawnCd > 0) n.spawnCd -= 30;
-        let guards = 0;
-        for (const u of this.units.values()) if (u.nest === n.id && u.mode === 'guard') guards++;
+        const guards = guardsOf.get(n.id) ?? 0;
+        n.threat = this.nearbyBuilding(w, n.x + 2.5, n.y + 2.5, NEST.guardRadius);
         if (guards < NEST.maxDefenders && n.spawnCd <= 0 && this.units.size < 600) {
           this.spawnUnit(w, n, 'guard', this.pickKind());
           n.spawnCd = NEST.spawnCooldown;
@@ -251,6 +257,30 @@ export class EnemySystem {
     for (const u of this.units.values()) this.stepUnit(w, u);
     // Kadaver nach einer Weile entfernen
     while (this.remnants.length && w.tick - this.remnants[0].tick > 60 * 60) this.remnants.shift();
+  }
+
+  /** Nächstes Gebäude im Umkreis: Felder abtasten (unabhängig von der Fabrikgröße) oder Gebäude durchgehen, was billiger ist. */
+  private nearbyBuilding(w: World, x: number, y: number, r: number): number | null {
+    const tiles = (2 * r + 1) * (2 * r + 1);
+    if (w.entities.size < tiles / 4) {
+      const e = this.attackTarget(w, x, y, r, false);
+      return e ? e.id : null;
+    }
+    let best: number | null = null;
+    let bd = r;
+    const x0 = Math.floor(x - r);
+    const y0 = Math.floor(y - r);
+    for (let ty = y0; ty <= Math.floor(y + r); ty++) {
+      for (let tx = x0; tx <= Math.floor(x + r); tx++) {
+        const d = Math.hypot(tx + 0.5 - x, ty + 0.5 - y);
+        if (d >= bd) continue;
+        const e = w.entityAt(tx, ty);
+        if (!e || e.kind === 'rail') continue;
+        bd = d;
+        best = e.id;
+      }
+    }
+    return best;
   }
 
   /** Nächstes verschmutzendes Gebäude (sonst irgendeins) im Umkreis. */
@@ -289,8 +319,9 @@ export class EnemySystem {
       if (p && !p.dead && Math.hypot(p.x - hx, p.y - hy) < (alert ? NEST.guardRadius * 2 : NEST.guardRadius) && (alert || w.settings.enemies !== 'friedlich')) {
         u.target = -1;
       } else if (alert || w.settings.enemies !== 'friedlich') {
-        const e = this.attackTarget(w, hx, hy, NEST.guardRadius, false);
-        u.target = e ? e.id : null;
+        // Gebäude im Wachradius: vom Nest zwischengespeichert (alle 30 Ticks)
+        const id = nest?.threat ?? null;
+        u.target = id !== null && w.entities.has(id) ? id : null;
       } else u.target = null;
       if (u.target === null) {
         // bei Nest herumstreifen
@@ -338,11 +369,17 @@ export class EnemySystem {
     }
     // Gebäude angreifen
     let e = u.target !== null ? w.entities.get(u.target) : undefined;
+    if (!e && (u.retry ?? 0) > w.tick) {
+      if (u.mode === 'attack' && nest) u.mode = 'return';
+      return;
+    }
     if (!e) {
-      const near = this.attackTarget(w, u.x, u.y, 30, false);
-      if (near) {
-        u.target = near.id;
-        e = near;
+      const near = this.nearbyBuilding(w, u.x, u.y, 30);
+      u.retry = w.tick + 30 + (u.id % 15);
+      const ne = near !== null ? w.entities.get(near) : undefined;
+      if (ne) {
+        u.target = ne.id;
+        e = ne;
       } else {
         u.target = null;
         if (u.mode === 'attack') u.mode = nest ? 'return' : 'attack';
@@ -473,8 +510,8 @@ export class EnemySystem {
       evo: this.evolution, nu: this.nextUnit, rs: this.rs, le: this.lastEmitted,
       cells: [...this.cells].sort((a, b) => a - b),
       dead: [...this.destroyed].sort((a, b) => a - b),
-      nests: [...this.nests.values()].map((n) => [n.id, n.x, n.y, n.hp, n.budget, n.group, n.groupSince, n.spawnCd, n.hitAt]),
-      units: [...this.units.values()].map((u) => [u.id, u.kind, u.x, u.y, u.hp, u.nest, u.mode, u.target, u.tx, u.ty, u.cd, u.angle, u.phase, u.stuck]),
+      nests: [...this.nests.values()].map((n) => [n.id, n.x, n.y, n.hp, n.budget, n.group, n.groupSince, n.spawnCd, n.hitAt, n.threat ?? null]),
+      units: [...this.units.values()].map((u) => [u.id, u.kind, u.x, u.y, u.hp, u.nest, u.mode, u.target, u.tx, u.ty, u.cd, u.angle, u.phase, u.stuck, u.retry ?? 0]),
     };
   }
 
@@ -491,12 +528,12 @@ export class EnemySystem {
     this.lastEmitted = d.le ?? 0;
     for (const c of d.cells) this.cells.add(c);
     for (const id of d.dead) this.destroyed.add(id);
-    for (const [id, x, y, hp, budget, group, gs, cd, hit] of d.nests as [number, number, number, number, number, number[], number, number, number][]) {
-      this.addNest(w, { id, x, y, hp, budget, group, groupSince: gs, spawnCd: cd, hitAt: hit });
+    for (const [id, x, y, hp, budget, group, gs, cd, hit, threat] of d.nests as [number, number, number, number, number, number[], number, number, number, number | null][]) {
+      this.addNest(w, { id, x, y, hp, budget, group, groupSince: gs, spawnCd: cd, hitAt: hit, threat });
     }
-    for (const r of d.units as [number, UnitKind, number, number, number, number, UnitMode, number | null, number, number, number, number, number, number][]) {
-      const [id, kind, x, y, hp, nest, mode, target, tx, ty, cd, angle, phase, stuck] = r;
-      this.units.set(id, { id, kind, x, y, hp, nest, mode, target, tx, ty, cd, angle, phase, stuck });
+    for (const r of d.units as [number, UnitKind, number, number, number, number, UnitMode, number | null, number, number, number, number, number, number, number][]) {
+      const [id, kind, x, y, hp, nest, mode, target, tx, ty, cd, angle, phase, stuck, retry] = r;
+      this.units.set(id, { id, kind, x, y, hp, nest, mode, target, tx, ty, cd, angle, phase, stuck, retry });
     }
   }
 }

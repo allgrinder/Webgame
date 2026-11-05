@@ -31,6 +31,8 @@ export class DecorField {
     private readonly seed: number,
     /** Anzahl Varianten je Sprite-Präfix (aus dem Manifest). */
     private readonly variants: (prefix: string) => number,
+    /** Fruchtbarkeit 0..1 je Feld (Landschaftsräume). */
+    private readonly fertility: (tx: number, ty: number) => number = () => 0.5,
   ) {}
 
   chunk(cx: number, cy: number): DecorItem[] {
@@ -76,8 +78,11 @@ export class DecorField {
           const x = gx * c + h(1) * c;
           const y = gy * c + h(2) * c;
           let p = kind.chance;
+          const f = kind.fertility || kind.groveBoost ? this.fertility(Math.floor(x), Math.floor(y)) : 0.5;
+          if (kind.fertility) p *= Math.max(0.05, 1 + kind.fertility * (2 * f - 1));
           if (kind.groveBoost) {
-            const g = valueNoise(this.seed + 4242, x / GROVE.scale, y / GROVE.scale);
+            // Haine bevorzugt in fruchtbaren Gegenden
+            const g = valueNoise(this.seed + 4242, x / GROVE.scale, y / GROVE.scale) + (f - 0.5) * 0.35;
             if (g > GROVE.threshold) p *= kind.groveBoost * ((g - GROVE.threshold) / (1 - GROVE.threshold) + 0.3);
           }
           if (kind.waterBoost && h(3) < p * kind.waterBoost && h(3) >= p && this.waterWithin(Math.floor(x), Math.floor(y), WATER_NEAR)) p *= kind.waterBoost;

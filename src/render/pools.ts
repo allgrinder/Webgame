@@ -17,7 +17,7 @@ export class ParticlePool {
     this.n = 0;
   }
 
-  push(tex: Texture, x: number, y: number, scale = 1, alpha = 1, rotation = 0): void {
+  push(tex: Texture, x: number, y: number, scale = 1, alpha = 1, rotation = 0, tint = 0xffffff): void {
     let p = this.pool[this.n];
     if (!p) {
       p = new Particle({ texture: tex });
@@ -32,6 +32,7 @@ export class ParticlePool {
     p.anchorY = tex.defaultAnchor?.y ?? 0.5;
     p.alpha = alpha;
     p.rotation = rotation;
+    p.tint = tint;
     this.n++;
   }
 

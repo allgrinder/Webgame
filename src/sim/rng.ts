@@ -52,3 +52,18 @@ export function valueNoise(seed: number, x: number, y: number): number {
   const bot = c + (d - c) * sx;
   return top + (bot - top) * sy;
 }
+
+/** Fraktales Rauschen aus mehreren Oktaven valueNoise, Ergebnis etwa in [0,1). */
+export function fbm(seed: number, x: number, y: number, octaves = 4, gain = 0.5): number {
+  let sum = 0;
+  let amp = 1;
+  let norm = 0;
+  let f = 1;
+  for (let o = 0; o < octaves; o++) {
+    sum += amp * valueNoise(seed + o * 101, x * f, y * f);
+    norm += amp;
+    amp *= gain;
+    f *= 2.03;
+  }
+  return sum / norm;
+}

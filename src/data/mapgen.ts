@@ -31,8 +31,23 @@ export const MAPGEN = {
   patchFringe: 0.18,
   /** Freier Radius um den Startpunkt (keine Ressourcen). */
   spawnFree: 3,
-  /** Seen: großräumiges Rauschen über dem Schwellwert; ab spawnClear Feldern, weich über spawnFade. */
-  lakes: { scale: 70, detail: 17, threshold: 0.68, spawnClear: 26, spawnFade: 30 },
+  /**
+   * Feuchte: großräumiges Rauschen 0..1 (trockene Steppe bis feuchte Wiese). Steuert Seenhäufigkeit,
+   * Bodenfarbe und Bewuchs. contrast spreizt die Werte um 0,5.
+   */
+  moisture: { scale: 230, contrast: 1.9 },
+  /**
+   * Seen: fraktales Rauschen mit Verzerrung (Buchten, Inseln) über dem Schwellwert; feuchte Gegenden
+   * bekommen mehr Wasser. Kein Wasser näher als spawnClear, weicher Übergang über spawnFade.
+   */
+  lakes: { scale: 150, warp: 45, warpScale: 70, octaves: 4, threshold: 0.635, moistureBias: 0.2, spawnClear: 20, spawnFade: 60 },
+  /**
+   * Flüsse: Nulllinie eines verzerrten Rauschens (|n − 0,5| < Breite). Breite schwankt entlang des Laufs;
+   * wo sie unter fordBelow fällt, entsteht eine Furt (Land), damit die Karte begehbar bleibt.
+   */
+  rivers: { scale: 380, warp: 60, warpScale: 90, width: 0.009, widthScale: 45, fordBelow: 0.38 },
+  /** Startsee in Sichtweite (verzerrte Ellipse) in einer Richtung ohne Startfeld. */
+  startLake: { distance: 34, radiusMin: 8, radiusMax: 11 },
   /** Kleine Teiche (verzerrte Ellipsen). */
   ponds: { cell: 64, chance: 0.32, radiusMin: 4, radiusMax: 8 },
 } as const;

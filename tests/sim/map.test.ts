@@ -53,4 +53,51 @@ describe('Kartengenerierung', () => {
       }
     expect(water).toBeGreaterThan(200);
   });
+
+  it('hat einen Startsee in Sichtweite, Flüsse lassen Furten, der Start ist nicht eingeschlossen', () => {
+    for (const seed of [1, 4, 7, 13, 42]) {
+      const m = new GameMap(seed);
+      let near = Infinity;
+      for (let y = -50; y <= 50; y++) for (let x = -50; x <= 50; x++) if (m.isWater(x, y)) near = Math.min(near, Math.hypot(x, y));
+      expect(near).toBeGreaterThan(18);
+      expect(near).toBeLessThan(40);
+      // Flutfüllung über Land: der Start erreicht eine große Fläche
+      const R = 100;
+      const N = 2 * R + 1;
+      const seen = new Uint8Array(N * N);
+      const q = [R * N + R];
+      seen[R * N + R] = 1;
+      let land = 0;
+      while (q.length) {
+        const i = q.pop()!;
+        land++;
+        const x = (i % N) - R;
+        const y = Math.floor(i / N) - R;
+        if (Math.abs(x) === R || Math.abs(y) === R) continue;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const j = (y + dy + R) * N + x + dx + R;
+          if (!seen[j] && !m.isWater(x + dx, y + dy)) {
+            seen[j] = 1;
+            q.push(j);
+          }
+        }
+      }
+      expect(land).toBeGreaterThan(12_000);
+    }
+  });
+
+  it('Feuchte ist glatt und liegt in [0, 1]', () => {
+    const m = new GameMap(5);
+    let lo = 1;
+    let hi = 0;
+    for (let y = -400; y <= 400; y += 20) for (let x = -400; x <= 400; x += 20) {
+      const v = m.moistureAt(x, y);
+      lo = Math.min(lo, v);
+      hi = Math.max(hi, v);
+      expect(Math.abs(v - m.moistureAt(x + 1, y))).toBeLessThan(0.05);
+    }
+    expect(lo).toBeGreaterThanOrEqual(0);
+    expect(hi).toBeLessThanOrEqual(1);
+    expect(hi - lo).toBeGreaterThan(0.5);
+  });
 });

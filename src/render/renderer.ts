@@ -10,6 +10,7 @@ import { DX, DY, type Dir } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
+import { BiomeField } from './biome';
 import { DecorField } from './decor';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
@@ -232,7 +233,7 @@ export class GameRenderer {
             const px = tx * TILE + TILE / 2;
             const py = ty * TILE + TILE / 2;
             const gp = this.groundPeriod;
-            g.push(this.groundTex[(((tx % gp) + gp) % gp) + gp * (((ty % gp) + gp) % gp)], px, py);
+            g.push(this.groundTex[(((tx % gp) + gp) % gp) + gp * (((ty % gp) + gp) % gp)], px, py, 1, 1, 0, this.biomeField(world).color(tx, ty));
             const res = chunk.resource[i];
             if (res) {
               const def = RESOURCE_BY_INDEX[res]!;
@@ -318,10 +319,21 @@ export class GameRenderer {
   private decorField(world: World): DecorField {
     if (!this.decor || this.decorMap !== world.map) {
       const s = this.sprites;
-      this.decor = new DecorField(world.map, world.seed, (prefix) => s.countPrefix(`${prefix}.`));
+      const bio = this.biomeField(world);
+      this.decor = new DecorField(world.map, world.seed, (prefix) => s.countPrefix(`${prefix}.`), (tx, ty) => bio.fertility(tx, ty));
       this.decorMap = world.map;
     }
     return this.decor;
+  }
+
+  private biome: BiomeField | null = null;
+  private biomeMap: World['map'] | null = null;
+  biomeField(world: World): BiomeField {
+    if (!this.biome || this.biomeMap !== world.map) {
+      this.biome = new BiomeField(world.map);
+      this.biomeMap = world.map;
+    }
+    return this.biome;
   }
 
   /** Sichtbare Dekoration je Chunk, mit Rand für große Sprites (Bäume). */

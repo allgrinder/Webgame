@@ -70,7 +70,12 @@ export class Hud {
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.researchEl = el('div', 'research-bar', this.layer);
-    this.minimap = new Minimap(this.layer);
+    this.minimap = new Minimap(this.layer, () => game.renderer.biomeField(game.world));
+    this.minimap.onPick = (x, y) => {
+      if (game.world.player) return; // im freien Spiel folgt die Kamera dem Spieler
+      game.renderer.camera.x = x;
+      game.renderer.camera.y = y;
+    };
     this.tip = new Tooltip(this.layer, (n) => this.sprites.iconUrl(n));
     this.cursorEl.style.transform = 'translate(-100px, -100px)';
     this.buildHelp();
@@ -102,6 +107,13 @@ export class Hud {
     this.frame++;
     const g = this.game;
     const w = g.world;
+    {
+      const c = g.renderer.camera;
+      const pl = w.player;
+      const r = g.renderer.screenToWorld(0, 0);
+      const r2 = g.renderer.screenToWorld(g.renderer.app.screen.width, g.renderer.app.screen.height);
+      this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
+    }
     this.info.textContent = `Eisenwerk – ${this.title} · H: Hilfe`;
     if (this.showDebug) {
       const st = g.renderer.stats;
@@ -130,8 +142,6 @@ export class Hud {
       this.updateCraftQueue();
       const p = w.player;
       this.updateResearch();
-      const c = g.renderer.camera;
-      this.minimap.update(w, p ? p.px / 256 : c.x, p ? p.py / 256 : c.y);
       if (p && p.messages.length) {
         this.msgEl.textContent = p.messages.join(' · ');
         this.msgEl.dataset.t = String(this.frame);

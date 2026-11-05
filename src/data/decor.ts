@@ -27,21 +27,26 @@ export interface DecorKind {
   readonly shore?: boolean;
   /** Faktor, wenn Wasser in der Nähe ist (Radius WATER_NEAR). */
   readonly waterBoost?: number;
+  /**
+   * Abhängigkeit von der Fruchtbarkeit f (0 trocken … 1 üppig): Wahrscheinlichkeit × max(0,05; 1 + k·(2f − 1)).
+   * Positiv: häufiger in feuchten Gegenden, negativ: häufiger in trockenen.
+   */
+  readonly fertility?: number;
 }
 
 export const DECOR: readonly DecorKind[] = [
   { id: 'tint', sprite: 'decal.tint', layer: 'decal', cell: 11, chance: 0.7, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
-  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 10, chance: 0.3, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
-  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 17, chance: 0.18, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
-  { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false },
-  { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false },
-  { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false },
+  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 10, chance: 0.3, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.8 },
+  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 17, chance: 0.18, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -1.0 },
+  { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false, fertility: -0.5 },
+  { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.2 },
+  { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.9 },
   { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
-  { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
-  { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true },
-  { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true },
-  { id: 'conifer', sprite: 'flora.conifer', layer: 'flora', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, clearOfResources: 3, clearOfSpawn: 14, shadow: true },
-  { id: 'tree', sprite: 'flora.tree', layer: 'flora', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, clearOfResources: 3, clearOfSpawn: 14, shadow: true },
+  { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
+  { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: -0.7 },
+  { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true, fertility: -1.0 },
+  { id: 'conifer', sprite: 'flora.conifer', layer: 'flora', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, clearOfResources: 3, clearOfSpawn: 14, shadow: true, fertility: 0.9 },
+  { id: 'tree', sprite: 'flora.tree', layer: 'flora', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, clearOfResources: 3, clearOfSpawn: 14, shadow: true, fertility: 1.4 },
 ];
 
 /** Haine: großräumiges Rauschen bestimmt, wo Bäume und Sträucher gehäuft stehen. */
@@ -55,3 +60,16 @@ export const WATER_NEAR = 5;
 
 /** Unterhalb dieses Zooms werden kleine Decals nicht gezeichnet (Leistung). */
 export const DECOR_MIN_ZOOM_SMALL = 0.35;
+
+/**
+ * Landschaftsräume (nur Darstellung): Fruchtbarkeit = Feuchte der Karte plus Bonus in Wassernähe.
+ * Bodenfarbe wird je Feld zwischen trocken – mittel – üppig eingefärbt (Multiplikation mit der Wiesentextur).
+ */
+export const BIOME = {
+  /** Wassernähe: Bonus bis zu waterBonus, linear abfallend bis waterRange Felder. */
+  waterRange: 6,
+  waterBonus: 0.35,
+  dry: 0xfff0d2,
+  mid: 0xf2f2e2,
+  lush: 0xb8d09c,
+} as const;

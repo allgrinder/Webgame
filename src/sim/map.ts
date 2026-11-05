@@ -1,7 +1,7 @@
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel, resourceById } from '../data/resources';
 import { tileKey } from './geom';
-import { hash01, hash32, valueNoise } from './rng';
+import { fbm, hash01, hash32, valueNoise } from './rng';
 
 const CS = MAPGEN.chunkSize;
 
@@ -87,6 +87,7 @@ export class GameMap {
   /** chunkKey -> (Index im Chunk -> [Ressource, aktuelle Menge]) */
   private readonly modified = new Map<number, Map<number, [number, number]>>();
   private readonly startPatches: Patch[];
+  private readonly startLake: Patch;
 
   constructor(readonly seed: number) {
     const base = hash32(seed, 77) % 8;
@@ -102,6 +103,18 @@ export class GameMap {
         reach: p.radius * 2.3,
       };
     });
+    // Startsee in einer Richtung, die kein Startfeld belegt (Startfelder: base + 0, 3, 6, 1)
+    const SL = MAPGEN.startLake;
+    const [lx, ly] = DIRS8[(base + 4) % 8];
+    const lr = SL.radiusMin + hash01(seed, 78) * (SL.radiusMax - SL.radiusMin);
+    this.startLake = { res: 0, x: lx * SL.distance, y: ly * SL.distance, radius: lr, richness: 0, lobes: makeLobes(seed, 9100, 78, lr), reach: lr * 2.3 };
+  }
+
+  /** Feuchte 0..1 (trocken bis feucht), großräumig und glatt. */
+  moistureAt(x: number, y: number): number {
+    const M = MAPGEN.moisture;
+    const n = fbm(this.seed + 700, x / M.scale, y / M.scale, 3);
+    return Math.min(1, Math.max(0, (n - 0.5) * M.contrast + 0.5));
   }
 
   getChunk(cx: number, cy: number): Chunk {
@@ -280,15 +293,33 @@ export class GameMap {
     return v;
   }
 
-  /** Wasser: Seen aus großräumigem Rauschen plus kleine Teiche; nicht in der Nähe des Starts. */
+  /** Wasser: Seen, Flüsse mit Furten, Startsee und kleine Teiche; nicht in der Nähe des Starts. */
   private waterAt(x: number, y: number, ponds: Patch[]): boolean {
     const L = MAPGEN.lakes;
     const d = Math.sqrt(x * x + y * y);
     const fall = Math.min(1, Math.max(0, (d - L.spawnClear) / L.spawnFade));
     if (fall <= 0) return false;
-    const n = 0.7 * valueNoise(this.seed + 901, x / L.scale, y / L.scale) + 0.3 * valueNoise(this.seed + 902, x / L.detail, y / L.detail);
-    if (n - (1 - fall) * 0.6 > L.threshold) return true;
-    for (const p of ponds) if (this.patchValue(p, x + 0.5, y + 0.5) > 0) return true;
+    const px = x + 0.5;
+    const py = y + 0.5;
+    const sl = this.startLake;
+    if (Math.abs(px - sl.x) < sl.reach && Math.abs(py - sl.y) < sl.reach && this.patchValue(sl, px, py) > 0) return true;
+    // Seen: verzerrtes fraktales Rauschen, in feuchten Gegenden häufiger
+    const wx = px + L.warp * (fbm(this.seed + 911, px / L.warpScale, py / L.warpScale, 2) - 0.5) * 2;
+    const wy = py + L.warp * (fbm(this.seed + 912, px / L.warpScale, py / L.warpScale, 2) - 0.5) * 2;
+    const n = fbm(this.seed + 901, wx / L.scale, wy / L.scale, L.octaves);
+    const m = this.moistureAt(px, py);
+    if (n + (m - 0.5) * L.moistureBias - (1 - fall) * 0.35 > L.threshold) return true;
+    // Flüsse: schmale Nulllinie eines zweiten Rauschens, mit Furten
+    const R = MAPGEN.rivers;
+    const rx = px + R.warp * (fbm(this.seed + 931, px / R.warpScale, py / R.warpScale, 2) - 0.5) * 2;
+    const ry = py + R.warp * (fbm(this.seed + 932, px / R.warpScale, py / R.warpScale, 2) - 0.5) * 2;
+    const ridge = Math.abs(fbm(this.seed + 933, rx / R.scale, ry / R.scale, 3) - 0.5);
+    const wv = valueNoise(this.seed + 934, px / R.widthScale, py / R.widthScale);
+    if (wv > R.fordBelow) {
+      const width = R.width * (0.35 + 1.3 * (wv - R.fordBelow) / (1 - R.fordBelow)) * fall;
+      if (ridge < width) return true;
+    }
+    for (const p of ponds) if (this.patchValue(p, px, py) > 0) return true;
     return false;
   }
 

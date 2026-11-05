@@ -124,3 +124,27 @@ vom 04.11.2026).
 3. B Kisten und Komfort
 4. C1 Kupfer → C2 Strom → C3 Montage → C4 Forschung → C5 Logistik
 5. A6 Oberfläche begleitend, D nur bei Messbedarf
+
+
+---
+
+## Phase E – So nah wie möglich am Original (Wunsch 05.11.2026)
+
+Grundlage: `docs/WIKI_ABGLEICH.md` (Wiki und Cheatsheet). Reihenfolge wie im Original:
+
+1. ✔ **Korrekturen** der Abweichungen (Kessel, Greifarme, Füllgrenzen, Labor, Splitter, Untergrund,
+   Uferpumpe, Auslöser-Forschung, Logistik 2).
+2. ✔ **Holz:** fällbare Bäume, Holzkiste, Strommast aus Holz.
+3. ✔ **Frühe Phase:** Stahl, Stahlofen, schneller Greifarm, Masten, Lampe, Montage 2, Motor, Pumpe, Tank,
+   Rohr unterirdisch, Landaufschüttung.
+4. **Tag und Nacht** (Lampen leuchten nachts, Solarpanel später).
+5. **Öl und Chemie:** Pumpjack, Raffinerie, Chemiefabrik, Kunststoff, Schwefel, Batterie, festes Brennmaterial,
+   Schmiermittel, Fortgeschrittener Schaltkreis, Elektromotor, Express-Bänder, Fässer, blaue Wissenschaft.
+6. **Strom erweitern:** Solarpanel, Akkumulator; später Atomkraft.
+7. **Komfort des Originals:** Produktionsstatistik, Stromnetz-Statistik, Forschungswarteschlange, Blaupausen,
+   Abriss- und Upgradeplaner.
+8. **Transport, Roboter, Schaltungsnetz, Module, Raketensilo** (in dieser Reihenfolge).
+
+**Später (bewusst zurückgestellt, geringe Priorität):** Gegner und Verschmutzung – Verschmutzung je Gebäude,
+Beißer, Nester, Evolution, Angriffe; dazu Pistole/Munition in der Startausrüstung, Waffen, Türme, Mauern und Tore,
+Rüstungen, Reparaturset, militärische Wissenschaft. Mit Friedensmodus wie im Original.

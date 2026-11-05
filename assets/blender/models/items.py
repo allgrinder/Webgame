@@ -92,6 +92,7 @@ def render(out):
     finish(out, 'item.iron-chest', root, scale=0.8, z=-0.05)
 
     render_new(out)
+    render_early(out)
 
 
 def plates(name, mat):
@@ -170,3 +171,46 @@ def render_new(out):
     root = belt_piece(m)
     root.rotation_euler = (0, 0, math.radians(35))
     finish(out, 'item.fast-transport-belt', root, scale=0.95)
+
+
+def render_early(out):
+    """Items der frühen Phase (Holz, Stahl, Masten, Montage 2 …)."""
+    import bauten
+    simple = [
+        ('wood', lambda m: anlagen.wood_logs(m), 1.0),
+        ('steel-plate', lambda m: anlagen.steel_plates(m), 1.0),
+        ('engine-unit', lambda m: anlagen.engine_unit(m), 1.15),
+        ('landfill', lambda m: anlagen.landfill_pile(m), 1.1),
+        ('wooden-chest', lambda m: anlagen.wooden_chest(m), 0.8),
+        ('steel-chest', lambda m: anlagen.steel_chest(m), 0.78),
+        ('pipe-to-ground', lambda m: anlagen.pipe_ground(m), 0.95),
+        ('lamp', lambda m: anlagen.lamp(m, 0.0), 0.9),
+        ('medium-electric-pole', lambda m: anlagen.medium_pole(m), 0.42),
+        ('big-electric-pole', lambda m: anlagen.big_pole(m), 0.26),
+        ('steel-furnace', lambda m: anlagen.steel_furnace(m, 0.0), 0.42),
+        ('pump', lambda m: anlagen.fluid_pump(m, 0.0), 0.5),
+        ('storage-tank', lambda m: anlagen.storage_tank(m), 0.3),
+    ]
+    for item, fn, sc in simple:
+        eisen.reset(samples=48)
+        root = fn(anlagen.Mats())
+        if item in ('pipe-to-ground', 'pump'):
+            root.rotation_euler = (0, 0, math.radians(35))
+        finish(out, f'item.{item}', root, scale=sc, z=-0.05)
+    eisen.reset(samples=48)
+    m = anlagen.Mats()
+    m.green = anlagen.paint('#4b5f73', 'a_am2')
+    finish(out, 'item.assembling-machine-2', anlagen.assembler(m, 0.0), scale=0.3, z=-0.05)
+    for item, fn, sc in (('fast-splitter', lambda m: anlagen.splitter(m, 0.0), 0.42), ('fast-underground-belt', lambda m: anlagen.underground(m, False), 0.8)):
+        eisen.reset(samples=48)
+        m = anlagen.Mats()
+        m.paint = anlagen.paint('#7a3a28', 'a_fastpaint')
+        finish(out, f'item.{item}', fn(m), scale=sc, z=-0.05)
+    eisen.reset(samples=48)
+    m = parts.Mats()
+    m.ochre = bauten.weathered('ins_paint', '#3f5d80', metal=0.3, rough=0.55, rust=0.4, dust=0.45, edge=0.7, streaks=0.5)
+    base = parts.inserter_base(m, False)
+    arm = parts.inserter_arm(m, 0.55)
+    arm.rotation_euler = (0, 0, math.radians(-40))
+    finish(out, 'item.fast-inserter', eisen.parent_all([base, arm]), scale=0.92, z=-0.1)
+

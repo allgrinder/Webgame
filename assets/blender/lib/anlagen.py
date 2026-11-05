@@ -569,3 +569,233 @@ def building(out, name, build, canvas, anchor, sh_canvas, sh_anchor, dirs=(0,), 
         root = build(Mats(), 0.0)
         eisen.rotate_root(root, d)
         eisen.shadow_render(out, f'{key}.shadow', 'entities', sh_canvas, sh_anchor, half=sh_canvas[0] > 4)
+
+
+# --------------------------------------------------------------------------- Frühe Phase: weitere Anlagen
+
+def paint(hex_, name='a_paint2'):
+    """Verwitterter Anstrich in eigener Farbe (für Varianten: schnelle Bänder, Montage 2, schneller Greifarm)."""
+    return bauten.weathered(name, hex_, metal=0.3, rough=0.55, rust=0.4, dust=0.5, edge=0.7, streaks=0.5)
+
+
+def pipe_ground(m):
+    """Rohr unterirdisch: Anschluss nach Norden (+Y), nach Süden in einen Betonsockel abtauchend."""
+    o = []
+    z = PIPE_Z
+    o.append(pipe('stub', (0, -0.05, z), (0, 0.53, z), PIPE_R, m.pipe, 20))
+    flange(o, 'fl', (0, 0.47, z), 'Y', m)
+    o.append(eisen.box('base', (0.62, 0.62, 0.16), (0, -0.12, 0.08), m.concrete, bevel=0.03))
+    elbow = eisen.cylinder('elbow', PIPE_R * 1.25, 0.34, (0, -0.12, 0.2), m.pipe, segments=24, bevel=0.05)
+    o.append(elbow)
+    o.append(eisen.cylinder('collar', PIPE_R * 1.55, 0.06, (0, -0.12, 0.17), m.dark, segments=24, bevel=0.01))
+    o.append(eisen.box('arrow', (0.08, 0.2, 0.01), (0, -0.33, 0.165), m.dark))
+    bolts(o, m.bright, [(-0.24, -0.36), (0.24, -0.36), (-0.24, 0.12), (0.24, 0.12)], 0.165, 0.02)
+    return eisen.parent_all(o, 'pipeground')
+
+
+def fluid_pump(m, phase=0.0):
+    """Pumpe 1×2 (Ursprung zwischen den Feldern): Ausgang nach Norden, Eingang nach Süden, Motor seitlich."""
+    o = []
+    z = PIPE_Z
+    o.append(pipe('line', (0, -1.03, z), (0, 1.03, z), PIPE_R, m.pipe, 20))
+    flange(o, 'fln', (0, 0.97, z), 'Y', m)
+    flange(o, 'fls', (0, -0.97, z), 'Y', m)
+    o.append(eisen.box('skid', (0.8, 1.5, 0.08), (0, 0, 0.04), m.dark, bevel=0.01))
+    o.append(eisen.cylinder('volute', 0.3, 0.3, (0, 0.05, 0.36), m.green, segments=32, rot=(0, math.pi / 2, 0), bevel=0.03))
+    o.append(eisen.cylinder('motor', 0.18, 0.5, (0, -0.45, 0.42), m.dark, segments=24, rot=(math.pi / 2, 0, 0), bevel=0.02))
+    for k in range(10):
+        a = k / 10 * math.pi + phase * 0.3
+        o.append(eisen.box(f'fin{k}', (0.025, 0.46, 0.05), (math.cos(a) * 0.19, -0.45, 0.42 + math.sin(a) * 0.19), m.steel))
+    o.append(eisen.box('lamp', (0.06, 0.02, 0.05), (0.22, -0.2, 0.55), eisen.emission_material('plamp', (0.4, 1.0, 0.35), 2.0)))
+    bolts(o, m.bright, [(-0.34, -0.66), (0.34, -0.66), (-0.34, 0.66), (0.34, 0.66)], 0.085, 0.02)
+    return eisen.parent_all(o, 'fpump')
+
+
+def storage_tank(m):
+    """Lagertank 3×3: stehender Zylinder mit Kuppel, Leiter, Anschlüsse an zwei Ecken (NW: N/W, SO: S/O)."""
+    o = []
+    o.append(eisen.box('pad', (2.9, 2.9, 0.1), (0, 0, 0.05), m.concrete, bevel=0.03))
+    o.append(eisen.cylinder('shell', 1.25, 1.4, (0, 0, 0.8), m.steel, segments=48, bevel=0.03))
+    for z in (0.35, 0.8, 1.25):
+        o.append(eisen.cylinder(f'hoop{z}', 1.27, 0.05, (0, 0, z), m.dark, segments=48))
+    me = bpy.data.meshes.new('cap')
+    import bmesh as _bm
+    bm = _bm.new()
+    _bm.ops.create_uvsphere(bm, u_segments=48, v_segments=16, radius=1.25)
+    for v in list(bm.verts):
+        if v.co.z < -0.01:
+            bm.verts.remove(v)
+    bm.to_mesh(me)
+    bm.free()
+    cap = bpy.data.objects.new('cap', me)
+    eisen.link(cap)
+    cap.data.materials.append(m.paint)
+    cap.location = (0, 0, 1.5)
+    cap.scale = (1, 1, 0.35)
+    for p in me.polygons:
+        p.use_smooth = True
+    o.append(cap)
+    o.append(eisen.cylinder('hatch', 0.22, 0.08, (0.3, -0.2, 1.93), m.dark, segments=20, bevel=0.02))
+    for k in range(9):
+        o.append(eisen.box(f'rung{k}', (0.3, 0.03, 0.03), (0.55, -1.2, 0.2 + k * 0.17), m.bright))
+    for s in (-1, 1):
+        o.append(eisen.box(f'rail{s}', (0.03, 0.03, 1.6), (0.55 + s * 0.15, -1.22, 0.85), m.bright))
+    # Anschlüsse an den Ecken
+    z = PIPE_Z
+    for (cx, cy, dx, dy) in ((-1, 1, 0, 1), (-1, 1, -1, 0), (1, -1, 0, -1), (1, -1, 1, 0)):
+        a = (cx, cy, z)
+        b = (cx + dx * 0.55, cy + dy * 0.55, z)
+        o.append(pipe(f'port{cx}{dx}{dy}', a, b, PIPE_R, m.pipe, 20))
+        flange(o, f'pf{cx}{dx}{dy}', (cx + dx * 0.47, cy + dy * 0.47, z), 'Y' if dy else 'X', m)
+    return eisen.parent_all(o, 'tank')
+
+
+def steel_furnace(m, fire=0.0):
+    """Stahlofen 2×2: Stahlgehäuse mit Ziegelausmauerung, Feuertür (Süden), Schornstein."""
+    o = []
+    o.append(eisen.box('base', (1.9, 1.9, 0.12), (0, 0, 0.06), m.dark, bevel=0.02))
+    o.append(eisen.box('body', (1.7, 1.6, 0.9), (0, 0.05, 0.57), m.steel, bevel=0.06))
+    o.append(eisen.box('lining', (1.5, 1.42, 0.12), (0, 0.05, 1.05), m.brick, bevel=0.03))
+    o.append(eisen.box('top', (1.74, 1.64, 0.06), (0, 0.05, 1.0), m.dark, bevel=0.01))
+    for x in (-0.6, 0.0, 0.6):
+        o.append(eisen.box(f'rib{x}', (0.08, 1.66, 0.85), (x, 0.05, 0.55), m.dark, bevel=0.01))
+    o.append(eisen.box('door', (0.6, 0.06, 0.42), (0, -0.78, 0.38), m.dark, bevel=0.02))
+    glow = eisen.emission_material('sfire', (1.0, 0.4, 0.1), 1.5 + 12.0 * fire)
+    o.append(eisen.box('slit', (0.44, 0.02, 0.12), (0, -0.82, 0.3), glow))
+    if fire > 0:
+        light = bpy.data.lights.new('sfire', 'POINT')
+        light.energy = 25 * fire
+        light.color = (1.0, 0.5, 0.2)
+        lo = bpy.data.objects.new('sfire', light)
+        lo.location = (0, -1.0, 0.3)
+        eisen.link(lo)
+    o.append(eisen.cylinder('stack', 0.16, 0.8, (0.45, 0.4, 1.4), m.dark, segments=20))
+    o.append(eisen.cylinder('stackcap', 0.2, 0.06, (0.45, 0.4, 1.82), m.rust, segments=20))
+    o.append(eisen.box('vent', (0.5, 0.3, 0.1), (-0.4, 0.3, 1.13), m.dark, bevel=0.02))
+    bolts(o, m.bright, [(x, -0.76) for x in (-0.75, -0.4, 0.4, 0.75)], 0.85, 0.02, 'Y')
+    return eisen.parent_all(o, 'sfurnace')
+
+
+MEDIUM_TOP = 2.4
+BIG_TOP = 3.6
+
+
+def medium_pole(m):
+    """Mittlerer Strommast: Stahlrohrmast mit zwei Querträgern und vier Isolatoren."""
+    o = []
+    o.append(eisen.box('foot', (0.34, 0.34, 0.1), (0, 0, 0.05), m.concrete, bevel=0.02))
+    o.append(eisen.cylinder('mast', 0.06, MEDIUM_TOP, (0, 0, MEDIUM_TOP / 2 + 0.05), m.steel, segments=12))
+    for z, w in ((MEDIUM_TOP - 0.1, 0.7), (MEDIUM_TOP - 0.45, 0.5)):
+        o.append(eisen.box(f'cross{z}', (w, 0.06, 0.05), (0, 0, z), m.paint, bevel=0.01))
+        for s in (-1, 1):
+            for k in range(3):
+                o.append(eisen.cylinder(f'ins{z}{s}{k}', 0.04 - k * 0.005, 0.03, (s * (w / 2 - 0.04), 0, z + 0.05 + k * 0.035), m.insul, segments=10))
+    for s in (-1, 1):
+        o.append(beam(f'brace{s}', (s * 0.15, 0, 0.1), (0, 0, 0.8), (0.03, 0.03), m.dark))
+    return eisen.parent_all(o, 'mpole')
+
+
+def big_pole(m):
+    """Großer Strommast 2×2: Gittermast mit breitem Kopf und Isolatorketten."""
+    o = []
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            o.append(eisen.box(f'foot{sx}{sy}', (0.25, 0.25, 0.12), (sx * 0.6, sy * 0.6, 0.06), m.concrete, bevel=0.02))
+            o.append(beam(f'leg{sx}{sy}', (sx * 0.6, sy * 0.6, 0.1), (sx * 0.14, sy * 0.14, BIG_TOP), (0.06, 0.06), m.steel))
+    for k in range(6):
+        z = 0.4 + k * 0.52
+        r = 0.6 - (z / BIG_TOP) * 0.46
+        for sy in (-1, 1):
+            o.append(beam(f'bx{k}{sy}', (-r, sy * r, z), (r, sy * r, z + 0.5), (0.025, 0.025), m.dark))
+            o.append(beam(f'by{k}{sy}', (sy * r, -r, z), (sy * r, r, z + 0.5), (0.025, 0.025), m.dark))
+    o.append(eisen.box('head', (1.3, 0.12, 0.1), (0, 0, BIG_TOP - 0.05), m.paint, bevel=0.01))
+    for s in (-1, 0, 1):
+        for k in range(4):
+            o.append(eisen.cylinder(f'ins{s}{k}', 0.045, 0.035, (s * 0.55, 0, BIG_TOP - 0.15 - k * 0.05), m.insul, segments=10))
+    return eisen.parent_all(o, 'bpole')
+
+
+def lamp(m, on=0.0):
+    """Lampe: kurzer Mast mit Glaskolben; on > 0 lässt den Kolben leuchten."""
+    o = []
+    o.append(eisen.box('base', (0.36, 0.36, 0.1), (0, 0, 0.05), m.dark, bevel=0.02))
+    o.append(eisen.cylinder('post', 0.06, 0.45, (0, 0, 0.32), m.steel, segments=12))
+    o.append(eisen.cylinder('ring', 0.14, 0.05, (0, 0, 0.56), m.dark, segments=20))
+    bulb = eisen.material('bulb', eisen.srgb('#d9d2b4'), rough=0.2) if on <= 0 else eisen.emission_material('bulbon', (1.0, 0.9, 0.65), 6.0 * on)
+    o.append(eisen.cylinder('glass', 0.12, 0.2, (0, 0, 0.7), bulb, segments=20, bevel=0.06))
+    o.append(eisen.cylinder('cap', 0.13, 0.05, (0, 0, 0.82), m.dark, segments=20, bevel=0.01))
+    if on > 0:
+        light = bpy.data.lights.new('lamp', 'POINT')
+        light.energy = 40 * on
+        light.color = (1.0, 0.9, 0.7)
+        lo = bpy.data.objects.new('lamp', light)
+        lo.location = (0, 0, 0.75)
+        eisen.link(lo)
+    return eisen.parent_all(o, 'lamp')
+
+
+def wooden_chest(m):
+    wood = gw_ground.pmat('a_wood', lin('#7a5a38'), 0.85, 0.35, 0.5, 30)
+    o = []
+    for k in range(4):
+        o.append(eisen.box(f'plank{k}', (0.8, 0.19, 0.5), (0, -0.29 + k * 0.195, 0.25), wood, bevel=0.015))
+    o.append(eisen.box('lid', (0.84, 0.8, 0.08), (0, 0, 0.54), wood, bevel=0.02))
+    for s in (-1, 1):
+        o.append(eisen.box(f'band{s}', (0.86, 0.06, 0.6), (0, s * 0.25, 0.3), m.dark, bevel=0.005))
+    o.append(eisen.box('lock', (0.08, 0.02, 0.08), (0, -0.41, 0.48), m.brass, bevel=0.005))
+    return eisen.parent_all(o, 'wchest')
+
+
+def steel_chest(m):
+    o = []
+    body = bauten.weathered('a_schest', '#6d7378', metal=0.85, rough=0.38, rust=0.2, dust=0.4, edge=0.5, streaks=0.3)
+    o.append(eisen.box('body', (0.84, 0.8, 0.52), (0, 0, 0.26), body, bevel=0.03))
+    o.append(eisen.box('lid', (0.88, 0.84, 0.1), (0, 0, 0.57), body, bevel=0.03))
+    for k in range(3):
+        o.append(eisen.box(f'rib{k}', (0.9, 0.04, 0.03), (0, -0.25 + k * 0.25, 0.63), m.dark))
+    o.append(eisen.box('handle', (0.24, 0.03, 0.05), (0, -0.43, 0.42), m.bright, bevel=0.008))
+    bolts(o, m.bright, [(x, -0.405) for x in (-0.33, 0.33)], 0.15, 0.015, 'Y')
+    return eisen.parent_all(o, 'schest')
+
+
+def wood_logs(m):
+    bark = gw_ground.pmat('a_bark', lin('#5a4330'), 0.95, 0.4, 0.7, 25)
+    end = gw_ground.pmat('a_endgrain', lin('#b08a5a'), 0.8, 0.2, 0.3, 20)
+    o = []
+    for k, (x, z) in enumerate(((-0.13, 0.11), (0.13, 0.11), (0, 0.32))):
+        o.append(eisen.cylinder(f'log{k}', 0.12, 0.7, (x, 0, z), bark, segments=16, rot=(math.pi / 2, 0, 0)))
+        for s in (-1, 1):
+            o.append(eisen.cylinder(f'end{k}{s}', 0.115, 0.01, (x, s * 0.35, z), end, segments=16, rot=(math.pi / 2, 0, 0)))
+    return eisen.parent_all(o, 'logs')
+
+
+def steel_plates(m):
+    st = bauten.weathered('a_steelplate', '#8c9399', metal=0.95, rough=0.28, rust=0.05, dust=0.15, edge=0.3, grime=0.15)
+    o = [eisen.box('p1', (0.7, 0.5, 0.07), (0, 0, 0.035), st, bevel=0.015),
+         eisen.box('p2', (0.7, 0.5, 0.07), (0.04, 0.05, 0.11), st, bevel=0.015)]
+    root = eisen.parent_all(o, 'steel')
+    root.rotation_euler = (0, 0, math.radians(20))
+    return root
+
+
+def engine_unit(m):
+    o = []
+    o.append(eisen.cylinder('block', 0.2, 0.55, (0, 0, 0.22), m.dark, segments=24, rot=(0, math.pi / 2, 0), bevel=0.03))
+    for k in range(4):
+        o.append(eisen.cylinder(f'cyl{k}', 0.08, 0.2, (-0.2 + k * 0.13, 0, 0.45), m.steel, segments=12, bevel=0.02))
+    o.append(eisen.cylinder('flywheel', 0.17, 0.06, (0.32, 0, 0.22), m.brass, segments=24, rot=(0, math.pi / 2, 0)))
+    o.append(pipe('exhaust', (-0.3, 0.1, 0.3), (-0.42, 0.25, 0.45), 0.03, m.rust))
+    return eisen.parent_all(o, 'engine')
+
+
+def landfill_pile(m, rnd_seed=5):
+    import random as _r
+    rnd = _r.Random(rnd_seed)
+    earth = gw_ground.pmat('a_landfill', lin('#7a6650'), 1.0, 0.35, 0.6, 18)
+    stone = gw_ground.pmat('a_lfstone', lin('#8a8070'), 0.9, 0.35, 0.6, 12)
+    o = [eisen.cylinder('heap', 0.38, 0.2, (0, 0, 0.1), earth, segments=24, bevel=0.09)]
+    o.extend(bauten.stones(14, rnd, [stone], lambda x, y: x * x + y * y < 0.9, (0.04, 0.08), z0=0.15))
+    for s in o[1:]:
+        s.location.x *= 0.35
+        s.location.y *= 0.35
+    return eisen.parent_all(o, 'landfill')

@@ -206,6 +206,39 @@ Das Wiki ist inzwischen erreichbar; diese Werte ersetzen frühere Angaben in den
 | Schnelles Untergrundband | Lücke 6 (maxDistance 7), 2 s: 40 Zahnräder + 2 Untergrundbänder → 2 | Wiki, Cheatsheet |
 | Schneller Splitter | 2 s: 10 Schaltkreise + 10 Zahnräder + 1 Splitter | Wiki |
 
+## Holz und Bäume (Quelle: Wiki „Wood“, Infobox „Tree“)
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Holz | Stapel 100, Brennwert 2 MJ | Wiki Infobox „Wood“ |
+| Baum / abgestorbener Baum | 4 / 2 Holz, Abbauzeit 0,55 / 0,5 s (Spieler 0,5 → 1,1 / 1,0 s) | Wiki „Wood“, Infobox „Tree“ |
+| Startausrüstung | 8 Eisenplatten, 1 Holz, Brennstoff-Bohrer, Steinofen (Pistole/Munition folgen mit den Gegnern) | Wiki „Wood“, Quick start guide |
+| Holzkiste | 2 Holz, 0,5 s; 16 Plätze, 100 LP | Wiki Infobox |
+| Kleiner Strommast | 1 Holz + 2 Kupferkabel → 2 | Wiki Infobox |
+| Baumverteilung (Raster, Haine, Fruchtbarkeit) | `src/data/mapgen.ts` (`trees`) | E |
+
+## Frühe Phase (Quelle: Wiki-Infoboxen)
+
+| Item/Gebäude | Rezept | Werte | Forschung |
+|---|---|---|---|
+| Stahlplatte | 5 Eisenplatten, 16 s (Ofen) | Stapel 100 | Stahlverarbeitung 50 × 5 s rot |
+| Stahlkiste | 8 Stahl, 0,5 s | 48 Plätze, 350 LP | Stahlverarbeitung |
+| Stahlofen | 6 Stahl + 10 Ziegel, 3 s | 2×2, Geschwindigkeit 2, 90 kW | Fortgeschrittene Materialverarbeitung 75 × 30 s rot+grün |
+| Schneller Greifarm | 2 Schaltkreise + 1 Greifarm + 2 Platten | 0,04 U/Tick, 24 Ticks je Zyklus, 8,12 kJ je Zyklus, Grundlast 0,5 kW | Schneller Greifarm 30 × 15 s rot |
+| Mittlerer Strommast | 2 Kabel + 4 Eisenstangen + 2 Stahl | Kabel 9, Versorgung 7×7 | Energieverteilung 1 120 × 30 s rot+grün |
+| Großer Strommast | 4 Kabel + 8 Eisenstangen + 5 Stahl | 2×2, Kabel 32, Versorgung 4×4 | Energieverteilung 1 |
+| Eisenstange | 1 Platte → 2 | – | Energieverteilung 1 (2.0) |
+| Lampe | 3 Kabel + 1 Schaltkreis + 1 Platte | 5 kW | Lampe 10 × 15 s rot |
+| Montagemaschine 2 | 1 Montagemaschine 1 + 3 Schaltkreise + 5 Zahnräder + 2 Stahl | 0,75, 150 kW, Grundlast 5 kW, 350 LP | Automatisierung 2 40 × 15 s rot+grün |
+| Landaufschüttung | 50 Stein | 1 Wasserfeld → Land | Landaufschüttung 50 × 30 s rot+grün |
+| Motor | 1 Zahnrad + 2 Rohre + 1 Stahl, 10 s, nur Montagemaschine | Stapel 50 | Motor 100 × 15 s rot+grün |
+| Pumpe | 1 Motor + 1 Rohr + 1 Stahl, 2 s | 1×2, 1200/s, 30 kW | Flüssigkeitshandhabung 50 × 15 s rot+grün |
+| Lagertank | 20 Platten + 5 Stahl, 3 s | 3×3, 25.000 | Flüssigkeitshandhabung |
+| Rohr unterirdisch | 5 Platten + 10 Rohre → 2 | bis 10 Felder (9 Lücke), Volumen wie 2 Rohre | Dampfkraft |
+
+Abweichungen: Fässer (Flüssigkeitshandhabung) und Reparaturset fehlen noch (Reparatur erst mit Schaden/Gegnern).
+Die Lampe leuchtet, sobald sie Strom hat (noch kein Tag-Nacht-Wechsel).
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf

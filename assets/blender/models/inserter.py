@@ -21,6 +21,7 @@ VARIANTS = (
     ('inserter', None, REACH, True),
     ('inserter-electric', '#5d6a3a', REACH, False),
     ('inserter-long', '#6e3527', 2.1, False),
+    ('inserter-fast', '#3f5d80', REACH, False),
 )
 
 

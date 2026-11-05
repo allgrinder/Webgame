@@ -582,12 +582,17 @@ export class Hud {
     };
     btn('Weiterspielen', () => this.toggleMenu());
     btn('Speichern', () => void this.saveGame());
+    btn('Speichern unter …', () => {
+      const name = prompt('Name des Spielstands', `Spiel ${new Date().toLocaleDateString('de-DE')}`)?.trim();
+      if (name) void this.saveGame(name).then(() => this.buildMenu());
+    });
     btn('Laden (Schnellspeicher)', () => void this.loadGame());
     btn('Laden (Autosave)', () => void this.loadGame('autosave'));
     btn('Spielstand exportieren (Datei)', () => this.exportGame());
     btn('Spielstand importieren (Datei)', () => this.importGame());
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
-    btn('Neues Spiel', () => { location.search = ''; });
+    btn('Neues Spiel (neue Karte)', () => { location.search = '?new'; });
+    el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);
     if (saves.length) {
       el('div', 'sub-head', body).textContent = 'Spielstände';
@@ -602,6 +607,34 @@ export class Hud {
         d.onclick = async () => { await deleteSave(s.name); void this.buildMenu(); };
       }
     }
+  }
+
+  /** Startdialog: neuesten Spielstand fortsetzen oder neu beginnen. */
+  async offerContinue(): Promise<void> {
+    const saves = await listSaves().catch(() => []);
+    if (!saves.length) return;
+    const latest = saves[0];
+    this.menu.replaceChildren();
+    const head = el('div', 'win-head', this.menu);
+    head.textContent = 'Willkommen zurück';
+    const body = el('div', 'win-body menu-body', this.menu);
+    const b1 = el('button', 'menu-btn primary', body);
+    b1.textContent = `Weiterspielen – ${latest.name} (${new Date(latest.time).toLocaleString('de-DE')})`;
+    b1.onclick = () => { this.menu.classList.add('hidden'); void this.loadGame(latest.name); };
+    const b2 = el('button', 'menu-btn', body);
+    b2.textContent = `Neues Spiel (Karte ${this.game.world.seed})`;
+    b2.onclick = () => this.menu.classList.add('hidden');
+    if (saves.length > 1) {
+      el('div', 'sub-head', body).textContent = 'Weitere Spielstände';
+      for (const s of saves.slice(1)) {
+        const r = el('div', 'save-row', body);
+        el('span', '', r).textContent = `${s.name} – ${new Date(s.time).toLocaleString('de-DE')}`;
+        const l = el('button', 'small-btn', r);
+        l.textContent = 'Laden';
+        l.onclick = () => { this.menu.classList.add('hidden'); void this.loadGame(s.name); };
+      }
+    }
+    this.menu.classList.remove('hidden');
   }
 
   async saveGame(name = 'schnellspeicher', quiet = false): Promise<void> {

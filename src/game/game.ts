@@ -69,11 +69,28 @@ export class Game {
     this.world = world;
     this.creative = creative;
     this.acc = 0;
+    this.lastAutosaveTick = world.tick;
+    this.hud.setTitle(creative ? 'Sandkasten' : `Freies Spiel · Karte ${world.seed}`);
+    if (world.player) {
+      this.renderer.camera.x = world.player.px / 256;
+      this.renderer.camera.y = world.player.py / 256;
+    }
     this.hud.refreshAll();
   }
 
   start(): void {
     this.renderer.app.ticker.add((t) => this.frame(t.deltaMS));
+    // Beim Verlassen oder Verstecken der Seite automatisch speichern (Tab schließen, App wechseln)
+    const autosave = () => {
+      if (!this.creative && this.world.player && this.world.tick > this.lastAutosaveTick + 60) {
+        this.lastAutosaveTick = this.world.tick;
+        void this.hud.saveGame('autosave', true);
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') autosave();
+    });
+    window.addEventListener('pagehide', autosave);
   }
 
   private frame(dt: number): void {

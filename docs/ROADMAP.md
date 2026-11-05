@@ -52,14 +52,14 @@ Ziel: Gebäude, Figur und Effekte erreichen dieselbe Qualität wie die neue Land
 - Abbauanimation mit Spitzhacke.
 - Schatten passend zur Sonne der Landschaft.
 
-**A5 Landschaft vervollständigen** ✔ (Nadelbäume mit Sapling, Felsgruppen mit dem Rock Generator, weichere Erzränder; Wolkenschatten offen)
+**A5 Landschaft vervollständigen** ✔ (Nadelbäume mit Sapling, Felsgruppen mit dem Rock Generator, weichere Erzränder; Wolkenschatten ✔)
 - Mehr Varianten: weitere Baumarten (Kiefer und Eiche als Gruppen), Totholz, Farn- und Distelinseln,
   größere Felsgruppen.
 - Erzfelder mit weichem Rand zur Wiese, Abbau sichtbar über die Dichtestufen.
 - Teiche und kleine Seen mit Uferkante, Schilf und Steinen. Zunächst nur Dekoration, später Wasser für Phase C.
 - Optional: sanfte Wolkenschatten, die über die Landschaft ziehen.
 
-**A6 Oberfläche** ✔ (Metallfenster, Tooltips mit Rezept und Werten, Minimap; Rezeptbaum offen)
+**A6 Oberfläche** ✔ (Metallfenster, Tooltips mit Rezept und Werten, Minimap; Rezeptbaum ✔ im Rezept-Tooltip)
 - Inventar und Fenster im gleichen Materialstil (dunkles Metall, Holz), größere und schärfere Item-Symbole.
 - Tooltips mit Rezept und Werten, Rezeptbaum beim Handwerk.
 - Kleine Übersichtskarte (Minimap) aus den Kartendaten.

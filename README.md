@@ -20,7 +20,8 @@ Dann im Browser öffnen:
 | http://localhost:5173/?scene=sandbox | Sandkasten (Bauen ohne Verbrauch, Debug-Tasten) |
 | http://localhost:5173/?scene=stress | Lastszene: 5.000 Bandfelder, 10.000 Items |
 
-Weitere Parameter: `&seed=123` (Kartenseed), `&debug` (Debug-Anzeige und -Tasten), `&warp=600` (spult beim Start 600 Ticks vor).
+Das freie Spiel erzeugt bei jedem neuen Spiel eine neue Karte und bietet beim Start „Weiterspielen“ an, wenn ein Spielstand existiert.
+Weitere Parameter: `?seed=123` (feste Karte), `?new` (ohne Startdialog), `&debug` (Debug-Anzeige und -Tasten), `&warp=600` (spult beim Start 600 Ticks vor).
 
 ## Steuerung
 
@@ -28,7 +29,7 @@ Weitere Parameter: `&seed=123` (Kartenseed), `&debug` (Debug-Anzeige und -Tasten
 - **Linksklick** bauen (Bänder durch Ziehen), **R** drehen, **Q** Gebäude/Item unter dem Cursor aufnehmen bzw. Cursor leeren
 - **Rechtsklick halten** abbauen oder Gebäude aufnehmen
 - **E** Inventar & Handwerk, **Klick** auf ein Gebäude öffnet dessen Slots (Montagemaschine: Rezept wählen), **Strg+Klick** überträgt einen Stapel
-- **T** Forschung (Technologie wählen; Labore brauchen Strom und Wissenschaftspakete)
+- **T** Forschung (Technologie wählen; Labore brauchen Strom und Wissenschaftspakete), **M** Übersichtskarte (klein/groß/aus)
 - **R** auf einem Untergrundband tauscht Eingang und Ausgang
 - **1–0** Schnellleiste, **Alt** Detailansicht (Ausgaberichtung, Inhalt, Status)
 - **Strg+S / Strg+L** schnell speichern/laden (IndexedDB), **Esc** Menü, **H** Hilfe, **F3** Debug

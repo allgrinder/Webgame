@@ -108,5 +108,18 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.keyboard.press('Alt');
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'test-results/freeplay.png' });
+
+  // Neu laden: Startdialog bietet den Spielstand an, Weiterspielen stellt Karte und Gebäude wieder her
+  const seed = await g(page)(() => (window as Any).eisenwerk.world.seed);
+  await page.keyboard.press('Control+s');
+  await expect(page.locator('.messages')).toHaveText('Gespeichert');
+  await page.reload();
+  await page.waitForSelector('body[data-ready="1"]');
+  const cont = page.locator('.menu-btn.primary');
+  await expect(cont).toBeVisible();
+  await cont.click();
+  await expect(page.locator('.messages')).toHaveText('Geladen');
+  const restored = await g(page)(() => ({ seed: (window as Any).eisenwerk.world.seed, n: (window as Any).eisenwerk.world.entities.size }));
+  expect(restored).toEqual({ seed, n: 2 });
   expect(errors).toEqual([]);
 });

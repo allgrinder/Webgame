@@ -42,6 +42,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Phase A: Effekte (`src/render/effects.ts`, `src/data/fx.ts`), Figur 8 Richtungen (`models/player.py`), Nadelbäume/Felsgruppen
   (`models/landscape.py`, nutzt die Blender-Add-ons Sapling und Rock Generator aus /usr/share/blender als Werkzeug),
   Tooltips/Minimap (`src/ui/tooltip.ts`, `src/ui/minimap.ts`).
+- Karte: Feuchte-Feld (`GameMap.moistureAt`), Seen (verzerrtes fbm), Flüsse mit Furten, Startsee; Landschaftsräume
+  in der Darstellung (`src/render/biome.ts`: Bodenfarbe, Deko-Gewichtung `fertility`). Wolkenschatten `src/render/clouds.ts`.
+- Freies Spiel: zufälliger Seed je neuer Runde, Startdialog „Weiterspielen“, Autosave alle 5 min und beim Verlassen der Seite.
 - Asset-Pipeline rendert ein Modell nur neu, wenn sein Skript oder eine importierte Bibliothek sich ändert (`npm run assets -- --deps`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).

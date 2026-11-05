@@ -120,6 +120,8 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 | Abbauzeit Eisenerz, Kohle, Stein | 1 | P `entity/resources.lua`: `mining_time = 1` |
 | Feldgrößen, Mengen, Lage, Dichtestufen | eigene Werte | E |
 | Seen und Teiche (Rauschen, Schwellwert, Abstand zum Start) | `src/data/mapgen.ts` | E |
+| Feuchte (Landschaftsräume), Flüsse mit Furten, Startsee | `src/data/mapgen.ts` | E |
+| Bodenfarbe nach Fruchtbarkeit, Bewuchs je Landschaftsraum, Wolkenschatten | `src/data/decor.ts`, `src/data/fx.ts`, nur Darstellung | E |
 | Erzfeldform (Teilellipsen, Verzerrung, Ausläufer) | `src/data/mapgen.ts` | E |
 | Dekoration (Dichte, Haine, Abstände zu Start und Erz) | `src/data/decor.ts`, nur Darstellung | E |
 

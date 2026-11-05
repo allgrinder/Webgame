@@ -28,7 +28,7 @@ export function freeplayScene(seed: number): Scene {
   const p = new Player(0.5, 0.5);
   p.giveStart();
   world.player = p;
-  return { world, creative: false, camera: { x: 0.5, y: 0.5, zoom: 1 }, title: 'Freies Spiel' };
+  return { world, creative: false, camera: { x: 0.5, y: 0.5, zoom: 1 }, title: `Freies Spiel · Karte ${seed}` };
 }
 
 function sandboxScene(seed: number): Scene {

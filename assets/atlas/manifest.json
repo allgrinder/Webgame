@@ -136,7 +136,7 @@
    ]
   },
   "drill": {
-   "hash": "e694f259a9d9c123",
+   "hash": "89234399ce890695",
    "sprites": [
     "drill.0",
     "drill.0.shadow",
@@ -366,7 +366,7 @@
    ]
   },
   "furnace": {
-   "hash": "85035f65af842d81",
+   "hash": "22e22be07d084581",
    "sprites": [
     "furnace.off",
     "furnace.on",
@@ -660,7 +660,7 @@
    ]
   },
   "items": {
-   "hash": "cd8e8748762e3605",
+   "hash": "73269199b842a098",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
@@ -1022,7 +1022,7 @@
    ]
   },
   "power": {
-   "hash": "93d396ffa7e9877b",
+   "hash": "5eb1823e3b9dd75e",
    "sprites": [
     "offshore-pump.0",
     "offshore-pump.0.shadow",
@@ -1057,7 +1057,7 @@
    ]
   },
   "production": {
-   "hash": "b31148bb20f5cdfc",
+   "hash": "1f92e8af9a0a0563",
    "sprites": [
     "lab",
     "lab.shadow"

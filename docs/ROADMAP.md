@@ -148,3 +148,10 @@ Grundlage: `docs/WIKI_ABGLEICH.md` (Wiki und Cheatsheet). Reihenfolge wie im Ori
 **Später (bewusst zurückgestellt, geringe Priorität):** Gegner und Verschmutzung – Verschmutzung je Gebäude,
 Beißer, Nester, Evolution, Angriffe; dazu Pistole/Munition in der Startausrüstung, Waffen, Türme, Mauern und Tore,
 Rüstungen, Reparaturset, militärische Wissenschaft. Mit Friedensmodus wie im Original.
+
+## Phase F – Blöcke 1–4 (Wunsch 05.11.2026) – umgesetzt
+
+Öl und Chemie, Solar und Akku, Komfort (Statistik, Forschungswarteschlange, Blaupausen), Module/Leuchtfeuer, Roboter,
+Schaltungsnetz, Züge, Raketensilo. Offene Verfeinerungen (siehe `docs/WIKI_ABGLEICH.md` Abschnitt 4):
+Rail-Planer mit Diagonalen und Signalen, Selbstfahren im Zug, Flüssigkeitswagen, Fässer, Sonderzeichen im Schaltungsnetz,
+Reparatur und persönlicher Roboport, Upgradeplaner. Danach: Gegner, Verschmutzung, Militär.

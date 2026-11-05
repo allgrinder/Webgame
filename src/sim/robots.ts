@@ -9,7 +9,7 @@ import type { World } from './world';
 
 export type RobotTask =
   /** Bauen: 0 = zur Kiste (Item holen), 1 = zum Geist. */
-  | { t: 'build'; ghost: number; from: number; item: string; phase: 0 | 1 }
+  | { t: 'build'; ghost: number; from: number; item: string; count: number; phase: 0 | 1 }
   /** Abreißen: 0 = zum Gebäude, 1 = zur Lagerkiste. */
   | { t: 'decon'; target: number; to: number; phase: 0 | 1 }
   /** Liefern: 0 = zum Anbieter, 1 = zum Empfänger. */
@@ -138,7 +138,7 @@ export class RobotSystem {
   private claim(r: Robot, s: 1 | -1): void {
     const t = r.task;
     if (t.t === 'build') {
-      if (t.phase === 0) this.bump(this.reserved, t.from, t.item, s);
+      if (t.phase === 0) this.bump(this.reserved, t.from, t.item, s * (t.count ?? 1));
       if (s > 0) this.busy.add(`g${t.ghost}`);
       else this.busy.delete(`g${t.ghost}`);
     } else if (t.t === 'decon') {
@@ -167,9 +167,10 @@ export class RobotSystem {
         const [gw, gh] = sizeOf(entityDef(g.name), g.dir);
         if (this.netAt(g.x + gw / 2, g.y + gh / 2, 'construction') !== net) continue;
         const item = entityDef(g.name).item;
-        const src = this.pickSource(net, item, g.x, g.y, -1);
+        const count = entityDef(g.name).itemCount ?? 1;
+        const src = this.pickSource(net, item, g.x, g.y, -1, false, count);
         if (!src) continue;
-        if (this.launch(net, 'construction-robot', src.x, src.y, { t: 'build', ghost: g.id, from: src.id, item, phase: 0 })) budget--;
+        if (this.launch(net, 'construction-robot', src.x, src.y, { t: 'build', ghost: g.id, from: src.id, item, count, phase: 0 })) budget--;
         else break;
       }
       // Abreißen
@@ -210,14 +211,14 @@ export class RobotSystem {
   }
 
   /** Anbieter für ein Item: aktive Anbieter > Lager/Puffer > passive Anbieter, dann am nächsten. */
-  private pickSource(net: LogisticNetwork, item: string, x: number, y: number, except: number, forBuffer = false): ContainerEntity | null {
+  private pickSource(net: LogisticNetwork, item: string, x: number, y: number, except: number, forBuffer = false, need = 1): ContainerEntity | null {
     let best: ContainerEntity | null = null;
     let bp = Infinity;
     let bd = Infinity;
     for (const c of net.chests) {
       if (c.id === except || !c.logistic || c.logistic === 'requester') continue;
       if (forBuffer && c.logistic === 'buffer') continue;
-      if (this.available(c, item) <= 0) continue;
+      if (this.available(c, item) < need) continue;
       const p = PRIORITY_PICKUP[c.logistic];
       const d = (c.x - x) ** 2 + (c.y - y) ** 2;
       if (p < bp || (p === bp && d < bd)) {
@@ -309,8 +310,10 @@ export class RobotSystem {
       case 'build': {
         if (t.phase === 0) {
           const c = w.entities.get(t.from);
-          if (w.ghosts.all.has(t.ghost) && c?.kind === 'container' && c.inventory.remove(t.item, 1) === 1) {
-            r.cargo = [{ item: t.item, count: 1 }];
+          const n = t.count ?? 1;
+          if (w.ghosts.all.has(t.ghost) && c?.kind === 'container' && c.inventory.count(t.item) >= n) {
+            c.inventory.remove(t.item, n);
+            r.cargo = [{ item: t.item, count: n }];
             this.retask(r, { ...t, phase: 1 });
           } else this.goHome(w, r);
           return;

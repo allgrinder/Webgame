@@ -52,6 +52,12 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Auslöser-Forschung), fällbare Bäume/Holz, frühe Phase (Stahl, Masten, Lampe, Montage 2, Motor, Pumpe, Tank,
   Rohr unterirdisch, Landaufschüttung), Tag/Nacht (`DAY` in `src/data/time.ts`, Nachtebene `src/render/night.ts`).
   Tests: `tests/sim/wiki.test.ts`, `trees.test.ts`, `early.test.ts`. Gegner bewusst zurückgestellt.
+- Blöcke 1–4 (Wunsch „1 bis 4 umsetzen“): Öl/Chemie (`entities/fluidplus.ts`, Modelle `models/oil.py`), Solar/Akku
+  (Stromvorrang in `src/sim/power.ts`), Statistik (`src/sim/stats.ts`, `src/ui/stats.ts`), Forschungswarteschlange,
+  Blaupausen/Geister (`src/sim/blueprint.ts`), Module/Leuchtfeuer (`src/sim/modules.ts`, `src/data/modules.ts`),
+  Roboter (`src/sim/robots.ts`, `src/data/robots.ts`), Schaltungsnetz (`src/sim/circuit.ts`, Taste G),
+  Züge (`src/sim/rails.ts`, `src/sim/trains.ts`, Gleise auf 2er-Raster, R wechselt Gleisform), Raketensilo
+  (`entities/rocket.ts`). Vereinfachungen in `docs/WIKI_ABGLEICH.md` Abschnitt 4. Modelle: `lib/spaet.py`, `lib/bahn.py`.
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

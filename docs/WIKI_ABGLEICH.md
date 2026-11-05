@@ -58,3 +58,17 @@ Gruppiert in der Reihenfolge, in der man sie im Spiel braucht:
 9. **Spielende:** Produktions-, Hightech- und Weltraum-Wissenschaft, Raketensilo, Satellit.
 10. **Komfort/Mechaniken:** Blaupausen, Abriss- und Upgradeplaner, Produktionsstatistik, Strom-Statistik,
     Forschungswarteschlange, Greifarm-Kapazitätsbonus, Bergbau-Produktivität, Tag/Nacht, Klippen.
+
+## 4. Umgesetzt (Blöcke 1–4, Stand 05.11.2026) und bewusste Vereinfachungen
+
+| Bereich | Umgesetzt nach Wiki | Vereinfacht / fehlt noch |
+|---|---|---|
+| Öl und Chemie | Pumpjack (Ergiebigkeit, Erschöpfung), Raffinerie, Chemiefabrik, alle Grund-/Fortgeschrittene-Rezepte, Cracken, Kunststoff bis Batterie, Schmiermittel, Elektromotor, blaue Wissenschaft | Fässer, Kohleverflüssigung |
+| Strom | Solarpanel 60 kW × Tageslicht, Akkumulator 5 MJ / 300 kW, Vorrang Solar > Dampf > Akku | Dampfturbine, Kernkraft |
+| Komfort | Produktionsstatistik (1 min–10 h), Stromnetz-Statistik je Netz (Klick auf Mast), Forschungswarteschlange (7), Blaupausen (Strg+C/X/V, Bibliothek, Text) | Upgradeplaner, Blaupausenbücher; Bibliothek liegt im Browser |
+| Module | 9 Module mit Wiki-Werten, Untergrenze 20 %, Produktivität nur bei Zwischenprodukten (Bonusbalken), Leuchtfeuer 1,5/√n im 9×9-Bereich | Qualität (Space Age) |
+| Roboter | Hangar (50×50 / 110×110, 4 Ladeplätze à 500 kW, 2,1 MW Nachladung), Bau- und Logistikroboter (Tempo, Verbrauch, 20 % ohne Akku), 5 Logistikkisten, Vorrang aktiv > Lager/Puffer > passiv, Bauen von Geistern, Abriss | Reparatur, persönlicher Roboport, Laden unterwegs bei leerem Akku (Roboter fliegen langsam weiter), Frachtgrößen-Forschung |
+| Schaltungsnetz | Rote/grüne Netze, Summen, Kiste/Tank/Akku als Sender, konstanter/Rechen-/Entscheidungskombinator (1 Tick Verzögerung, 32-Bit), Bedingungen für Greifarm, Lampe, Pumpe | Sonderzeichen Each/Everything/Anything, Auswahlkombinator, Band lesen/stoppen, Stromschalter, Anzeige |
+| Züge | Fahrphysik je Tick (Gewicht, Luftwiderstand, Reibung, Bremskraft, Zugkraft 10, Höchsttempo 1,2, Brennstoffboni), Lok 600 kW, Güterwagen 40 Plätze, Bahnhöfe mit Namen, Fahrplan (Zeit, voll, leer, Inaktivität), Wegsuche, Greifarme an stehenden Wagen | Gleise nur gerade und 90°-Bögen (Radius 3) statt Rail-Planer mit Diagonalen; kein Rückwärtsfahren und kein Selbstfahren; jedes Gleisstück ist ein Block (Signale fehlen, Kollisionen werden trotzdem vermieden); Flüssigkeitswagen |
+| Spielende | Raketensilo (100 Teile à 3 s, Module), Satellit, Fracht-Landeplatz, 1000 Weltraum-Pakete ~29 s nach dem Start, Sieg-Meldung, Produktions-/Hightech-/Weltraum-Wissenschaft, Technologien bis Raketensilo | Unendliche Forschungen |
+| Weiter offen | – | Gegner, Verschmutzung, Militär (bewusst zurückgestellt), Klippen, Auto/Panzer |

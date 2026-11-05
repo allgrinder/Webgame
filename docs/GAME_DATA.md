@@ -260,6 +260,51 @@ Schmiermittel 10 Schweröl → 10 (1 s), Festbrennstoff 10 L / 20 E / 20 S (1 s)
 Fortgeschrittener Schaltkreis 4 Kabel + 2 Schaltkreise + 2 Kunststoff (6 s), Elektromotor 2 Schaltkreise + 1 Motor +
 15 Schmiermittel (10 s, Montage 2), Chemie-Wissenschaftspaket 3 fortgeschr. Schaltkreise + 2 Motoren + 1 Schwefel → 2 (24 s).
 
+## Solar und Akkumulator (Quelle: Infoboxen „Solar panel“, „Accumulator“, Wiki „Electric system“)
+
+| Gebäude | Werte | Rezept | Forschung |
+|---|---|---|---|
+| Solarpanel 3×3 | 60 kW × (1 − Dunkelheit), Vorrang vor Dampf | 5 Kupfer + 15 Schaltkreise + 5 Stahl, 10 s | Solarenergie 250 × 30 s rot+grün |
+| Akkumulator 2×2 | 5 MJ, Laden/Entladen je 300 kW | 5 Batterien + 2 Eisen, 10 s | Akkumulatoren 150 × 30 s rot+grün |
+
+Verteilung je Tick: Bedarf aus Solar, Rest aus Dampf, dann aus Akkus; Überschuss (Solar zuerst) lädt die Akkus.
+
+## Module und Leuchtfeuer (Quelle: Wiki „Module“, „Beacon“, Infoboxen)
+
+| Modul | Tempo | Produktivität | Verbrauch | Rezept |
+|---|---|---|---|---|
+| Geschwindigkeit 1/2/3 | +20/30/50 % | – | +50/60/70 % | 5 fortgeschr. + 5 Schaltkreise, 15 s; Stufe 2/3: 5 fortgeschr. + 5 Prozessoren + 4 Vorstufe, 30/60 s |
+| Produktivität 1/2/3 | −5/10/15 % | +4/6/10 % | +40/60/80 % | wie oben |
+| Effizienz 1/2/3 | – | – | −30/40/50 % | wie oben |
+
+Untergrenze Tempo/Verbrauch 20 %. Produktivität nur bei Zwischenprodukten (`PRODUCTIVITY_RECIPES`), nicht im Leuchtfeuer.
+Leuchtfeuer 3×3, 2 Plätze, 480 kW, Bereich 9×9, Übertragung 1,5/√n. Modulplätze: Montage 2/3: 2/4, el. Bohrer 3,
+Labor 2, Chemiefabrik 3, Raffinerie 3, E-Ofen 2, Pumpjack 2, Raketensilo 4. Montagemaschine 3: 1,25, 375 kW, 12,5 kW.
+
+## Roboter (Quelle: Infoboxen „Roboport“, „Logistic robot“, „Construction robot“)
+
+Hangar 4×4: Logistik 50×50, Bau 110×110, 7 Roboterplätze, 4 Ladeplätze à 500 kW, Nachladen 2,1 MW, Grundlast 50 kW,
+Speicher 100 MJ (Quelle 2). Bauroboter 0,06 Felder/Tick, 75,9 kW, 3 MJ; Logistikroboter 0,05 Felder/Tick, 63,75 kW,
+1,5 MJ; ohne Ladung 20 % Tempo; Ladung 1 Item. Aufgabenverteilung alle 10 Ticks (Messvorschlag).
+
+## Schaltungsnetz (Quelle: Wiki „Circuit network“ und Kombinator-Seiten)
+
+Konstanter Kombinator 1×1, Rechen-/Entscheidungskombinator 1×2 (1 kW), Ausgabe einen Tick später, Werte 32-Bit.
+Drahtreichweite 9 Felder für Nicht-Masten (Quelle 2), Masten nach ihrer Kabelreichweite.
+
+## Züge (Quelle: Wiki „Locomotive“, Infoboxen „Locomotive“, „Cargo wagon“, „Train stop“, „Rail“)
+
+Je Tick: v = max(0, v − Reibung/Gewicht); v += 10 × Loks × Brennstoffbonus / Gewicht; v × (1 − Luftwiderstand/(Gewicht/1000));
+Höchsttempo 1,2 × Bonus; Bremsen v − Bremskraft/Gewicht. Lok 2000 / 0,0075 / 0,5 / 10, Wagen 1000 / 0,01 / 0,5 / 3.
+Lok 600 kW, 3 Brennstoffplätze; Güterwagen 40 Plätze; Abstand 7. Schiene: 1 Stein + 1 Eisenstange + 1 Stahl → 2.
+Bogen 4 Schienen (1.1-Wert, Bögen hier vereinfacht). Lok: 10 Schaltkreise + 20 Motoren + 30 Stahl, 4 s.
+
+## Raketensilo (Quelle: Wiki „Rocket silo“, „Satellite“, Infobox „Cargo landing pad“)
+
+Silo 9×9, 4 MW, Tempo 1, 4 Module; Raketenteil 10 Leichtbauteile + 10 Prozessoren + 10 Raketentreibstoff, 3 s;
+100 Teile je Rakete; 1632 Ticks je Start; Satellit → 1000 Weltraum-Pakete am Fracht-Landeplatz (8×8, 80 Plätze) ~29 s
+nach dem Start. Erster Start: Sieg.
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf

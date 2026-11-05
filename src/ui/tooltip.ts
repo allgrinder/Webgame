@@ -1,6 +1,6 @@
 import { ITEMS } from '../data/items';
 import { MJ } from '../data/time';
-import type { RecipeDef } from '../data/recipes';
+import { type RecipeDef, craftingRecipeFor, smeltingRecipeFor } from '../data/recipes';
 
 /** Ein gemeinsames Tooltip-Fenster für Slots und Rezepte (folgt der Maus). */
 export class Tooltip {
@@ -62,26 +62,44 @@ export class Tooltip {
     return box;
   }
 
-  /** Inhalt für ein Rezept: Ergebnis, Zutaten mit Symbolen, Zeit, optional verfügbare Menge. */
-  recipe(r: RecipeDef, speed = 1, craftable?: number): HTMLElement {
+  /**
+   * Inhalt für ein Rezept: Ergebnis, Rezeptbaum (Zutaten und deren Zwischenprodukte, rekursiv) mit Vorrat,
+   * Zeit, Summe der Grundmaterialien und optional die herstellbare Menge.
+   * have: Vorrat des Spielers (fehlende Mengen rot), undefined ohne Spieler.
+   */
+  recipe(r: RecipeDef, speed = 1, craftable?: number, have?: (item: string) => number): HTMLElement {
     const box = document.createElement('div');
+    box.className = 'tt-recipe';
     const res = r.results[0];
     const head = document.createElement('div');
     head.className = 'tt-head';
     head.textContent = `${ITEMS[res.item]?.name ?? res.item}${res.amount > 1 ? ` ×${res.amount}` : ''}`;
     box.appendChild(head);
-    const ing = document.createElement('div');
-    ing.className = 'tt-ings';
-    for (const g of r.ingredients) {
+    const tree = document.createElement('div');
+    tree.className = 'tt-tree';
+    for (const g of r.ingredients) this.treeRow(tree, g.item, g.amount, 0, have);
+    box.appendChild(tree);
+    // Summe der Grundmaterialien (Items ohne Handwerksrezept, z. B. Platten)
+    const totals = new Map<string, number>();
+    for (const g of r.ingredients) expand(g.item, g.amount, totals, 0);
+    const keys = [...totals.keys()];
+    if (keys.length && !(keys.length === r.ingredients.length && r.ingredients.every((g) => totals.get(g.item) === g.amount))) {
+      const t = document.createElement('div');
+      t.className = 'tt-sub';
+      t.textContent = 'Grundmaterial gesamt';
+      box.appendChild(t);
       const row = document.createElement('div');
-      row.className = 'tt-ing';
-      row.appendChild(this.icon(g.item));
-      const t = document.createElement('span');
-      t.textContent = `${g.amount} × ${ITEMS[g.item]?.name ?? g.item}`;
-      row.appendChild(t);
-      ing.appendChild(row);
+      row.className = 'tt-totals';
+      for (const [item, n] of totals) {
+        const cell = document.createElement('span');
+        cell.className = 'tt-total' + (have && have(item) < n ? ' missing' : '');
+        cell.appendChild(this.icon(item));
+        cell.appendChild(document.createTextNode(`${n}`));
+        cell.title = ITEMS[item]?.name ?? item;
+        row.appendChild(cell);
+      }
+      box.appendChild(row);
     }
-    box.appendChild(ing);
     const time = document.createElement('div');
     time.className = 'tt-line';
     time.textContent = `Zeit: ${(r.time / speed).toLocaleString('de-DE', { maximumFractionDigits: 2 })} s`;
@@ -94,4 +112,58 @@ export class Tooltip {
     }
     return box;
   }
+
+  private treeRow(parent: HTMLElement, item: string, amount: number, depth: number, have?: (item: string) => number): void {
+    const row = document.createElement('div');
+    row.className = 'tt-ing';
+    row.style.paddingLeft = `${depth * 14}px`;
+    if (depth > 0) {
+      const branch = document.createElement('span');
+      branch.className = 'tt-branch';
+      branch.textContent = '└';
+      row.appendChild(branch);
+    }
+    row.appendChild(this.icon(item));
+    const t = document.createElement('span');
+    const stock = have ? have(item) : undefined;
+    t.textContent = `${fmt(amount)} × ${ITEMS[item]?.name ?? item}`;
+    row.appendChild(t);
+    if (stock !== undefined) {
+      const st = document.createElement('span');
+      st.className = 'tt-stock' + (stock < amount ? ' missing' : '');
+      st.textContent = `(${stock})`;
+      row.appendChild(st);
+    }
+    const sub = craftingRecipeFor(item);
+    const smelt = sub ? undefined : smeltingRecipeFor(item);
+    if (smelt) {
+      const tag = document.createElement('span');
+      tag.className = 'tt-tag';
+      tag.textContent = 'Ofen';
+      row.appendChild(tag);
+    }
+    parent.appendChild(row);
+    // Zwischenprodukte aufklappen, solange der Vorrat nicht reicht (oder ohne Spieler immer)
+    if (sub && depth < 3 && (stock === undefined || stock < amount)) {
+      const out = sub.results.find((x) => x.item === item)!.amount;
+      const crafts = Math.ceil((amount - (stock ?? 0)) / out);
+      for (const g of sub.ingredients) this.treeRow(parent, g.item, g.amount * crafts, depth + 1, have);
+    }
+  }
+}
+
+function fmt(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+}
+
+/** Zerlegt ein Item bis zu Items ohne Handwerksrezept und summiert die Mengen. */
+function expand(item: string, amount: number, out: Map<string, number>, depth: number): void {
+  const r = craftingRecipeFor(item);
+  if (!r || depth > 6) {
+    out.set(item, (out.get(item) ?? 0) + amount);
+    return;
+  }
+  const n = r.results.find((x) => x.item === item)!.amount;
+  const crafts = Math.ceil(amount / n);
+  for (const g of r.ingredients) expand(g.item, g.amount * crafts, out, depth + 1);
 }

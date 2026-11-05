@@ -256,7 +256,7 @@ export class Hud {
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       el('span', 'count', s);
       s.dataset.recipe = r.id;
-      this.tip.attach(s, () => this.tip.recipe(r, 1, p.craftableCount(r.id)));
+      this.tip.attach(s, () => this.tip.recipe(r, 1, p.craftableCount(r.id), (it) => p.inventory.count(it)));
       s.addEventListener('click', (e) => {
         const n = e.ctrlKey || e.metaKey ? 1000 : e.shiftKey ? 5 : 1;
         p.craft(r.id, n);

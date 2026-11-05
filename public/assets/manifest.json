@@ -56,6 +56,15 @@
     "iron-chest.shadow"
    ]
   },
+  "clouds": {
+   "hash": "5b8b8caaf80b2eab",
+   "sprites": [
+    "fx.cloud.0",
+    "fx.cloud.1",
+    "fx.cloud.2",
+    "fx.cloud.3"
+   ]
+  },
   "decals": {
    "hash": "246bd5fd1e1e6d78",
    "sprites": [
@@ -797,6 +806,10 @@
   {
    "group": "belts",
    "file": "atlas-belts-0.json"
+  },
+  {
+   "group": "clouds",
+   "file": "atlas-clouds-0.json"
   },
   {
    "group": "decals",
@@ -1715,6 +1728,66 @@
     0.5
    ],
    "fps": 60
+  },
+  "fx.cloud.0": {
+   "group": "clouds",
+   "frames": [
+    "fx.cloud.0#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 10
+   }
+  },
+  "fx.cloud.1": {
+   "group": "clouds",
+   "frames": [
+    "fx.cloud.1#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 10
+   }
+  },
+  "fx.cloud.2": {
+   "group": "clouds",
+   "frames": [
+    "fx.cloud.2#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 10
+   }
+  },
+  "fx.cloud.3": {
+   "group": "clouds",
+   "frames": [
+    "fx.cloud.3#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 10
+   }
   },
   "decal.dirt.0": {
    "group": "decals",

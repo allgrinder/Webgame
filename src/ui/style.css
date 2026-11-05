@@ -112,3 +112,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .tt-ing .icon { width: 22px; height: 22px; }
 .minimap { position: absolute; right: 10px; top: 10px; image-rendering: auto; cursor: crosshair; border: 2px solid #12100e; border-radius: 4px;
   box-shadow: 0 4px 14px rgba(0,0,0,.5), inset 0 0 0 1px #4a4239; }
+.tt-tree { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 4px; }
+.tt-branch { color: var(--dim); margin-right: 2px; }
+.tt-stock { color: var(--dim); margin-left: 4px; }
+.tt-stock.missing, .tt-total.missing { color: var(--bad); }
+.tt-tag { margin-left: 6px; padding: 0 4px; border: 1px solid #5a5045; border-radius: 3px; color: var(--dim); font-size: 10px; }
+.tt-sub { color: var(--dim); margin-top: 4px; font-size: 11px; }
+.tt-totals { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.tt-total { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; }
+.tt-total .icon { width: 20px; height: 20px; }
+.tooltip { max-width: 340px; }

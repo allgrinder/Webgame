@@ -12,6 +12,7 @@ import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
+import { CloudShadows } from './clouds';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
@@ -82,6 +83,8 @@ export class GameRenderer {
   private readonly fxPool = new SpritePool();
   private readonly fxAddPool = new SpritePool();
   private effects: Effects | null = null;
+  private readonly cloudPool = new SpritePool();
+  private clouds: CloudShadows | null = null;
   /** Blickrichtung der Figur (0..7, 0 = Norden, im Uhrzeigersinn). */
   private playerDir = 4;
   private readonly icons = new SpritePool();
@@ -144,6 +147,7 @@ export class GameRenderer {
     this.glow.container.blendMode = 'add';
     this.fxAddPool.container.blendMode = 'add';
     this.effects = new Effects(s, this.fxPool, this.fxAddPool, TILE);
+    this.clouds = new CloudShadows(s, this.cloudPool, TILE);
     this.ents.container.sortableChildren = true;
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
@@ -159,6 +163,7 @@ export class GameRenderer {
       this.glow.container,
       this.fxPool.container,
       this.fxAddPool.container,
+      this.cloudPool.container,
       this.wires,
       this.ghostSprites.container,
       this.icons.container,
@@ -209,6 +214,7 @@ export class GameRenderer {
     this.drawEntities(world, view, alpha, ui);
     this.drawWires(world, view);
     this.effects?.update(world, alpha, view);
+    this.clouds?.update(world, alpha, view);
     this.drawOverlay(world, ui);
   }
 

@@ -38,3 +38,18 @@ export const FX = {
   mineDustRate: 6,
   maxParticles: 700,
 } as const;
+
+/**
+ * Wolkenschatten (nur Darstellung): ein Raster mit Zellen, in denen je eine Wolke liegen kann; das Raster
+ * zieht mit dem Wind (Felder/s). Zeitbasis sind Ticks, bei Pause stehen die Wolken.
+ */
+export const CLOUDS = {
+  cell: 46,
+  chance: 0.42,
+  windX: 0.45,
+  windY: 0.12,
+  /** Deckkraft der Schatten. */
+  alpha: 0.32,
+  sizeMin: 0.9,
+  sizeMax: 1.7,
+} as const;

@@ -19,6 +19,8 @@ export interface ItemDef {
 const list: ItemDef[] = [
   { id: 'iron-ore', name: 'Eisenerz', stackSize: 50, order: 10 },
   { id: 'coal', name: 'Kohle', stackSize: 50, fuelValue: 4 * MJ, order: 11 },
+  { id: 'wood', name: 'Holz', stackSize: 100, fuelValue: 2 * MJ, order: 9 },
+  { id: 'wooden-chest', name: 'Holzkiste', stackSize: 50, placeResult: 'wooden-chest', order: 33 },
   { id: 'stone', name: 'Stein', stackSize: 50, order: 12 },
   { id: 'iron-plate', name: 'Eisenplatte', stackSize: 100, order: 20 },
   { id: 'iron-gear-wheel', name: 'Zahnrad', stackSize: 100, order: 21 },

@@ -100,6 +100,7 @@ export class World {
         continue;
       }
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
+      if (this.map.trees.treeAt(tx, ty)) return { ok: false, reason: 'Baum im Weg' };
     }
     const [w, h] = sizeOf(def, dir);
     if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {

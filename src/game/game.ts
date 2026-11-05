@@ -5,7 +5,9 @@ import { RESOURCE_BY_INDEX } from '../data/resources';
 import type { SpriteLib } from '../render/assets';
 import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
+import { MAPGEN } from '../data/mapgen';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
+import type { Tree } from '../sim/trees';
 import type { World } from '../sim/world';
 import { Hud } from '../ui/hud';
 import { Input } from './input';
@@ -201,7 +203,9 @@ export class Game {
           this.world.remove(e.id);
         }
       } else if (p) {
+        const tree = e ? undefined : this.treeNear(m.x, m.y);
         if (e) p.setMineTarget({ kind: 'entity', id: e.id });
+        else if (tree) p.setMineTarget({ kind: 'tree', cx: tree.cx, cy: tree.cy, i: tree.i, x: tree.x, y: tree.y });
         else if (this.world.map.resourceAt(tx, ty).amount > 0) p.setMineTarget({ kind: 'resource', x: tx, y: ty });
         else p.setMineTarget(null);
       }
@@ -253,6 +257,25 @@ export class Game {
           this.selectQuickbar(slot);
         }
     }
+  }
+
+  /** Baum unter dem Mauszeiger: Stamm oder Krone (die Krone liegt im Bild über dem Stamm). */
+  treeNear(x: number, y: number): Tree | undefined {
+    let best: Tree | undefined;
+    let bd = Infinity;
+    for (let dy = -1; dy <= 3; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const t = this.world.map.trees.treeAt(Math.floor(x) + dx, Math.floor(y) + dy);
+        if (!t) continue;
+        // Abstand zur Bildmitte des Baums (etwa 1,2 Felder über dem Stammfuß)
+        const d = (t.x - x) ** 2 + (t.y - 1.2 - y) ** 2;
+        if (d < bd && d < 2.2) {
+          bd = d;
+          best = t;
+        }
+      }
+    }
+    return best;
   }
 
   selectQuickbar(slot: number): void {
@@ -489,6 +512,11 @@ export class Game {
     const m = this.mouseWorld();
     const e = this.world.entityAt(m.x, m.y);
     if (e) return entityDef(e.name).name;
+    const tree = this.treeNear(m.x, m.y);
+    if (tree) {
+      const k = MAPGEN.trees.kinds[tree.kind];
+      return `${k.id === 'dead' ? 'Abgestorbener Baum' : 'Baum'} – ${k.wood} Holz (Rechtsklick halten)`;
+    }
     const r = this.world.map.resourceAt(Math.floor(m.x), Math.floor(m.y));
     if (r.amount > 0) return `${RESOURCE_BY_INDEX[r.res]!.name}: ${r.amount}`;
     return '';

@@ -243,6 +243,10 @@ const list: EntityDef[] = [
     inputs: ['automation-science-pack', 'logistic-science-pack'],
   },
   {
+    kind: 'container', id: 'wooden-chest', name: 'Holzkiste', width: 1, height: 1, health: 100,
+    item: 'wooden-chest', mineTime: 0.1, solid: true, rotatable: false, slots: 16,
+  },
+  {
     kind: 'container', id: 'iron-chest', name: 'Eisenkiste', width: 1, height: 1, health: 200,
     item: 'iron-chest', mineTime: 0.2, solid: true, rotatable: false, slots: 32,
   },

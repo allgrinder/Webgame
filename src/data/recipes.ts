@@ -67,6 +67,7 @@ const list: RecipeDef[] = [
     ingredients: [{ item: 'electronic-circuit', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'splitter', amount: 1 }],
     results: [{ item: 'fast-splitter', amount: 1 }],
   },
+  { id: 'wooden-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'wood', amount: 2 }], results: [{ item: 'wooden-chest', amount: 1 }] },
   { id: 'electronic-circuit', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'copper-cable', amount: 3 }], results: [{ item: 'electronic-circuit', amount: 1 }] },
   { id: 'pipe', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }], results: [{ item: 'pipe', amount: 1 }] },
   { id: 'offshore-pump', category: 'crafting', time: 0.5, ingredients: [{ item: 'pipe', amount: 3 }, { item: 'iron-gear-wheel', amount: 2 }], results: [{ item: 'offshore-pump', amount: 1 }] },
@@ -77,7 +78,7 @@ const list: RecipeDef[] = [
     results: [{ item: 'steam-engine', amount: 1 }],
   },
   // eigene Abweichung: Eisenstange statt Holz (es gibt kein Holz im Spiel)
-  { id: 'small-electric-pole', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-stick', amount: 1 }, { item: 'copper-cable', amount: 2 }], results: [{ item: 'small-electric-pole', amount: 2 }] },
+  { id: 'small-electric-pole', category: 'crafting', time: 0.5, ingredients: [{ item: 'copper-cable', amount: 2 }, { item: 'wood', amount: 1 }], results: [{ item: 'small-electric-pole', amount: 2 }] },
   {
     id: 'electric-mining-drill', category: 'crafting', time: 2,
     ingredients: [{ item: 'electronic-circuit', amount: 3 }, { item: 'iron-gear-wheel', amount: 5 }, { item: 'iron-plate', amount: 10 }],

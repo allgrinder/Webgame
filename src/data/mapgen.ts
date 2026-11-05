@@ -50,4 +50,22 @@ export const MAPGEN = {
   startLake: { distance: 34, radiusMin: 8, radiusMax: 11 },
   /** Kleine Teiche (verzerrte Ellipsen). */
   ponds: { cell: 64, chance: 0.32, radiusMin: 4, radiusMax: 8 },
+  /**
+   * Bäume (fällbar, liefern Holz). Je Art ein Raster (höchstens ein Baum je Zelle), Grundwahrscheinlichkeit,
+   * Faktor in Hainen und in Wassernähe, Abhängigkeit von der Fruchtbarkeit wie bei der Deko (src/data/decor.ts).
+   * Holzmenge und Abbauzeit: Wiki „Wood“ / Infobox „Tree“ (Baum 4 Holz, 0,55 s; abgestorben 2 Holz, 0,5 s).
+   */
+  trees: {
+    kinds: [
+      { id: 'tree', sprite: 'flora.tree', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, fertility: 1.4, wood: 4, mineTime: 0.55 },
+      { id: 'conifer', sprite: 'flora.conifer', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, fertility: 0.9, wood: 4, mineTime: 0.55 },
+      { id: 'dead', sprite: 'flora.deadtree', cell: 13, chance: 0.05, groveBoost: 0, waterBoost: 0, fertility: -1.3, wood: 2, mineTime: 0.5 },
+    ],
+    /** Varianten je Art (Anzahl Sprites); die Darstellung nimmt variant % vorhandene Sprites. */
+    variants: 8,
+    clearOfSpawn: 14,
+    clearOfResources: 3,
+    grove: { scale: 45, threshold: 0.58 },
+    waterNear: 5,
+  },
 } as const;

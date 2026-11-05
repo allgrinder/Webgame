@@ -1,5 +1,6 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
+import { MAPGEN } from '../data/mapgen';
 import { PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -22,7 +23,8 @@ export interface CraftJob {
 
 export type MineTarget =
   | { kind: 'resource'; x: number; y: number }
-  | { kind: 'entity'; id: number };
+  | { kind: 'entity'; id: number }
+  | { kind: 'tree'; cx: number; cy: number; i: number; x: number; y: number };
 
 export class Player {
   /** Mittelpunkt in 1/256 Feldern. */
@@ -166,7 +168,9 @@ export class Player {
       t && this.mineTarget && t.kind === this.mineTarget.kind &&
       (t.kind === 'resource'
         ? this.mineTarget.kind === 'resource' && t.x === this.mineTarget.x && t.y === this.mineTarget.y
-        : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
+        : t.kind === 'tree'
+          ? this.mineTarget.kind === 'tree' && t.cx === this.mineTarget.cx && t.cy === this.mineTarget.cy && t.i === this.mineTarget.i
+          : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
     if (same) return;
     this.mineTarget = t;
     this.mineProgress = 0;
@@ -187,6 +191,26 @@ export class Player {
   private updateMining(world: World): void {
     const t = this.mineTarget;
     if (!t) return;
+    if (t.kind === 'tree') {
+      const tree = world.map.trees.treeAt(Math.floor(t.x), Math.floor(t.y));
+      if (!tree || tree.i !== t.i || !this.canReach(t.x, t.y)) {
+        this.mineProgress = 0;
+        if (!tree || tree.i !== t.i) this.mineTarget = null;
+        return;
+      }
+      const kind = MAPGEN.trees.kinds[tree.kind];
+      if (this.inventory.space('wood') < kind.wood) {
+        this.note('Inventar voll');
+        return;
+      }
+      this.mineTotal = secondsToTicks(kind.mineTime / PLAYER.miningSpeed);
+      if (++this.mineProgress >= this.mineTotal) {
+        this.mineProgress = 0;
+        if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) this.inventory.add('wood', kind.wood);
+        this.mineTarget = null;
+      }
+      return;
+    }
     if (t.kind === 'resource') {
       const r = world.map.resourceAt(t.x, t.y);
       if (r.amount === 0 || !this.canReachResource(t.x, t.y)) {

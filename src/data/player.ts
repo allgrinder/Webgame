@@ -20,6 +20,7 @@ export const PLAYER = {
 /** Freeplay-Startausrüstung. */
 export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'iron-plate', amount: 8 },
+  { item: 'wood', amount: 1 },
   { item: 'burner-mining-drill', amount: 1 },
   { item: 'stone-furnace', amount: 1 },
 ];

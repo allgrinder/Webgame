@@ -414,6 +414,37 @@ export class GameRenderer {
       sp.position.set(d.x * TILE, d.y * TILE);
       sp.zIndex = d.y * TILE;
     }
+    // Bäume aus der Simulation (fällbar)
+    const CS = MAPGEN.chunkSize;
+    const m = 7;
+    for (let cy = Math.floor((v.y0 - 2) / CS); cy <= Math.floor((v.y1 + m) / CS); cy++) {
+      for (let cx = Math.floor((v.x0 - m) / CS); cx <= Math.floor((v.x1 + m) / CS); cx++) {
+        for (const t of world.map.trees.treesIn(cx, cy)) {
+          if (t.x < v.x0 - m || t.x > v.x1 + m || t.y < v.y0 - 2 || t.y > v.y1 + m) continue;
+          const name = this.treeSprite(t.kind, t.variant);
+          if (!name) continue;
+          if (s.has(`${name}.shadow`)) {
+            const sh = this.shadows.get(s.frame(`${name}.shadow`));
+            sh.position.set(t.x * TILE, t.y * TILE);
+            sh.scale.set(s.info(`${name}.shadow`)?.meta?.scale ?? 1);
+          }
+          const sp = this.ents.get(s.frame(name));
+          sp.position.set(t.x * TILE, t.y * TILE);
+          sp.zIndex = t.y * TILE;
+        }
+      }
+    }
+  }
+
+  private treeCounts: number[] | null = null;
+  /** Sprite einer Baumart/Variante; fehlt die Art (z. B. abgestorbene Bäume), wird ein normaler Baum gezeigt. */
+  private treeSprite(kind: number, variant: number): string | null {
+    const kinds = MAPGEN.trees.kinds;
+    if (!this.treeCounts) this.treeCounts = kinds.map((k) => this.sprites.countPrefix(`${k.sprite}.`));
+    let k = kind;
+    if (!this.treeCounts[k]) k = 0;
+    const n = this.treeCounts[k];
+    return n ? `${kinds[k].sprite}.${variant % n}` : null;
   }
 
   // ------------------------------------------------------------------ Bänder
@@ -529,8 +560,8 @@ export class GameRenderer {
         let dy = pl.py - pl.prevPy;
         if (mining) {
           const e = mt.kind === 'entity' ? world.entities.get(mt.id) : undefined;
-          const tx = mt.kind === 'resource' ? mt.x + 0.5 : e?.cx ?? px;
-          const ty = mt.kind === 'resource' ? mt.y + 0.5 : e?.cy ?? py;
+          const tx = mt.kind === 'resource' ? mt.x + 0.5 : mt.kind === 'tree' ? mt.x : e?.cx ?? px;
+          const ty = mt.kind === 'resource' ? mt.y + 0.5 : mt.kind === 'tree' ? mt.y : e?.cy ?? py;
           dx = tx - px;
           dy = ty - py;
         }

@@ -45,8 +45,6 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: -0.7 },
   { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true, fertility: -1.0 },
-  { id: 'conifer', sprite: 'flora.conifer', layer: 'flora', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, clearOfResources: 3, clearOfSpawn: 14, shadow: true, fertility: 0.9 },
-  { id: 'tree', sprite: 'flora.tree', layer: 'flora', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, clearOfResources: 3, clearOfSpawn: 14, shadow: true, fertility: 1.4 },
 ];
 
 /** Haine: großräumiges Rauschen bestimmt, wo Bäume und Sträucher gehäuft stehen. */

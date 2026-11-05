@@ -85,7 +85,8 @@ export function buildDemoWorld(seed: number): World {
   const world = new World(seed);
   const iron = resourceById('iron-ore').index;
   const coal = resourceById('coal').index;
-  // Vorhandene Ressourcen im Demobereich entfernen, dann eigene Felder anlegen
+  // Bäume und vorhandene Ressourcen im Demobereich entfernen, dann eigene Felder anlegen
+  world.map.clearTrees(-14, -8, 18, 30);
   for (let y = -6; y <= 8; y++) for (let x = -10; x <= 12; x++) world.map.setResource(x, y, 0, 0);
   for (let y = -3; y <= -1; y++) for (let x = -7; x <= -2; x++) world.map.setResource(x, y, iron, 4000);
   for (let y = 1; y <= 3; y++) for (let x = -7; x <= -4; x++) world.map.setResource(x, y, coal, 4000);

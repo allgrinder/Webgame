@@ -12,7 +12,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Ergebnis: Atlanten + `public/assets/manifest.json` (eingecheckt). Nach jedem Renderlauf Kontaktbogen ansehen.
 - Natur-Grafik (Wiese, Kiesel, Gräser, Sträucher, Bäume) nutzt die eigenen Gartenwerk-Generatoren
   (`assets/blender/lib/gartenwerk/`, aus `allgrinder/Greenlabv2`). Szene/Licht für alle Modelle: `gw_lib.reset_scene` (AgX).
-- Stil: natürlich, trockene Steppenwiese; Bäume nur Dekoration (keine Kollision, kein Holz).
+- Stil: natürlich, trockene Steppenwiese. Bäume sind wie im Original fällbar (Holz, `src/sim/trees.ts`) und
+  blockieren das Bauen; Sträucher, Felsen, Schilf bleiben Dekoration.
+- Ziel: so nah wie möglich am Original (Wiki ist Quelle 1, Abgleich in `docs/WIKI_ABGLEICH.md`).
 - Meilenstein fertig erst, wenn `npm run build`, `npm test` und `npm run e2e` durchlaufen.
 - Erweiterbarkeit: neue Gebäude/Ressourcen/Rezepte nur über `src/data/` + `kind`-Verhalten in `src/sim/`.
 

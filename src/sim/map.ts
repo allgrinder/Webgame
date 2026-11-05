@@ -2,6 +2,7 @@ import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel, resourceById } from '../data/resources';
 import { tileKey } from './geom';
 import { fbm, hash01, hash32, valueNoise } from './rng';
+import { TreeField } from './trees';
 
 const CS = MAPGEN.chunkSize;
 
@@ -11,6 +12,9 @@ export class Chunk {
   readonly amount = new Uint32Array(CS * CS);
   /** 1 = Wasser (nicht begehbar, nicht bebaubar). */
   readonly water = new Uint8Array(CS * CS);
+  /** Ursprüngliches Wasser und Erz (vor Abbau/Aufschüttung) – Grundlage für Bäume (Determinismus). */
+  readonly water0 = new Uint8Array(CS * CS);
+  readonly resource0 = new Uint8Array(CS * CS);
   hasWater = false;
   /** Wird erhöht, wenn sich die sichtbare Darstellung ändert (Renderer-Cache). */
   version = 0;
@@ -88,6 +92,8 @@ export class GameMap {
   private readonly modified = new Map<number, Map<number, [number, number]>>();
   private readonly startPatches: Patch[];
   private readonly startLake: Patch;
+  /** Fällbare Bäume (Holz) und Fruchtbarkeit. */
+  readonly trees: TreeField;
 
   constructor(readonly seed: number) {
     const base = hash32(seed, 77) % 8;
@@ -107,6 +113,12 @@ export class GameMap {
     const SL = MAPGEN.startLake;
     const [lx, ly] = DIRS8[(base + 4) % 8];
     const lr = SL.radiusMin + hash01(seed, 78) * (SL.radiusMax - SL.radiusMin);
+    this.trees = new TreeField({
+      seed,
+      isWater: (x, y) => this.naturalWater(x, y),
+      moistureAt: (x, y) => this.moistureAt(x, y),
+      resourceAt: (x, y) => ({ res: 0, amount: this.naturalResource(x, y) ? 1 : 0 }),
+    });
     this.startLake = { res: 0, x: lx * SL.distance, y: ly * SL.distance, radius: lr, richness: 0, lobes: makeLobes(seed, 9100, 78, lr), reach: lr * 2.3 };
   }
 
@@ -340,6 +352,27 @@ export class GameMap {
     return out;
   }
 
+  /** Bäume in einem Rechteck fällen (Szenen, Tests). */
+  clearTrees(x0: number, y0: number, x1: number, y1: number): void {
+    for (let cy = Math.floor(y0 / CS); cy <= Math.floor(y1 / CS); cy++)
+      for (let cx = Math.floor(x0 / CS); cx <= Math.floor(x1 / CS); cx++)
+        for (const t of this.trees.treesIn(cx, cy)) if (t.tx >= x0 && t.tx <= x1 && t.ty >= y0 && t.ty <= y1) this.trees.remove(cx, cy, t.i);
+  }
+
+  /** Wasser vor Aufschüttungen (für Bäume und Fruchtbarkeit). */
+  naturalWater(x: number, y: number): boolean {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    return this.getChunk(cx, cy).water0[(Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS)] === 1;
+  }
+
+  /** Ursprünglich Erz vorhanden (vor dem Abbau). */
+  naturalResource(x: number, y: number): boolean {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    return this.getChunk(cx, cy).resource0[(Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS)] !== 0;
+  }
+
   isWater(x: number, y: number): boolean {
     const cx = Math.floor(x / CS);
     const cy = Math.floor(y / CS);
@@ -358,6 +391,7 @@ export class GameMap {
       c.ground[i] = hash32(this.seed, x, y, 9) % 256;
       if (this.waterAt(x, y, ponds)) {
         c.water[i] = 1;
+        c.water0[i] = 1;
         c.hasWater = true;
       }
     }
@@ -388,6 +422,7 @@ export class GameMap {
       }
       const rich = 0.6 + 0.8 * valueNoise(this.seed + bestP.res * 13, x / 4.5, y / 4.5);
       c.resource[i] = bestP.res;
+      c.resource0[i] = bestP.res;
       c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich));
     }
     return c;

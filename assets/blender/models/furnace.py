@@ -5,6 +5,7 @@ und dem Grundzustand „an“. 8 Frames mit wechselnder Flammenstärke ergeben d
 """
 import bpy
 import eisen
+import stufe1
 import parts
 
 CANVAS = (2.5, 3.25)
@@ -45,12 +46,12 @@ def write_diff(full, base, w, h, path):
 
 def render(out):
     eisen.reset(samples=48)
-    parts.furnace(parts.Mats(), fire=0.0)
+    stufe1.furnace1(None, fire=0.0)
     eisen.camera(*CANVAS, anchor=ANCHOR)
     out.add('furnace.off', 'entities', [out.render_frame('furnace.off', 0)], ANCHOR)
 
     eisen.reset(samples=64)
-    parts.furnace(parts.Mats(), fire=0.25, seed=11)
+    stufe1.furnace1(None, fire=0.25, seed=11)
     eisen.camera(*CANVAS, anchor=ANCHOR)
     base_path = out.render_frame('furnace.on', 0)
     out.add('furnace.on', 'entities', [base_path], ANCHOR)
@@ -59,7 +60,7 @@ def render(out):
     frames = []
     for f in range(GLOW_FRAMES):
         eisen.reset(samples=64)
-        parts.furnace(parts.Mats(), fire=LEVELS[f], seed=11)
+        stufe1.furnace1(None, fire=LEVELS[f], seed=11)
         eisen.camera(*CANVAS, anchor=ANCHOR)
         tmp = out.frame_path('furnace.glowsrc', f)
         eisen.render_to(tmp)
@@ -72,5 +73,5 @@ def render(out):
     out.add('furnace.glow', 'entities', frames, ANCHOR, fps=10, meta={'blend': 'add'})
 
     eisen.reset(samples=32)
-    parts.furnace(parts.Mats(), fire=0.0)
+    stufe1.furnace1(None, fire=0.0)
     eisen.shadow_render(out, 'furnace.shadow', 'entities', SH_CANVAS, SH_ANCHOR)

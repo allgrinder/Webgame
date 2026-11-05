@@ -163,7 +163,9 @@ Schrott, später Werkstatt-Industrie, am Ende Hochtechnik – je weiter man komm
 Regeln und Zuordnung aller Gebäude: `docs/ART_STYLE.md`.
 
 1. Baukasten `lib/kit.py` und Pilot Montagemaschinen 1–3 – erledigt.
-2. Stufe 1 umstellen: Brennstoffbohrer, Steinofen, Kessel, Dampfmaschine, Wasserpumpe, Kisten, Greifarm, Labor, Mast, Rohr.
+2. Stufe 1 umstellen: Brennstoffbohrer, Steinofen, Kessel, Dampfmaschine, Uferpumpe, Labor – erledigt (`lib/stufe1.py`);
+   offen: Kisten, Greifarm, Mast, Rohr, gelbes Band.
+2a. Licht und Farbe des ganzen Bildes (Farbabstimmung, Schatten, Bodenschattierung) – erledigt.
 3. Stufe 2 umstellen: E-Bohrer, Stahlofen, Öl/Chemie, Tank/Pumpe, Masten, Solar/Akku, Radar, Bahn.
 4. Stufe 3 umstellen: Elektroofen, Leuchtfeuer, Roboterhangar/Roboter, Logistikkisten, Silo, Landeplatz.
 5. Bänder/Splitter/Untergrund je Stufe angleichen, Symbole neu.

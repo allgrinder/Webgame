@@ -4,6 +4,7 @@ import math
 import bmesh
 import anlagen
 import eisen
+import stufe1
 import parts
 import stufen
 
@@ -81,11 +82,11 @@ def render(out):
     finish(out, 'item.burner-inserter', root, scale=0.92, z=-0.1)
 
     m = icon_scene()
-    root = parts.drill(m, 0.0, working=False)
+    root = stufe1.drill1(None, 0.0, working=False)
     finish(out, 'item.burner-mining-drill', root, scale=0.42, z=-0.05)
 
     m = icon_scene()
-    root, _ = parts.furnace(m, 0.0)
+    root, _ = stufe1.furnace1(None, 0.0)
     finish(out, 'item.stone-furnace', root, scale=0.44, z=-0.05)
 
     m = icon_scene()
@@ -138,13 +139,13 @@ def render_new(out):
         finish(out, f'item.{item}', anlagen.flask(anlagen.Mats(), color), scale=1.2, z=-0.08)
 
     builds = [
-        ('offshore-pump', lambda m: anlagen.offshore_pump(m), 0.55),
-        ('boiler', lambda m: anlagen.boiler(m, 0.0), 0.3),
-        ('steam-engine', lambda m: anlagen.steam_engine(m, 0.0), 0.19),
+        ('offshore-pump', lambda m: stufe1.offshore_pump1(None), 0.55),
+        ('boiler', lambda m: stufe1.boiler1(None, 0.0), 0.3),
+        ('steam-engine', lambda m: stufe1.steam_engine1(None, 0.0), 0.19),
         ('small-electric-pole', lambda m: anlagen.small_pole(m), 0.5),
         ('electric-mining-drill', lambda m: anlagen.electric_drill(m, 0.0), 0.26),
         ('assembling-machine-1', lambda m: stufen.assembler1(m, 0.0), 0.3),
-        ('lab', lambda m: anlagen.lab(m, 0.0), 0.3),
+        ('lab', lambda m: stufe1.lab1(None, 0.0), 0.3),
         ('splitter', lambda m: anlagen.splitter(m, 0.0), 0.42),
         ('underground-belt', lambda m: anlagen.underground(m, False), 0.8),
     ]

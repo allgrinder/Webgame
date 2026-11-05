@@ -46,6 +46,8 @@ Zuordnung (Stand des Spiels):
   `railing`, `ladder`, `cable`, `pipe_run`, `ibeam`, `beacon_light`, `light_strip`, `greebles` (Kleinteile).
 
 Pilot: Montagemaschinen 1–3 in `assets/blender/lib/stufen.py` (gerendert von `models/montage.py`).
+Stufe 1: `assets/blender/lib/stufe1.py` (Bohrer, Kessel, Labor neu; Dampfmaschine, Uferpumpe, Ofen über `T1Mats`
+– bestehende Modelle mit Stufe-1-Materialien – plus Zusatzdetails).
 
 ![Vorher/Nachher](img/stil-montage-vorher-nachher.png)
 

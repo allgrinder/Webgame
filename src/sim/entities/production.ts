@@ -47,7 +47,7 @@ export class AssemblerEntity extends EntityBase {
   setRecipe(id: string | null): Stack[] {
     const out = this.contents();
     this.recipe = id ? RECIPES[id] ?? null : null;
-    if (this.recipe && this.recipe.category !== 'crafting') this.recipe = null;
+    if (this.recipe && this.recipe.category === 'smelting') this.recipe = null;
     const r = this.recipe;
     this.input = r ? new Inventory(r.ingredients.length, (it) => r.ingredients.some((g) => g.item === it)) : new Inventory(0);
     this.output.slots.fill(null);

@@ -167,6 +167,15 @@ export class FurnaceEntity extends EntityBase {
     this.fuelSource = new Burner(this.def.fuelSlots);
     this.source = new Inventory(1, (i) => !!smeltingRecipeFor(i));
   }
+  private unlocked: (recipe: string) => boolean = () => true;
+  override onCreated(w: World): void {
+    this.unlocked = (r) => w.research.recipeUnlocked(r);
+  }
+  /** Schmelzrezept für ein Item, sofern freigeschaltet (Stahl erst nach Stahlverarbeitung). */
+  private smeltFor(item: string): RecipeDef | undefined {
+    const r = smeltingRecipeFor(item);
+    return r && this.unlocked(r.id) ? r : undefined;
+  }
   override get burner(): Burner {
     return this.fuelSource;
   }
@@ -184,7 +193,11 @@ export class FurnaceEntity extends EntityBase {
         this.status = Status.NoInput;
         return;
       }
-      const r = smeltingRecipeFor(ing)!;
+      const r = this.smeltFor(ing);
+      if (!r) {
+        this.status = Status.NoInput;
+        return;
+      }
       const res = r.results[0];
       if (this.result.space(res.item) < res.amount) {
         this.status = Status.OutputBlocked;
@@ -220,7 +233,7 @@ export class FurnaceEntity extends EntityBase {
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {
-    const r = smeltingRecipeFor(item);
+    const r = this.smeltFor(item);
     if (r) {
       // nicht mischen: anderes Erz nur, wenn der Zutatenslot leer ist
       const cur = this.source.firstItem();

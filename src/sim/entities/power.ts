@@ -21,10 +21,10 @@ export function rotateLocal(lx: number, ly: number, w: number, h: number, dir: D
   }
 }
 
-function boxData(b: FluidBox): [number, string | null] {
+export function boxData(b: FluidBox): [number, string | null] {
   return [b.amount, b.fluid];
 }
-function loadBox(b: FluidBox, d: unknown): void {
+export function loadBox(b: FluidBox, d: unknown): void {
   if (!Array.isArray(d)) return;
   b.amount = d[0] as number;
   b.fluid = d[1] as string | null;

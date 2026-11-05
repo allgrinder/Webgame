@@ -370,6 +370,11 @@ export class Game {
     const item = this.cursorItem;
     const placeable = item ? ITEMS[item]?.placeResult : undefined;
     const ctrl = this.clickMods.ctrl;
+    if (item === 'landfill') {
+      this.placeLandfill(tx, ty);
+      this.dragLast = { x: tx, y: ty };
+      return;
+    }
     if (item && !placeable) {
       // Item in Gebäude legen (Brennstoff, Erz); Strg: ganzer Vorrat
       if (target && p) {
@@ -398,7 +403,25 @@ export class Game {
     this.dragBelts = e && e.kind === 'belt' ? [e.id] : [];
   }
 
+  /** Landaufschüttung auf ein Wasserfeld (verbraucht 1 Stück, außer im Sandkasten). */
+  private placeLandfill(tx: number, ty: number): void {
+    const p = this.world.player;
+    if (p && !this.creative) {
+      if (p.inventory.count('landfill') < 1) return;
+      if (!p.canReach(tx + 0.5, ty + 0.5)) {
+        p.note('Außer Reichweite');
+        return;
+      }
+    }
+    if (this.world.landfill(tx, ty) && p && !this.creative) p.inventory.remove('landfill', 1);
+  }
+
   private onDrag(tx: number, ty: number): void {
+    if (this.cursorItem === 'landfill') {
+      this.placeLandfill(tx, ty);
+      this.dragLast = { x: tx, y: ty };
+      return;
+    }
     const last = this.dragLast!;
     // Umschalt: Linie auf die zuerst gezogene Achse festlegen
     if (this.input.shift && this.dragStart) {

@@ -31,6 +31,8 @@ export interface FluidPort {
 export interface FluidHolder {
   fluidBoxes(): FluidBox[];
   fluidPorts(): FluidPort[];
+  /** Zusätzliche direkte Verbindungen (z. B. Rohr unterirdisch zum Gegenstück). */
+  fluidLinks?(w: World): FluidBox[];
 }
 
 export function isFluidHolder(e: unknown): e is FluidHolder {
@@ -137,6 +139,16 @@ export class FluidSystem {
         const rb = find(other.port.box);
         if (ra !== rb) parent.set(ra, rb);
         this.connections.set(id, (this.connections.get(id) ?? 0) | (1 << p.dir));
+      }
+    }
+    for (const { h } of holders) {
+      if (!h.fluidLinks) continue;
+      for (const other of h.fluidLinks(w)) {
+        const own = h.fluidBoxes()[0];
+        if (!parent.has(other)) continue;
+        const ra = find(own);
+        const rb = find(other);
+        if (ra !== rb) parent.set(ra, rb);
       }
     }
     // 3. Netze bilden (Reihenfolge nach Gebäude-ID → deterministisch)

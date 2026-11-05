@@ -146,7 +146,34 @@ export interface LabDef extends EntityBase {
   readonly inputs: readonly string[];
 }
 
-export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef;
+/** Rohr unterirdisch: verbindet sich über bis zu maxDistance Felder mit einem gegenüberliegenden Gegenstück. */
+export interface PipeGroundDef extends EntityBase {
+  readonly kind: 'pipe-ground';
+  readonly capacity: number;
+  readonly maxDistance: number;
+}
+
+/** Pumpe (elektrisch): fördert von hinten nach vorn. */
+export interface FluidPumpDef extends EntityBase {
+  readonly kind: 'pump';
+  readonly energyUsage: number;
+  /** Einheiten je Tick. */
+  readonly pumpingSpeed: number;
+  readonly capacity: number;
+}
+
+export interface TankDef extends EntityBase {
+  readonly kind: 'tank';
+  readonly capacity: number;
+}
+
+export interface LampDef extends EntityBase {
+  readonly kind: 'lamp';
+  readonly energyUsage: number;
+}
+
+export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
+  | PipeGroundDef | FluidPumpDef | TankDef | LampDef;
 
 const list: EntityDef[] = [
   {
@@ -241,6 +268,50 @@ const list: EntityDef[] = [
     kind: 'lab', id: 'lab', name: 'Labor', width: 3, height: 3, health: 150,
     item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000,
     inputs: ['automation-science-pack', 'logistic-science-pack'],
+  },
+  {
+    kind: 'container', id: 'steel-chest', name: 'Stahlkiste', width: 1, height: 1, health: 350,
+    item: 'steel-chest', mineTime: 0.2, solid: true, rotatable: false, slots: 48,
+  },
+  {
+    kind: 'furnace', id: 'steel-furnace', name: 'Stahlofen', width: 2, height: 2, health: 300,
+    item: 'steel-furnace', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 2, energyUsage: 90_000, fuelSlots: 1,
+  },
+  {
+    kind: 'inserter', id: 'fast-inserter', name: 'Schneller Greifarm', width: 1, height: 1, health: 150,
+    item: 'fast-inserter', mineTime: 0.1, solid: true, rotatable: true, energy: 'electric', drain: 500,
+    // Wiki „Inserters“: 0,04 U/Tick, 24 Ticks je Zyklus, 8,12 kJ je Zyklus
+    rotationSpeed: 0.04, halfTurnTicks: 12, energyPerTransfer: 8.12 * KJ, initialEnergy: 0,
+    pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 0,
+    fuelInsertLimit: 5,
+  },
+  {
+    kind: 'pole', id: 'medium-electric-pole', name: 'Mittlerer Strommast', width: 1, height: 1, health: 100,
+    item: 'medium-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 9, supplyRadius: 3.5,
+  },
+  {
+    kind: 'pole', id: 'big-electric-pole', name: 'Großer Strommast', width: 2, height: 2, health: 150,
+    item: 'big-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 32, supplyRadius: 2,
+  },
+  {
+    kind: 'lamp', id: 'lamp', name: 'Lampe', width: 1, height: 1, health: 100,
+    item: 'lamp', mineTime: 0.1, solid: true, rotatable: false, energyUsage: 5_000,
+  },
+  {
+    kind: 'assembler', id: 'assembling-machine-2', name: 'Montagemaschine 2', width: 3, height: 3, health: 350,
+    item: 'assembling-machine-2', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 0.75, energyUsage: 150_000, drain: 5_000,
+  },
+  {
+    kind: 'pipe-ground', id: 'pipe-to-ground', name: 'Rohr unterirdisch', width: 1, height: 1, health: 150,
+    item: 'pipe-to-ground', mineTime: 0.1, solid: true, rotatable: true, capacity: 100, maxDistance: 10,
+  },
+  {
+    kind: 'pump', id: 'pump', name: 'Pumpe', width: 1, height: 2, health: 180,
+    item: 'pump', mineTime: 0.2, solid: true, rotatable: true, energyUsage: 30_000, pumpingSpeed: 20, capacity: 400,
+  },
+  {
+    kind: 'tank', id: 'storage-tank', name: 'Lagertank', width: 3, height: 3, health: 500,
+    item: 'storage-tank', mineTime: 0.5, solid: true, rotatable: true, capacity: 25_000,
   },
   {
     kind: 'container', id: 'wooden-chest', name: 'Holzkiste', width: 1, height: 1, health: 100,

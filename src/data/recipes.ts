@@ -3,7 +3,8 @@
  *  - 'crafting': Handwerk (später Montagemaschinen)
  *  - 'smelting': Öfen (Rezept wird über die Zutat gewählt)
  */
-export type RecipeCategory = 'crafting' | 'smelting';
+/** advanced-crafting: nur in Montagemaschinen (z. B. Motor), nicht per Hand. */
+export type RecipeCategory = 'crafting' | 'advanced-crafting' | 'smelting';
 
 export interface ItemAmount {
   readonly item: string;
@@ -66,6 +67,59 @@ const list: RecipeDef[] = [
     id: 'fast-splitter', category: 'crafting', time: 2,
     ingredients: [{ item: 'electronic-circuit', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'splitter', amount: 1 }],
     results: [{ item: 'fast-splitter', amount: 1 }],
+  },
+  { id: 'steel-plate', category: 'smelting', time: 16, ingredients: [{ item: 'iron-plate', amount: 5 }], results: [{ item: 'steel-plate', amount: 1 }] },
+  { id: 'steel-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'steel-plate', amount: 8 }], results: [{ item: 'steel-chest', amount: 1 }] },
+  {
+    id: 'steel-furnace', category: 'crafting', time: 3,
+    ingredients: [{ item: 'steel-plate', amount: 6 }, { item: 'stone-brick', amount: 10 }], results: [{ item: 'steel-furnace', amount: 1 }],
+  },
+  {
+    id: 'fast-inserter', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 2 }, { item: 'inserter', amount: 1 }, { item: 'iron-plate', amount: 2 }],
+    results: [{ item: 'fast-inserter', amount: 1 }],
+  },
+  {
+    id: 'medium-electric-pole', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'copper-cable', amount: 2 }, { item: 'iron-stick', amount: 4 }, { item: 'steel-plate', amount: 2 }],
+    results: [{ item: 'medium-electric-pole', amount: 1 }],
+  },
+  {
+    id: 'big-electric-pole', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'copper-cable', amount: 4 }, { item: 'iron-stick', amount: 8 }, { item: 'steel-plate', amount: 5 }],
+    results: [{ item: 'big-electric-pole', amount: 1 }],
+  },
+  {
+    id: 'lamp', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'copper-cable', amount: 3 }, { item: 'electronic-circuit', amount: 1 }, { item: 'iron-plate', amount: 1 }],
+    results: [{ item: 'lamp', amount: 1 }],
+  },
+  {
+    id: 'assembling-machine-2', category: 'crafting', time: 0.5,
+    ingredients: [
+      { item: 'assembling-machine-1', amount: 1 }, { item: 'electronic-circuit', amount: 3 },
+      { item: 'iron-gear-wheel', amount: 5 }, { item: 'steel-plate', amount: 2 },
+    ],
+    results: [{ item: 'assembling-machine-2', amount: 1 }],
+  },
+  { id: 'landfill', category: 'crafting', time: 0.5, ingredients: [{ item: 'stone', amount: 50 }], results: [{ item: 'landfill', amount: 1 }] },
+  {
+    id: 'engine-unit', category: 'advanced-crafting', time: 10,
+    ingredients: [{ item: 'iron-gear-wheel', amount: 1 }, { item: 'pipe', amount: 2 }, { item: 'steel-plate', amount: 1 }],
+    results: [{ item: 'engine-unit', amount: 1 }],
+  },
+  {
+    id: 'pump', category: 'crafting', time: 2,
+    ingredients: [{ item: 'engine-unit', amount: 1 }, { item: 'pipe', amount: 1 }, { item: 'steel-plate', amount: 1 }],
+    results: [{ item: 'pump', amount: 1 }],
+  },
+  {
+    id: 'storage-tank', category: 'crafting', time: 3,
+    ingredients: [{ item: 'iron-plate', amount: 20 }, { item: 'steel-plate', amount: 5 }], results: [{ item: 'storage-tank', amount: 1 }],
+  },
+  {
+    id: 'pipe-to-ground', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'iron-plate', amount: 5 }, { item: 'pipe', amount: 10 }], results: [{ item: 'pipe-to-ground', amount: 2 }],
   },
   { id: 'wooden-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'wood', amount: 2 }], results: [{ item: 'wooden-chest', amount: 1 }] },
   { id: 'electronic-circuit', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'copper-cable', amount: 3 }], results: [{ item: 'electronic-circuit', amount: 1 }] },

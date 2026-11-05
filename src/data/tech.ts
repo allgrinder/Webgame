@@ -45,6 +45,27 @@ export const TECHS: readonly TechDef[] = [
   { id: 'automation', name: 'Automatisierung', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['assembling-machine-1', 'long-handed-inserter'] },
   { id: 'logistics', name: 'Logistik', count: 20, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['splitter', 'underground-belt'] },
   { id: 'logistic-science-pack', name: 'Logistik-Wissenschaft', count: 75, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['logistic-science-pack'] },
+  { id: 'steel-processing', name: 'Stahlverarbeitung', count: 50, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['steel-plate', 'steel-chest'] },
+  { id: 'fast-inserter', name: 'Schneller Greifarm', count: 30, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['fast-inserter'] },
+  { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'] },
+  {
+    id: 'electric-energy-distribution-1', name: 'Elektrische Energieverteilung 1', count: 120, time: 30, packs: RED_GREEN,
+    prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['medium-electric-pole', 'big-electric-pole', 'iron-stick'],
+  },
+  {
+    id: 'advanced-material-processing', name: 'Fortgeschrittene Materialverarbeitung', count: 75, time: 30, packs: RED_GREEN,
+    prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['steel-furnace'],
+  },
+  {
+    id: 'automation-2', name: 'Automatisierung 2', count: 40, time: 15, packs: RED_GREEN,
+    prerequisites: ['automation', 'logistic-science-pack', 'steel-processing'], unlocks: ['assembling-machine-2'],
+  },
+  { id: 'landfill', name: 'Landaufschüttung', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['logistic-science-pack'], unlocks: ['landfill'] },
+  { id: 'engine', name: 'Motor', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['engine-unit'] },
+  {
+    id: 'fluid-handling', name: 'Flüssigkeitshandhabung', count: 50, time: 15, packs: RED_GREEN,
+    prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank'],
+  },
   {
     id: 'logistics-2', name: 'Logistik 2', count: 200, time: 30, packs: RED_GREEN,
     prerequisites: ['logistics', 'logistic-science-pack'], unlocks: ['fast-transport-belt', 'fast-underground-belt', 'fast-splitter'],

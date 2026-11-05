@@ -75,6 +75,15 @@ export class World {
     return out;
   }
 
+  /** Landaufschüttung: verwandelt ein Wasserfeld in Land (Wiki „Landfill“). */
+  landfill(x: number, y: number): boolean {
+    if (!this.map.isWater(x, y)) return false;
+    if (this.entityAt(x, y)) return false;
+    this.map.setWater(x, y, false);
+    this.structureVersion++;
+    return true;
+  }
+
   /** Felder der Uferpumpe: vorn (Ausgang, an Land) und hinten (im Wasser), abhängig von der Richtung. */
   static pumpTiles(x: number, y: number, dir: Dir): { front: [number, number]; back: [number, number] } {
     switch (dir) {

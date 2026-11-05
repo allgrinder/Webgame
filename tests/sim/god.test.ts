@@ -34,6 +34,22 @@ describe('Gottmodus und Handwerk', () => {
     expect(v.player!.inventory.count('iron-ore')).toBe(2);
   });
 
+  it('Gottmodus: Labore forschen 20× schneller (Automatisierung 10 × 10 s in 5 s)', async () => {
+    const { insertInto } = await import('../../src/sim/machines');
+    const w = world();
+    w.player!.god = true;
+    for (const t of ['steam-power', 'electronics', 'automation-science-pack']) w.research.complete(t);
+    w.research.start('automation');
+    const lab = w.place('lab', 3, 3, 0)!;
+    insertInto(lab, 'automation-science-pack', 10, 'player');
+    for (let i = 0; i < 6 * 60; i++) {
+      (lab as unknown as { energy: { buffer: number } }).energy.buffer = 1e9;
+      w.step();
+    }
+    expect(w.research.done.has('automation')).toBe(true);
+    expect(w.research.recipeUnlocked('assembling-machine-1')).toBe(true);
+  });
+
   it('Handwerk erzeugt nie Platten (nur Ofen) und verliert bei vollem Inventar nichts', () => {
     const w = world();
     const p = w.player!;

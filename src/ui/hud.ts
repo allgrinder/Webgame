@@ -274,8 +274,23 @@ export class Hud {
     const rgrid = el('div', 'grid recipes', right);
     this.recipeEls.clear();
     const research = this.game.world.research;
-    for (const r of RECIPE_LIST) {
-      if (r.category !== 'crafting' || !research.recipeUnlocked(r.id)) continue;
+    // Gesperrte Rezepte ausgegraut hinten anhängen (mit Hinweis auf die nötige Forschung)
+    const unlockedFirst = RECIPE_LIST.filter((r) => r.category === 'crafting').sort((a, b) => Number(!research.recipeUnlocked(a.id)) - Number(!research.recipeUnlocked(b.id)));
+    for (const r of unlockedFirst) {
+      if (!research.recipeUnlocked(r.id)) {
+        const tech = TECHS.find((t) => t.unlocks.includes(r.id));
+        const s = el('div', 'slot recipe locked', rgrid);
+        s.appendChild(this.icon(`item.${r.results[0].item}`));
+        el('span', 'lock', s).textContent = '🔒';
+        s.dataset.recipe = r.id;
+        this.tip.attach(s, () => {
+          const box = this.tip.recipe(r, 1, 0, (it) => p.inventory.count(it));
+          const hint = el('div', 'tt-locked', box);
+          hint.textContent = `Gesperrt – Forschung: ${tech?.name ?? '?'} (T)`;
+          return box;
+        });
+        continue;
+      }
       const s = el('div', 'slot recipe', rgrid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       el('span', 'count', s);

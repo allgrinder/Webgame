@@ -18,7 +18,7 @@ export const PLAYER = {
 } as const;
 
 /**
- * Gottmodus (eigener Link `?god`, Testhilfe – nicht im Original): schneller Handabbau, Handwerk, Laufen, Reichweite.
+ * Gottmodus (eigener Link `?god`, Testhilfe – nicht im Original): schneller Handabbau, Handwerk, Laufen, Reichweite, Forschung.
  */
 export const GOD = {
   /** Handabbau von Erz/Stein/Kohle: Stück je Sekunde. */
@@ -27,6 +27,8 @@ export const GOD = {
   craftingSpeed: 20,
   runningFactor: 2,
   reachFactor: 3,
+  /** Labore forschen schneller (Gottmodus). */
+  researchFactor: 20,
 } as const;
 
 /** Freeplay-Startausrüstung. */

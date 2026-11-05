@@ -197,3 +197,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .train button.bad { color: var(--bad); }
 .train .num { width: 60px; }
 .train .circ-row.current { color: var(--accent); }
+.slot.recipe.locked { opacity: 0.35; cursor: default; }
+.slot.recipe.locked .lock { position: absolute; right: 1px; top: -1px; font-size: 10px; }
+.tt-locked { color: var(--bad); margin-top: 4px; font-weight: 600; }

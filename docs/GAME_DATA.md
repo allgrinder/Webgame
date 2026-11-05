@@ -307,8 +307,8 @@ nach dem Start. Erster Start: Sieg.
 
 ## Gottmodus (Testhilfe, nicht im Original, `src/data/player.ts` GOD)
 
-Link `?god` startet eine neue Runde: Handabbau 40 Stück/s, Bäume und Gebäude sofort, Handwerk ×20, Laufen ×2,
-Reichweite ×3. Der Modus wird im Spielstand gespeichert. Volles Inventar beim Handwerk: Ergebnis wird neben die Figur
+Link `?god` startet eine neue Runde: Handabbau 40 Stück/s, Bäume und Gebäude sofort, Handwerk ×20, Labore ×20,
+Laufen ×2, Reichweite ×3. Der Modus wird im Spielstand gespeichert. Volles Inventar beim Handwerk: Ergebnis wird neben die Figur
 geschüttet (wie im Original), nicht mehr verworfen.
 
 ## Messvorschläge (Quelle 3)

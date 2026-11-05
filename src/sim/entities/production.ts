@@ -1,6 +1,7 @@
 import { type AssemblerDef, type BeaconDef, type LabDef, insertionLimitCrafts } from '../../data/entities';
 import { BEACON, MODULES, PRODUCTIVITY_RECIPES, isModule } from '../../data/modules';
 import { ITEMS } from '../../data/items';
+import { GOD } from '../../data/player';
 import { RECIPES, type RecipeDef } from '../../data/recipes';
 import { TECH_BY_ID } from '../../data/tech';
 import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
@@ -358,7 +359,8 @@ export class LabEntity extends EntityBase {
       return;
     }
     this.status = Status.Working;
-    const f = speedFactor(this.effects);
+    // Gottmodus (Testhilfe): Labore forschen schneller
+    const f = speedFactor(this.effects) * (w.player?.god ? GOD.researchFactor : 1);
     this.remaining -= f;
     this.workTicks++;
     w.research.addWork(f * (1 + productivityBonus(this.effects)));

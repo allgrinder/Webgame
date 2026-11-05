@@ -117,6 +117,48 @@ export class GameRenderer {
   private readonly resCache = new Map<number, Texture>();
   private resVariants = 4;
 
+  /** Raster-Verzeichnis der Gebäude (16×16 Felder), neu bei Bauänderungen: nur Sichtbares durchlaufen. */
+  private gridVersion = -1;
+  private gridWorld: World | null = null;
+  private readonly grid = new Map<number, Entity[]>();
+  private visFrame: Entity[] = [];
+  private visKey = '';
+  visibleEntities(world: World, v: { x0: number; y0: number; x1: number; y1: number }): Entity[] {
+    const G = 16;
+    if (this.gridVersion !== world.structureVersion || this.gridWorld !== world) {
+      this.grid.clear();
+      for (const e of world.entities.values()) {
+        const k = Math.floor(e.x / G) * 100003 + Math.floor(e.y / G);
+        let list = this.grid.get(k);
+        if (!list) this.grid.set(k, (list = []));
+        list.push(e);
+      }
+      this.gridVersion = world.structureVersion;
+      this.gridWorld = world;
+      this.visKey = '';
+    }
+    const M = 10; // größte Gebäudebreite (Raketensilo 9)
+    const gx0 = Math.floor((v.x0 - M) / G);
+    const gy0 = Math.floor((v.y0 - M) / G);
+    const gx1 = Math.floor(v.x1 / G);
+    const gy1 = Math.floor(v.y1 / G);
+    const key = `${gx0},${gy0},${gx1},${gy1},${world.tick}`;
+    if (key === this.visKey) return this.visFrame;
+    const out: Entity[] = [];
+    for (let gy = gy0; gy <= gy1; gy++) {
+      for (let gx = gx0; gx <= gx1; gx++) {
+        const list = this.grid.get(gx * 100003 + gy);
+        if (!list) continue;
+        for (const e of list) if (!(e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1)) out.push(e);
+      }
+    }
+    // feste Reihenfolge wie world.entities (nach ID), damit Sprites nicht springen
+    out.sort((a, b) => a.id - b.id);
+    this.visFrame = out;
+    this.visKey = key;
+    return out;
+  }
+
   private resTex(res: number, id: string, variant: number, lvl: number): Texture {
     const key = res * 64 + variant * 8 + lvl;
     let t = this.resCache.get(key);
@@ -405,9 +447,8 @@ export class GameRenderer {
     }
     // Einbindung: festgetretene Erde bzw. Kies unter größeren Gebäuden
     if (this.sprites.has('decal.dirt.0')) {
-      for (const e of world.entities.values()) {
+      for (const e of this.visibleEntities(world, v)) {
         if (!GROUND_DECAL[e.kind]) continue;
-        if (e.x + e.w < v.x0 - 1 || e.x > v.x1 + 1 || e.y + e.h < v.y0 - 1 || e.y > v.y1 + 1) continue;
         const h = (Math.imul(e.x * 73856093 ^ e.y * 19349663, 0x9e3779b1) >>> 0);
         const name = `${GROUND_DECAL[e.kind]}.${h % 4}`;
         if (!this.sprites.has(name)) continue;
@@ -564,9 +605,8 @@ export class GameRenderer {
     this.icons.begin();
     let n = 0;
     const blink = Math.floor((world.tick + alpha) / 30) % 2 === 0;
-    for (const e of world.entities.values()) {
+    for (const e of this.visibleEntities(world, v)) {
       if (e.kind === 'belt') continue;
-      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
       n++;
       const cx = e.cx * TILE;
       const cy = e.cy * TILE;
@@ -1060,8 +1100,7 @@ export class GameRenderer {
     }
     if (!ui.alt) return;
     const v = this.viewRect();
-    for (const e of world.entities.values()) {
-      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
+    for (const e of this.visibleEntities(world, v)) {
       if (e.kind === 'belt') {
         this.arrow(g, e.x + 0.5, e.y + 0.5, e.dir, 0xffffff, 0.22, 0.45);
         continue;
@@ -1092,8 +1131,7 @@ export class GameRenderer {
       g.rect(x * TILE, y * TILE, w * TILE, 5).fill({ color: 0x111111, alpha: 0.8 });
       g.rect(x * TILE, y * TILE, w * TILE * Math.max(0, f), 5).fill({ color: f > 0.5 ? 0x5fd35f : f > 0.25 ? 0xe0c040 : 0xe05040 });
     };
-    for (const e of world.entities.values()) {
-      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
+    for (const e of this.visibleEntities(world, v)) {
       if (e.hp < e.def.health) bar(e.x + 0.1, e.y + e.h - 0.1, e.w - 0.2, e.hp / e.def.health);
       if (e.kind === 'turret' && t - e.lastShot < 3) {
         shot(e.cx + Math.cos(e.angle) * 1.1, e.cy - 0.35 + Math.sin(e.angle) * 1.1, e.shotX, e.shotY);

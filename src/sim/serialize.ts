@@ -1,4 +1,6 @@
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
+import type { EnemySystem } from './enemies';
+import type { PollutionSystem } from './pollution';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
 import type { ProductionStats } from './stats';
@@ -24,6 +26,8 @@ interface EntityData {
   y: number;
   dir: Dir;
   st: Status;
+  /** Lebenspunkte, nur wenn beschädigt. */
+  hp?: number;
   b?: BurnerData;
   progress?: number;
   output?: string | null;
@@ -61,6 +65,8 @@ export interface SaveData {
   robots?: ReturnType<RobotSystem['serialize']>;
   rockets?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
+  pollution?: ReturnType<PollutionSystem['serialize']>;
+  enemies?: ReturnType<EnemySystem['serialize']>;
   trains?: ReturnType<TrainSystem['serialize']>;
 }
 
@@ -81,6 +87,11 @@ interface PlayerData {
   mineProgress: number;
   mineTotal: number;
   god?: boolean;
+  /** Kampf: Lebenspunkte, letzter Treffer, Magazin */
+  hp?: number;
+  lh?: number;
+  rd?: number;
+  ri?: string | null;
 }
 
 export function serializeWorld(w: World): SaveData {
@@ -109,6 +120,8 @@ export function serializeWorld(w: World): SaveData {
     stats: w.stats.serialize(),
     robots: w.robots.serialize(),
     rockets: w.rocketsLaunched,
+    pollution: w.pollution.serialize(),
+    enemies: w.enemies.serialize(),
     circuit: w.circuit.serialize(),
     trains: w.trains.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
@@ -123,13 +136,17 @@ export function serializeWorld(w: World): SaveData {
         mineProgress: p.mineProgress,
         mineTotal: p.mineTotal,
         god: p.god,
+        hp: p.hp,
+        lh: p.lastHit,
+        rd: p.rounds,
+        ri: p.roundsItem,
       }
       : null,
   };
 }
 
 function entityData(e: Entity): EntityData {
-  return { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status, ...e.save() } as EntityData;
+  return { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status, ...(e.hp < e.def.health ? { hp: e.hp } : {}), ...e.save() } as EntityData;
 }
 
 export function deserializeWorld(d: SaveData): World {
@@ -144,6 +161,7 @@ export function deserializeWorld(d: SaveData): World {
   for (const ed of d.entities) {
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;
+    if (ed.hp !== undefined) e.hp = ed.hp;
     e.load(ed as unknown as Record<string, unknown>);
   }
   for (const [k, list] of d.ground ?? []) w.ground.set(k, list.map(([item, x, y]) => ({ item, x, y })));
@@ -151,6 +169,8 @@ export function deserializeWorld(d: SaveData): World {
   w.stats.load(d.stats);
   w.robots.load(w, d.robots);
   w.rocketsLaunched = d.rockets ?? 0;
+  w.pollution.load(d.pollution);
+  w.enemies.load(w, d.enemies);
   w.trains.load(d.trains);
   for (const [id, list] of d.beltItems) {
     w.belts.loadTileItems(id, list.map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
@@ -162,6 +182,10 @@ export function deserializeWorld(d: SaveData): World {
     const p = new Player(0, 0);
     p.px = pd.px;
     p.god = !!pd.god;
+    p.hp = pd.hp ?? p.hp;
+    p.lastHit = pd.lh ?? p.lastHit;
+    p.rounds = pd.rd ?? 0;
+    p.roundsItem = pd.ri ?? null;
     p.py = pd.py;
     p.prevPx = pd.ppx;
     p.prevPy = pd.ppy;

@@ -10,6 +10,7 @@ import { SplitterEntity, UndergroundEntity } from './entities/logistics';
 import { AssemblerEntity, BeaconEntity, LabEntity } from './entities/production';
 import { RoboportEntity } from './entities/robots';
 import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './entities/rocket';
+import { TurretEntity, WallEntity } from './entities/military';
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './entities/power';
 
 export { AccumulatorEntity, BeaconEntity, CombinatorEntity, RailEntity, TrainStopEntity, PumpjackEntity, RadarEntity, RoboportEntity, RocketSiloEntity, SolarEntity };
@@ -20,7 +21,8 @@ export type { InsertMode };
 export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
-  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RocketSiloEntity | RadarEntity | CombinatorEntity | RailEntity | TrainStopEntity;
+  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RocketSiloEntity | RadarEntity | CombinatorEntity | RailEntity | TrainStopEntity
+  | TurretEntity | WallEntity;
 
 export function itemIndex(id: string): number {
   const i = ITEM_IDS.indexOf(id);

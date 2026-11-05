@@ -42,4 +42,7 @@ export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'wood', amount: 1 },
   { item: 'burner-mining-drill', amount: 1 },
   { item: 'stone-furnace', amount: 1 },
+  // Wie im Original: Pistole und 10 Magazine
+  { item: 'pistol', amount: 1 },
+  { item: 'firearm-magazine', amount: 10 },
 ];

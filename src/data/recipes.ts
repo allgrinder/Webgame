@@ -93,6 +93,28 @@ const list: RecipeDef[] = [
     ingredients: [{ item: 'copper-cable', amount: 4 }, { item: 'iron-stick', amount: 8 }, { item: 'steel-plate', amount: 5 }],
     results: [{ item: 'big-electric-pole', amount: 1 }],
   },
+  // Militär (Wiki)
+  { id: 'firearm-magazine', category: 'crafting', time: 1, ingredients: [{ item: 'iron-plate', amount: 4 }], results: [{ item: 'firearm-magazine', amount: 1 }] },
+  {
+    id: 'piercing-rounds-magazine', category: 'crafting', time: 3,
+    ingredients: [{ item: 'copper-plate', amount: 5 }, { item: 'firearm-magazine', amount: 1 }, { item: 'steel-plate', amount: 1 }],
+    results: [{ item: 'piercing-rounds-magazine', amount: 1 }],
+  },
+  {
+    id: 'pistol', category: 'crafting', time: 5,
+    ingredients: [{ item: 'copper-plate', amount: 5 }, { item: 'iron-plate', amount: 5 }], results: [{ item: 'pistol', amount: 1 }],
+  },
+  {
+    id: 'submachine-gun', category: 'crafting', time: 10,
+    ingredients: [{ item: 'copper-plate', amount: 5 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'iron-plate', amount: 10 }],
+    results: [{ item: 'submachine-gun', amount: 1 }],
+  },
+  {
+    id: 'gun-turret', category: 'crafting', time: 8,
+    ingredients: [{ item: 'copper-plate', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'iron-plate', amount: 20 }],
+    results: [{ item: 'gun-turret', amount: 1 }],
+  },
+  { id: 'stone-wall', category: 'crafting', time: 0.5, ingredients: [{ item: 'stone-brick', amount: 5 }], results: [{ item: 'stone-wall', amount: 1 }] },
   {
     id: 'lamp', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'copper-cable', amount: 3 }, { item: 'electronic-circuit', amount: 1 }, { item: 'iron-plate', amount: 1 }],

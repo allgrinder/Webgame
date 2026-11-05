@@ -1,6 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
+import { AMMO, PLAYER_COMBAT, WEAPONS } from '../data/enemies';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -41,6 +42,20 @@ export class Player {
   /** Schnellleiste: Item-IDs (Verweise, wie im Vorbild). */
   readonly quickbar: (string | null)[] = new Array(PLAYER.quickbarSlots).fill(null);
   readonly craftQueue: CraftJob[] = [];
+  /** Lebenspunkte, letzter Treffer (Heilung), Tod (Wiedereinstieg am Start). */
+  hp: number = PLAYER_COMBAT.health;
+  lastHit = -1e9;
+  dead = false;
+  /** Schießen (Leertaste halten): Ziel automatisch im Umkreis der Waffe. */
+  shooting = false;
+  private gunCd = 0;
+  /** Schuss im angebrochenen Magazin. */
+  rounds = 0;
+  roundsItem: string | null = null;
+  /** Darstellung: letzter Schuss. */
+  lastShot = -100;
+  shotX = 0;
+  shotY = 0;
   mineTarget: MineTarget | null = null;
   mineProgress = 0;
   /** Ticks, die das aktuelle Ziel benötigt (für den Fortschrittsbalken). */
@@ -98,12 +113,68 @@ export class Player {
   update(world: World): void {
     this.prevPx = this.px;
     this.prevPy = this.py;
+    this.updateCombat(world);
     this.updateMovement(world);
     this.updateMining(world);
     this.updateCrafting(world);
     if (this.pickingUp && world.tick % PLAYER.pickupInterval === 0) {
       if (!this.pickUpGround(world)) this.pickUpBelt(world);
     }
+  }
+
+  // ------------------------------------------------------------- Kampf
+
+  /** Schaden an der Spielfigur; bei 0 Lebenspunkten Neustart am Startpunkt (Inventar bleibt, Vereinfachung). */
+  damage(world: World, dmg: number): void {
+    if (this.dead || this.god) return;
+    this.hp -= dmg;
+    this.lastHit = world.tick;
+    if (this.hp > 0) return;
+    this.hp = PLAYER_COMBAT.health;
+    this.px = 128;
+    this.py = 128;
+    this.prevPx = this.px;
+    this.prevPy = this.py;
+    this.mineTarget = null;
+    this.note('Du bist gestorben – Neustart am Startpunkt');
+  }
+
+  /** Waffe: Maschinenpistole, wenn vorhanden, sonst Pistole (Wiki „Pistol“, „Submachine gun“). */
+  get weapon(): 'submachine-gun' | 'pistol' | null {
+    if (this.inventory.count('submachine-gun') > 0) return 'submachine-gun';
+    if (this.inventory.count('pistol') > 0) return 'pistol';
+    return null;
+  }
+
+  private updateCombat(world: World): void {
+    if (world.tick - this.lastHit > PLAYER_COMBAT.healDelay && this.hp < PLAYER_COMBAT.health) {
+      this.hp = Math.min(PLAYER_COMBAT.health, this.hp + PLAYER_COMBAT.healPerTick);
+    }
+    if (this.gunCd > 0) this.gunCd--;
+    if (!this.shooting || this.gunCd > 0) return;
+    const wpn = this.weapon;
+    if (!wpn) return;
+    const W = WEAPONS[wpn];
+    const t = world.enemies.nearestTarget(this.x, this.y, W.range);
+    if (!t) return;
+    if (this.rounds === 0) {
+      const it = Object.keys(AMMO).reverse().find((a) => this.inventory.count(a) > 0);
+      if (!it) {
+        if (world.tick % 60 === 0) this.note('Keine Munition');
+        return;
+      }
+      this.inventory.remove(it, 1);
+      world.stats.used(it, 1);
+      this.rounds = AMMO[it].rounds;
+      this.roundsItem = it;
+    }
+    this.rounds--;
+    this.gunCd = W.cooldown;
+    this.lastShot = world.tick;
+    this.shotX = t.x;
+    this.shotY = t.y;
+    world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage, { x: this.x, y: this.y });
+    if (this.rounds === 0) this.roundsItem = null;
   }
 
   /** Nächstes Bodenitem im Umkreis aufheben. */
@@ -178,7 +249,7 @@ export class Player {
     const y = py / SUB;
     for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++) {
       for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
-        if (world.map.isWater(tx, ty)) return true;
+        if (world.map.isWater(tx, ty) || world.enemies.nestAt(tx, ty)) return true;
         const e = world.entityAt(tx, ty);
         if (e && entityDef(e.name).solid) {
           // Spieler, die bereits darin stehen (z. B. nach dem Bauen), dürfen hinaus

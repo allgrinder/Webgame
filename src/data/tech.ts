@@ -53,6 +53,14 @@ export const TECHS: readonly TechDef[] = [
   { id: 'steel-processing', name: 'Stahlverarbeitung', count: 50, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['steel-plate', 'steel-chest'] },
   { id: 'fast-inserter', name: 'Schneller Greifarm', count: 30, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['fast-inserter'] },
   { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'] },
+  // Militär (Wiki „Military“, „Gun turret (research)“, „Stone wall (research)“, „Military 2“)
+  { id: 'military', name: 'Militär', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['submachine-gun'] },
+  { id: 'gun-turret', name: 'Geschützturm', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['gun-turret'] },
+  { id: 'stone-wall', name: 'Steinmauer', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall'] },
+  {
+    id: 'military-2', name: 'Militär 2', count: 20, time: 15, packs: RED_GREEN,
+    prerequisites: ['military', 'steel-processing', 'logistic-science-pack'], unlocks: ['piercing-rounds-magazine'],
+  },
   {
     id: 'electric-energy-distribution-1', name: 'Elektrische Energieverteilung 1', count: 120, time: 30, packs: RED_GREEN,
     prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['medium-electric-pole', 'big-electric-pole', 'iron-stick'],

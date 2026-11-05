@@ -238,6 +238,18 @@ export interface TankDef extends EntityBase {
   readonly capacity: number;
 }
 
+/** Geschützturm (Wiki „Gun turret“): schießt mit Munition aus dem eigenen Vorrat auf Gegner. */
+export interface TurretDef extends EntityBase {
+  readonly kind: 'turret';
+  /** Greifarme füllen bis zu so vielen Magazinen auf (Wiki: automated_ammo_count 10). */
+  readonly ammoFill: number;
+}
+
+/** Mauer: nur Hindernis mit Lebenspunkten. */
+export interface WallDef extends EntityBase {
+  readonly kind: 'wall';
+}
+
 export interface LampDef extends EntityBase {
   readonly kind: 'lamp';
   readonly energyUsage: number;
@@ -267,7 +279,8 @@ export interface AccumulatorDef extends EntityBase {
 }
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
-  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef;
+  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef
+  | TurretDef | WallDef;
 
 const list: EntityDef[] = [
   {
@@ -534,6 +547,14 @@ const list: EntityDef[] = [
   {
     kind: 'container', id: 'iron-chest', name: 'Eisenkiste', width: 1, height: 1, health: 200,
     item: 'iron-chest', mineTime: 0.2, solid: true, rotatable: false, slots: 32,
+  },
+  {
+    kind: 'turret', id: 'gun-turret', name: 'Geschützturm', width: 2, height: 2, health: 400,
+    item: 'gun-turret', mineTime: 0.5, solid: true, rotatable: false, ammoFill: 10,
+  },
+  {
+    kind: 'wall', id: 'stone-wall', name: 'Steinmauer', width: 1, height: 1, health: 350,
+    item: 'stone-wall', mineTime: 0.2, solid: true, rotatable: false,
   },
 ];
 

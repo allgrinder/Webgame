@@ -1,4 +1,6 @@
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
+import { EnemySystem } from './enemies';
+import { PollutionSystem } from './pollution';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
@@ -59,6 +61,8 @@ export class World {
   readonly circuit = new CircuitSystem();
   /** Gleise und Züge. */
   readonly trains = new TrainSystem();
+  readonly pollution = new PollutionSystem();
+  readonly enemies = new EnemySystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
   /** Items auf dem Boden je Feld. */
@@ -142,6 +146,7 @@ export class World {
       }
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
       if (this.map.trees.treeAt(tx, ty)) return { ok: false, reason: 'Baum im Weg' };
+      if (this.enemies.nestAt(tx, ty)) return { ok: false, reason: 'Gegnernest im Weg' };
     }
     const [w, h] = sizeOf(def, dir);
     if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {
@@ -246,12 +251,23 @@ export class World {
     this.trains.update(this);
     for (const e of this.entities.values()) e.update(this);
     this.robots.update(this);
+    this.enemies.update(this);
     this.player?.update(this);
+    this.pollution.update(this);
     this.tick++;
     if (this.tick % 60 === 0) {
       this.stats.second(this.tick / 60);
       this.power.second(this.tick / 60);
     }
+  }
+
+  /** Schaden an einem Gebäude; bei 0 Lebenspunkten wird es zerstört (Inhalt geht verloren, wie im Original). */
+  damageEntity(e: Entity, dmg: number): void {
+    e.hp -= dmg;
+    if (e.hp > 0) return;
+    this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick });
+    this.stats.used(`lost.${e.name}`, 1);
+    this.remove(e.id);
   }
 
   /** Herstellung melden: Statistik und Auslöser-Forschung. */

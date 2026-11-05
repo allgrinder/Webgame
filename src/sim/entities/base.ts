@@ -28,9 +28,12 @@ export abstract class EntityBase {
   abstract readonly kind: string;
   status = Status.Idle;
   readonly def: EntityDef;
+  /** Lebenspunkte (Gegner, src/sim/enemies.ts). */
+  hp: number;
 
   constructor(readonly id: number, readonly name: string, readonly x: number, readonly y: number, public dir: Dir) {
     this.def = entityDef(name);
+    this.hp = this.def.health;
   }
 
   /** Grundfläche in Feldern (berücksichtigt die Drehung). */

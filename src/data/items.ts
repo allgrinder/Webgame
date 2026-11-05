@@ -123,6 +123,13 @@ const list: ItemDef[] = [
   { id: 'train-stop', name: 'Bahnhof', stackSize: 10, placeResult: 'train-stop', order: 121 },
   { id: 'locomotive', name: 'Lokomotive', stackSize: 5, order: 122 },
   { id: 'cargo-wagon', name: 'Güterwagen', stackSize: 5, order: 123 },
+  // Militär (Wiki „Firearm magazine“, „Piercing rounds magazine“, „Gun turret“, „Stone wall“, „Pistol“, „Submachine gun“)
+  { id: 'firearm-magazine', name: 'Magazin', stackSize: 200, order: 130 },
+  { id: 'piercing-rounds-magazine', name: 'Panzerbrechendes Magazin', stackSize: 200, order: 131 },
+  { id: 'pistol', name: 'Pistole', stackSize: 5, order: 132 },
+  { id: 'submachine-gun', name: 'Maschinenpistole', stackSize: 5, order: 133 },
+  { id: 'gun-turret', name: 'Geschützturm', stackSize: 50, placeResult: 'gun-turret', order: 134 },
+  { id: 'stone-wall', name: 'Steinmauer', stackSize: 100, placeResult: 'stone-wall', order: 135 },
 ];
 
 export const ITEMS: Readonly<Record<string, ItemDef>> = Object.freeze(

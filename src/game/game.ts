@@ -171,6 +171,8 @@ export class Game {
     p.moveX = (d.has('d') ? 1 : 0) - (d.has('a') ? 1 : 0);
     p.moveY = (d.has('s') ? 1 : 0) - (d.has('w') ? 1 : 0);
     p.pickingUp = d.has('f');
+    // Leertaste: auf den nächsten Gegner in Reichweite schießen (wie im Original)
+    p.shooting = d.has(' ') || d.has('space');
   }
 
   // ------------------------------------------------------------ Eingabe

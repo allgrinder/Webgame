@@ -1,5 +1,6 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
+import { PLAYER_COMBAT } from '../data/enemies';
 import { DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID } from '../data/tech';
@@ -70,6 +71,8 @@ export class Hud {
   constructor(root: HTMLElement, private readonly game: Game, private readonly sprites: SpriteLib) {
     this.layer = el('div', 'hud', root);
     this.info = el('div', 'hud-info', this.layer);
+    this.healthEl = el('div', 'hud-health', this.layer);
+    this.healthFill = el('div', 'fill', this.healthEl);
     this.debugBox = el('div', 'hud-debug', this.layer);
     this.quickbar = el('div', 'quickbar', this.layer);
     this.craftQueueEl = el('div', 'craft-queue', this.layer);
@@ -105,6 +108,9 @@ export class Hud {
     this.refreshAll();
   }
 
+  private healthEl!: HTMLElement;
+  private healthFill!: HTMLElement;
+
   setTitle(t: string): void {
     this.title = t;
     this.rocketsSeen = -1; // neue Welt: Starts nicht erneut melden
@@ -134,7 +140,14 @@ export class Hud {
       const r2 = g.renderer.screenToWorld(g.renderer.app.screen.width, g.renderer.app.screen.height);
       this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
-    this.info.textContent = `Eisenwerk – ${this.title} · H: Hilfe`;
+    const evo = w.settings.enemies !== 'aus' ? ` · Gegner-Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : '';
+    this.info.textContent = `Eisenwerk – ${this.title}${evo} · H: Hilfe`;
+    const pl0 = w.player;
+    if (pl0) {
+      const f = pl0.hp / PLAYER_COMBAT.health;
+      this.healthEl.style.display = f < 1 ? 'block' : 'none';
+      this.healthFill.style.width = `${(f * 100).toFixed(1)}%`;
+    }
     if (this.showDebug) {
       const st = g.renderer.stats;
       this.debugBox.style.display = 'block';
@@ -1195,7 +1208,7 @@ export class Hud {
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
-        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
+        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>

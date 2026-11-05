@@ -40,6 +40,7 @@ export class Input {
       this.down.add(k);
       this.ctrl = e.ctrlKey || e.metaKey;
       this.shift = e.shiftKey;
+      if (k === ' ' || k === 'space') e.preventDefault();
       if (k === 'alt' || k === 'tab' || /^f\d+$/.test(k) && k !== 'f12' && k !== 'f5') e.preventDefault();
       if ((e.ctrlKey || e.metaKey) && (k === 's' || k === 'l' || k === 'c' || k === 'v' || k === 'x')) e.preventDefault();
     });

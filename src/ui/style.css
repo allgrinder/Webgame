@@ -204,3 +204,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .choice-row { display: flex; gap: 6px; margin: 2px 0 2px; }
 .choice { flex: 1; padding: 6px 4px; background: #2a2823; color: var(--text, #ddd); border: 1px solid var(--panel-edge); border-radius: 3px; cursor: pointer; font: inherit; }
 .choice.on { background: #5a4a26; border-color: var(--accent); color: #fff; }
+
+.hud-health { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); width: 240px; height: 8px; background: #111a; border: 1px solid #000; border-radius: 2px; display: none; pointer-events: none; }
+.hud-health .fill { height: 100%; background: linear-gradient(#e86a5a, #b8382a); border-radius: 1px; }

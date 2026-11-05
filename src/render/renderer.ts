@@ -14,6 +14,7 @@ import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
 import { LOOK } from '../data/look';
+import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
 import { gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
@@ -608,6 +609,7 @@ export class GameRenderer {
     }
     this.drawRobots(world);
     this.drawVehicles(world);
+    this.drawEnemies(world, v, alpha);
     this.drawGhost(ui, world);
     this.shadows.end();
     this.ents.end();
@@ -632,6 +634,25 @@ export class GameRenderer {
         const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / 4)));
         sp.position.set(cx, cy);
         sp.zIndex = z;
+        break;
+      }
+      case 'turret': {
+        if (!s.has('gun-turret.base')) {
+          this.drawGeneric(e, cx, cy, z);
+          break;
+        }
+        if (s.has('gun-turret.base.shadow')) {
+          const sh = this.shadows.get(s.frame('gun-turret.base.shadow'));
+          sh.position.set(cx, cy);
+        }
+        const b = this.ents.get(s.frame('gun-turret.base'));
+        b.position.set(cx, cy);
+        b.zIndex = z;
+        const n = s.info('gun-turret.head')?.meta?.angles ?? 16;
+        const k = ((Math.round(((e.angle + Math.PI / 2) / (Math.PI * 2)) * n) % n) + n) % n;
+        const hd = this.ents.get(s.frame('gun-turret.head', k));
+        hd.position.set(cx, cy);
+        hd.zIndex = z + 1;
         break;
       }
       case 'rail': {
@@ -905,6 +926,58 @@ export class GameRenderer {
     }
   }
 
+  /** Gegner: Nester, Kadaver/Ruinen, Krabbler (16 Richtungen, Laufbilder, Größe und Farbe je Art). */
+  private drawEnemies(world: World, v: ReturnType<GameRenderer['viewRect']>, alpha: number): void {
+    const s = this.sprites;
+    const en = world.enemies;
+    const has = s.has('enemy.krabbler.0');
+    for (const r of en.remnants) {
+      if (r.x < v.x0 - 4 || r.x > v.x1 + 4 || r.y < v.y0 - 4 || r.y > v.y1 + 4) continue;
+      const age = world.tick - r.tick;
+      const key = r.kind === 'unit' ? 'enemy.krabbler.dead' : r.kind === 'nest' ? 'enemy.nest.ruin' : null;
+      if (!key || !s.has(key)) continue;
+      const sp = this.ents.get(s.frame(key));
+      sp.position.set(r.x * TILE, r.y * TILE);
+      sp.scale.set(r.size);
+      sp.alpha = Math.max(0, 1 - age / 3600);
+      sp.tint = 0x9a8f86;
+      sp.zIndex = r.y * TILE - 64;
+    }
+    for (const n of en.nests.values()) {
+      if (n.x + 5 < v.x0 - 2 || n.x > v.x1 + 2 || n.y + 5 < v.y0 - 2 || n.y > v.y1 + 4) continue;
+      const cx = (n.x + 2.5) * TILE;
+      const cy = (n.y + 2.5) * TILE;
+      if (s.has('enemy.nest.shadow')) {
+        const sh = this.shadows.get(s.frame('enemy.nest.shadow'));
+        sh.position.set(cx, cy);
+        sh.scale.set(s.info('enemy.nest.shadow')?.meta?.scale ?? 1);
+      }
+      const key = `enemy.nest.${n.id % 2}`;
+      if (s.has(key)) {
+        const sp = this.ents.get(s.frame(key));
+        sp.position.set(cx, cy);
+        sp.zIndex = cy + 40;
+      }
+    }
+    const TINT: Record<string, number> = { small: 0xffffff, medium: 0xd8c0b0, big: 0xb88a78 };
+    for (const u of en.units.values()) {
+      if (u.x < v.x0 - 2 || u.x > v.x1 + 2 || u.y < v.y0 - 2 || u.y > v.y1 + 3) continue;
+      const def = UNITS[u.kind];
+      const k = ((Math.round(((u.angle + Math.PI / 2) / (Math.PI * 2)) * 16) % 16) + 16) % 16;
+      if (!has) continue;
+      if (s.has('enemy.krabbler.shadow')) {
+        const sh = this.shadows.get(s.frame('enemy.krabbler.shadow'));
+        sh.position.set(u.x * TILE, u.y * TILE);
+        sh.scale.set(def.scale);
+      }
+      const sp = this.ents.get(s.frame(`enemy.krabbler.${k}`, Math.floor(u.phase * 6 + alpha * 0)));
+      sp.position.set(u.x * TILE, u.y * TILE);
+      sp.scale.set(def.scale);
+      sp.tint = TINT[u.kind];
+      sp.zIndex = u.y * TILE;
+    }
+  }
+
   /** Roboter im Flug: Sprite (sonst Item-Symbol) mit Flughöhe und Bodenschatten. */
   private drawRobots(world: World): void {
     const v = this.viewRect();
@@ -957,6 +1030,7 @@ export class GameRenderer {
       const y1 = (e.y + e.h) * TILE - 6;
       g.moveTo(x0, y0).lineTo(x1, y1).moveTo(x1, y0).lineTo(x0, y1).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
     }
+    this.drawCombat(world, g);
     if (ui.selection) {
       const r = ui.selection;
       const col = r.cut ? 0xff6a5a : 0x8ac8ff;
@@ -1001,6 +1075,50 @@ export class GameRenderer {
         this.arrow(g, e.x + 0.5 + DX[e.dir] * 0.75, e.y + 0.5 + DY[e.dir] * 0.75, e.dir, 0xffd060, 0.22);
       }
       this.drawAltContents(e, g);
+    }
+  }
+
+  /** Schüsse (Leuchtspur, Mündungsfeuer), Lebensbalken, Platzhalter für Gegner ohne Grafik. */
+  private drawCombat(world: World, g: Graphics): void {
+    const z = this.camera.zoom;
+    const v = this.viewRect();
+    const t = world.tick;
+    const shot = (x0: number, y0: number, x1: number, y1: number) => {
+      g.moveTo(x0 * TILE, y0 * TILE).lineTo(x1 * TILE, y1 * TILE).stroke({ width: 2 / z, color: 0xffe08a, alpha: 0.8 });
+      g.circle(x0 * TILE, y0 * TILE, 7).fill({ color: 0xffc040, alpha: 0.85 });
+      g.circle(x1 * TILE, y1 * TILE, 4).fill({ color: 0xffa040, alpha: 0.7 });
+    };
+    const bar = (x: number, y: number, w: number, f: number) => {
+      g.rect(x * TILE, y * TILE, w * TILE, 5).fill({ color: 0x111111, alpha: 0.8 });
+      g.rect(x * TILE, y * TILE, w * TILE * Math.max(0, f), 5).fill({ color: f > 0.5 ? 0x5fd35f : f > 0.25 ? 0xe0c040 : 0xe05040 });
+    };
+    for (const e of world.entities.values()) {
+      if (e.x + e.w < v.x0 || e.x > v.x1 || e.y + e.h < v.y0 || e.y > v.y1) continue;
+      if (e.hp < e.def.health) bar(e.x + 0.1, e.y + e.h - 0.1, e.w - 0.2, e.hp / e.def.health);
+      if (e.kind === 'turret' && t - e.lastShot < 3) {
+        shot(e.cx + Math.cos(e.angle) * 1.1, e.cy - 0.35 + Math.sin(e.angle) * 1.1, e.shotX, e.shotY);
+      }
+    }
+    const has = this.sprites.has('enemy.krabbler.0');
+    for (const u of world.enemies.units.values()) {
+      if (u.x < v.x0 || u.x > v.x1 || u.y < v.y0 || u.y > v.y1) continue;
+      const def = UNITS[u.kind];
+      if (!has) g.circle(u.x * TILE, u.y * TILE, def.radius * TILE).fill({ color: 0x6a3a22 }).stroke({ width: 2 / z, color: 0x2a1a10 });
+      if (u.hp < def.health) bar(u.x - 0.3, u.y + def.radius + 0.1, 0.6, u.hp / def.health);
+    }
+    for (const n of world.enemies.nests.values()) {
+      if (n.x + 5 < v.x0 || n.x > v.x1 || n.y + 5 < v.y0 || n.y > v.y1) continue;
+      if (!this.sprites.has('enemy.nest.0')) g.ellipse((n.x + 2.5) * TILE, (n.y + 2.5) * TILE, 2.3 * TILE, 2 * TILE).fill({ color: 0x4a2c22 });
+      if (n.hp < NEST.health) bar(n.x + 0.5, n.y + 5, 4, n.hp / NEST.health);
+    }
+    for (const r of world.enemies.remnants) {
+      if (r.kind !== 'building' || t - r.tick > 60 * 40) continue;
+      g.ellipse(r.x * TILE, r.y * TILE, r.size * 0.55 * TILE, r.size * 0.45 * TILE).fill({ color: 0x15110d, alpha: 0.55 * (1 - (t - r.tick) / 2400) });
+    }
+    const p = world.player;
+    if (p) {
+      if (t - p.lastShot < 3) shot(p.x, p.y - 0.5, p.shotX, p.shotY);
+      if (p.hp < PLAYER_COMBAT.health) bar(p.x - 0.4, p.y + 0.35, 0.8, p.hp / PLAYER_COMBAT.health);
     }
   }
 

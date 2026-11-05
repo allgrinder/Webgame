@@ -1,3 +1,4 @@
+import { PollutionSystem } from '../sim/pollution';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { MINIMAP } from '../data/ui';
@@ -138,6 +139,19 @@ export class Minimap {
       if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x0 + 2 * half || e.y > y0 + 2 * half) continue;
       ctx.fillStyle = css(e.kind === 'belt' || e.kind === 'underground' || e.kind === 'splitter' ? MINIMAP.belt : MINIMAP.building);
       ctx.fillRect(toX(e.x), toY(e.y), Math.max(1, e.w * s.scale), Math.max(1, e.h * s.scale));
+    }
+    // Verschmutzung (rötlicher Schleier je Abschnitt) und Gegnernester
+    const PC = 32;
+    for (const [k, val] of world.pollution.chunks) {
+      if (val < 5) continue;
+      const [gx, gy] = PollutionSystem.unkey(k);
+      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x0 + 2 * half || gy * PC > y0 + 2 * half) continue;
+      ctx.fillStyle = `rgba(200,60,40,${Math.min(0.45, 0.06 + val / 600).toFixed(3)})`;
+      ctx.fillRect(toX(gx * PC), toY(gy * PC), PC * s.scale, PC * s.scale);
+    }
+    ctx.fillStyle = '#d23a2a';
+    for (const n of world.enemies.nestsIn(x0, y0, x0 + 2 * half, y0 + 2 * half)) {
+      ctx.fillRect(toX(n.x), toY(n.y), Math.max(2, 5 * s.scale), Math.max(2, 5 * s.scale));
     }
     // sichtbarer Ausschnitt
     ctx.strokeStyle = MINIMAP.view;

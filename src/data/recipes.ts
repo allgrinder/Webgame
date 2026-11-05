@@ -114,6 +114,10 @@ const list: RecipeDef[] = [
     ingredients: [{ item: 'copper-plate', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'iron-plate', amount: 20 }],
     results: [{ item: 'gun-turret', amount: 1 }],
   },
+  {
+    id: 'repair-pack', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 2 }, { item: 'iron-gear-wheel', amount: 2 }], results: [{ item: 'repair-pack', amount: 1 }],
+  },
   { id: 'stone-wall', category: 'crafting', time: 0.5, ingredients: [{ item: 'stone-brick', amount: 5 }], results: [{ item: 'stone-wall', amount: 1 }] },
   {
     id: 'lamp', category: 'crafting', time: 0.5,

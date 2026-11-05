@@ -169,3 +169,13 @@ Regeln und Zuordnung aller Gebäude: `docs/ART_STYLE.md`.
 3. Stufe 2 umstellen: E-Bohrer, Stahlofen, Öl/Chemie, Tank/Pumpe, Masten, Solar/Akku, Radar, Bahn.
 4. Stufe 3 umstellen: Elektroofen, Leuchtfeuer, Roboterhangar/Roboter, Logistikkisten, Silo, Landeplatz.
 5. Bänder/Splitter/Untergrund je Stufe angleichen, Symbole neu.
+
+## Phase H – Gegner und Spielgefühl (Wunsch 05.11.2026)
+
+Umgesetzt: Handabbau 3× schneller und ohne Balken-Neustart, Inventar wie im Original (Rechtsklick halber Stapel,
+Umschalt/Strg), Items vom Band aufheben (F), Karteneinstellungen (Rohstoffe leicht/mittel/schwer, größere Felder,
+Gegner aus/friedlich/normal/stark), Gegner mit Verschmutzung, Nestern, Angriffen, Geschützturm, Mauer, Waffen,
+Reparaturset (`src/sim/enemies.ts`, `src/sim/pollution.ts`, `src/data/enemies.ts`).
+
+Nächste Blöcke (Vorschlag): Speier/Würmer und Ausbreitung; Tor, Laser-/Flammentürme, Rüstung, Granaten, militärische
+Wissenschaft; Zug-Signale, Diagonalen und Selbstfahren; Kernkraft und Dampfturbine; Auto/Panzer; Klippen.

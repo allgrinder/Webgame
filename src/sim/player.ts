@@ -1,7 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
-import { AMMO, PLAYER_COMBAT, WEAPONS } from '../data/enemies';
+import { AMMO, PLAYER_COMBAT, REPAIR, WEAPONS } from '../data/enemies';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -56,6 +56,9 @@ export class Player {
   lastShot = -100;
   shotX = 0;
   shotY = 0;
+  /** Reparatur (Reparaturset in der Hand, Linksklick halten). */
+  repairTarget: number | null = null;
+  repairUsed = 0;
   mineTarget: MineTarget | null = null;
   mineProgress = 0;
   /** Ticks, die das aktuelle Ziel benötigt (für den Fortschrittsbalken). */
@@ -139,6 +142,24 @@ export class Player {
     this.note('Du bist gestorben – Neustart am Startpunkt');
   }
 
+  private updateRepair(world: World): void {
+    const id = this.repairTarget;
+    if (id === null) return;
+    const e = world.entities.get(id);
+    if (!e || e.hp >= e.def.health || !this.canReach(e.cx, e.cy) || this.inventory.count('repair-pack') === 0) {
+      this.repairTarget = null;
+      return;
+    }
+    const heal = Math.min(REPAIR.perTick, e.def.health - e.hp);
+    e.hp += heal;
+    this.repairUsed += heal;
+    if (this.repairUsed >= REPAIR.durability) {
+      this.repairUsed -= REPAIR.durability;
+      this.inventory.remove('repair-pack', 1);
+      world.stats.used('repair-pack', 1);
+    }
+  }
+
   /** Waffe: Maschinenpistole, wenn vorhanden, sonst Pistole (Wiki „Pistol“, „Submachine gun“). */
   get weapon(): 'submachine-gun' | 'pistol' | null {
     if (this.inventory.count('submachine-gun') > 0) return 'submachine-gun';
@@ -150,6 +171,7 @@ export class Player {
     if (world.tick - this.lastHit > PLAYER_COMBAT.healDelay && this.hp < PLAYER_COMBAT.health) {
       this.hp = Math.min(PLAYER_COMBAT.health, this.hp + PLAYER_COMBAT.healPerTick);
     }
+    this.updateRepair(world);
     if (this.gunCd > 0) this.gunCd--;
     if (!this.shooting || this.gunCd > 0) return;
     const wpn = this.weapon;

@@ -336,3 +336,26 @@ geschüttet (wie im Original), nicht mehr verworfen.
 | Feldgröße | × 1,8 gegenüber den Grundwerten (Radius), Startfelder entsprechend weiter weg | Wunsch („deutlich größer“); Original: Einstellung „Größe“ |
 | Alte Spielstände | ohne gespeicherte Einstellung: Größe 1, schwer, keine Gegner (Karte bleibt gleich) | – |
 | Handabbau Rohstoffe | Abbautempo 0,5 × 3 | Wunsch (bewusste Abweichung) |
+
+## Gegner, Verschmutzung, Militär (Wunsch 05.11.2026)
+
+Eigene Gestaltung: „Krabbler“ (Vorbild Beißer) und „Nest“ (Vorbild Spawner). Werte in `src/data/enemies.ts`.
+Quelle W = Wiki (über Websuche bestätigt), M = Messvorschlag/Vereinfachung.
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Verschmutzung/min | Brennstoff-Bohrer 12, E-Bohrer 10, Steinofen 2, Stahlofen 4, Elektroofen 1, Kessel 30, Montage 1/2/3: 4/3/2, Pumpjack 10, Raffinerie 6, Chemiefabrik 4 | W „Pollution“ / Infoboxen |
+| Verteilung | je 64 Ticks 2 % in jeden der 4 Nachbarabschnitte (32×32) | M (Standard der Karteneinstellungen) |
+| Aufnahme Boden | 27 je Abschnitt und Minute (Gras ≈ 0,0000075/Tick je Feld) | M |
+| Kleiner / mittlerer / großer Krabbler | LP 15 / 75 / 375, Schaden 7 / 15 / 30, Tempo 0,2 / 0,24 / 0,23 Felder/Tick, Verschmutzung für Angriff 4 / 20 / 80, Panzerung 0 / 4+10 % / 8+10 % | W „Small/Medium/Big biter“ (LP, Schaden, Tempo, klein 4), Rest M |
+| Nest | 350 LP, 5×5, bis 5 Verteidiger, Nachschub alle 6 s, Aufnahme 60/min + 1 %, Angriff ab 6 Einheiten | W (LP), Rest M |
+| Entwicklung | Zeit 0,000004/s, Nest zerstört 0,002, Verschmutzung 0,0000009 je Einheit; mittlere ab 0,2, große ab 0,5 | W „Enemies/Evolution“ (Zeit, Nest), Rest M |
+| Geschützturm | 2×2, 400 LP, Reichweite 18, 10 Schuss/s, füllt bis 10 Magazine | W „Gun turret“ |
+| Magazin / panzerbrechend | 5 / 8 Schaden, je 10 Schuss; Rezepte 4 Eisenplatten (1 s) / 1 Magazin + 1 Stahl + 5 Kupfer (3 s) | W |
+| Pistole / Maschinenpistole | Reichweite 15 / 18, 4 / 10 Schuss/s | W (gerundet) |
+| Steinmauer | 350 LP, 5 Ziegel (0,5 s) | W „Stone wall“ |
+| Spielfigur | 250 LP, Heilung 0,15/Tick nach 10 s ohne Treffer; Tod: Neustart am Start, Inventar bleibt | W „Character“; Tod vereinfacht (M) |
+| Reparaturset | 2 Schaltkreise + 2 Zahnräder (0,5 s), Haltbarkeit 300, 2 LP je Tick | W (Rezept, Haltbarkeit), M (Tempo) |
+| Forschung | Militär (MP) 10×15 s rot; Geschützturm 10×10 s rot; Steinmauer 10×10 s rot; Militär 2 (panzerbrechend) 20×15 s rot+grün | W (vereinfacht) |
+| Start | Pistole + 10 Magazine | W „Freeplay“ |
+| Nester auf der Karte | Raster 96 Felder, 35 % je Zelle, 2–5 Nester je Basis, keine im Umkreis 140 um den Start (stark: 80/50 %/3–7/110) | M |

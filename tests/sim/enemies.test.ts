@@ -77,6 +77,20 @@ describe('Gegner', () => {
     expect(Math.hypot(p.x - 0.5, p.y - 0.5)).toBeLessThan(1);
   });
 
+  it('Reparaturset: hält die Spielfigur es auf ein beschädigtes Gebäude, steigen dessen Lebenspunkte', () => {
+    const w = world('normal');
+    const p = new Player(0.5, 0.5);
+    w.player = p;
+    p.inventory.add('repair-pack', 2);
+    const c = w.place('iron-chest', 2, 0, 0, true)!;
+    c.hp = 50;
+    p.repairTarget = c.id;
+    w.run(90); // 150 LP bei 2 LP/Tick
+    expect(c.hp).toBe(c.def.health);
+    expect(p.inventory.count('repair-pack')).toBe(2);
+    expect(p.repairTarget).toBe(null);
+  });
+
   it('Speichern/Laden bleibt deterministisch mit Gegnern und Verschmutzung', () => {
     const w = world('normal');
     w.place('burner-mining-drill', 0, 0, 0, true);

@@ -82,4 +82,6 @@ def render(out):
     h.parent = b
     icon(out, 'item.gun-turret', b, 0.38, z=-0.05, rot=30)
     eisen.reset(samples=40)
+    icon(out, 'item.repair-pack', kampf.repair_pack(), 1.0, rot=25)
+    eisen.reset(samples=40)
     icon(out, 'item.stone-wall', kampf.wall(), 0.75, z=-0.05, rot=20)

@@ -218,6 +218,7 @@ export class Game {
     if (!inp.left) {
       this.dragLast = null;
       this.dragBelts = [];
+      if (this.world.player) this.world.player.repairTarget = null;
     }
     // Rechtsklick halten: abbauen
     const p = this.world.player;
@@ -550,6 +551,11 @@ export class Game {
     const item = this.cursorItem;
     const placeable = item ? ITEMS[item]?.placeResult : undefined;
     const ctrl = this.clickMods.ctrl;
+    if (item === 'repair-pack') {
+      if (p && target && target.hp < target.def.health) p.repairTarget = target.id;
+      else if (p && target) p.note('Nicht beschädigt');
+      return;
+    }
     if (item === 'landfill') {
       this.placeLandfill(tx, ty);
       this.dragLast = { x: tx, y: ty };

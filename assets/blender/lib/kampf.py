@@ -198,3 +198,13 @@ def gun(smg=False):
         o.append(eisen.box('mag', (0.08, 0.08, 0.3), (0.05, 0, 0.12), t.panels[0], bevel=0.01))
         o.append(eisen.box('stock', (0.3, 0.08, 0.12), (-L / 2 - 0.1, 0, 0.3), t.dark, bevel=0.02))
     return eisen.parent_all(o, 'gun')
+
+
+def repair_pack():
+    """Reparaturset: Werkzeugtasche mit Schraubenschlüssel."""
+    t = kit.Tier(1, prefix='rp')
+    o = [eisen.box('bag', (0.62, 0.36, 0.34), (0, 0, 0.17), t.accent, bevel=0.06)]
+    o.append(eisen.box('flap', (0.64, 0.2, 0.06), (0, -0.1, 0.36), t.panels[0], bevel=0.02))
+    o.append(beam('wrench', (-0.35, 0.05, 0.42), (0.3, 0.05, 0.52), (0.06, 0.03), t.metal))
+    o.append(eisen.cylinder('wrenchhead', 0.08, 0.04, (0.32, 0.05, 0.53), t.metal, segments=6))
+    return eisen.parent_all(o, 'repair')

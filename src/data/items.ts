@@ -130,6 +130,7 @@ const list: ItemDef[] = [
   { id: 'submachine-gun', name: 'Maschinenpistole', stackSize: 5, order: 133 },
   { id: 'gun-turret', name: 'Geschützturm', stackSize: 50, placeResult: 'gun-turret', order: 134 },
   { id: 'stone-wall', name: 'Steinmauer', stackSize: 100, placeResult: 'stone-wall', order: 135 },
+  { id: 'repair-pack', name: 'Reparaturset', stackSize: 100, order: 136 },
 ];
 
 export const ITEMS: Readonly<Record<string, ItemDef>> = Object.freeze(

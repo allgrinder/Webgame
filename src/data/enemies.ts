@@ -124,3 +124,6 @@ export const PLAYER_COMBAT = {
   healPerTick: 0.15,
   healDelay: 600,
 } as const;
+
+/** Reparaturset (Wiki „Repair pack“): Haltbarkeit 300, Tempo 2 → 2 Lebenspunkte je Tick (Messvorschlag). */
+export const REPAIR = { durability: 300, perTick: 2 } as const;

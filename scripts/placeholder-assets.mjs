@@ -6,7 +6,7 @@ import { writeAtlases } from './lib/atlas.mjs';
 import { Img, h01 } from './lib/image.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = path.join(root, 'public/assets');
+const OUT = path.join(root, 'assets/atlas');
 const T = 64;
 const BELT_FRAMES = 16;
 

@@ -15,6 +15,8 @@ export interface Manifest {
   tileSize: number;
   generator: string;
   atlases: { group: string; file: string }[];
+  /** Halbe Auflösung (Standard): 1 Pixel je Welteinheit. */
+  atlasesSd?: { group: string; file: string }[];
   sprites: Record<string, SpriteInfo>;
 }
 
@@ -60,12 +62,41 @@ export class SpriteLib {
   readonly iconCache = new Map<string, string>();
 }
 
-export async function loadSprites(base = './assets/'): Promise<SpriteLib> {
+export type Quality = 'sd' | 'hd';
+
+/** Grafikqualität: ?hd=1 / ?sd=1 in der Adresse, sonst gespeicherte Wahl, sonst Standard (sd). */
+export function graphicsQuality(): Quality {
+  const p = new URLSearchParams(location.search);
+  if (p.has('hd')) return 'hd';
+  if (p.has('sd')) return 'sd';
+  try {
+    return localStorage.getItem('eisenwerk.grafik') === 'hd' ? 'hd' : 'sd';
+  } catch {
+    return 'sd';
+  }
+}
+
+export function setGraphicsQuality(q: Quality): void {
+  try {
+    localStorage.setItem('eisenwerk.grafik', q);
+  } catch {
+    /* Speicher gesperrt: gilt nur für diese Sitzung über ?hd */
+  }
+}
+
+export async function loadSprites(base = './assets/', onProgress?: (done: number, total: number) => void): Promise<SpriteLib> {
   const res = await fetch(`${base}manifest.json`);
   const manifest = (await res.json()) as Manifest;
-  const sheets = await Promise.all(manifest.atlases.map((a) => Assets.load<Spritesheet>(`${base}${a.file}`)));
-  const lib = new SpriteLib(manifest, sheets);
-  await buildIconUrls(lib, base, manifest);
+  const list = graphicsQuality() === 'sd' && manifest.atlasesSd?.length ? manifest.atlasesSd : manifest.atlases;
+  let done = 0;
+  onProgress?.(0, list.length);
+  const sheets = await Promise.all(list.map(async (a) => {
+    const sh = await Assets.load<Spritesheet>(`${base}${a.file}`);
+    onProgress?.(++done, list.length);
+    return sh;
+  }));
+  const lib = new SpriteLib({ ...manifest, atlases: list }, sheets);
+  await buildIconUrls(lib, base, { ...manifest, atlases: list });
   return lib;
 }
 
@@ -75,18 +106,22 @@ async function buildIconUrls(lib: SpriteLib, base: string, manifest: Manifest): 
   for (const a of manifest.atlases) {
     if (!groups.has(a.group)) continue;
     const json = await (await fetch(`${base}${a.file}`)).json();
+    const dir = a.file.includes('/') ? a.file.slice(0, a.file.lastIndexOf('/') + 1) : '';
     const img = new Image();
-    img.src = `${base}${json.meta.image}`;
+    img.src = `${base}${dir}${json.meta.image}`;
     await img.decode();
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     for (const [name, info] of Object.entries(manifest.sprites)) {
       const fr = json.frames[info.frames[0]];
       if (!fr) continue;
-      canvas.width = fr.frame.w;
-      canvas.height = fr.frame.h;
+      // beschnittene Frames wieder auf die volle Größe setzen
+      const src = fr.sourceSize ?? { w: fr.frame.w, h: fr.frame.h };
+      const off = fr.spriteSourceSize ?? { x: 0, y: 0 };
+      canvas.width = src.w;
+      canvas.height = src.h;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, fr.frame.x, fr.frame.y, fr.frame.w, fr.frame.h, 0, 0, fr.frame.w, fr.frame.h);
+      ctx.drawImage(img, fr.frame.x, fr.frame.y, fr.frame.w, fr.frame.h, off.x, off.y, fr.frame.w, fr.frame.h);
       lib.iconCache.set(name, canvas.toDataURL());
     }
   }

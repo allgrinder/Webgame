@@ -108,6 +108,39 @@ export class Img {
     }
   }
 
+  /** Halbe Größe (2×2-Mittel, alphagewichtet). */
+  half() {
+    const w = Math.max(1, this.w >> 1);
+    const h = Math.max(1, this.h >> 1);
+    const out = new Img(w, h);
+    const d = this.data;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        let r = 0, g = 0, b = 0, a = 0;
+        for (let j = 0; j < 2; j++) {
+          for (let i = 0; i < 2; i++) {
+            const sx = Math.min(this.w - 1, x * 2 + i);
+            const sy = Math.min(this.h - 1, y * 2 + j);
+            const k = (sy * this.w + sx) * 4;
+            const al = d[k + 3];
+            r += d[k] * al;
+            g += d[k + 1] * al;
+            b += d[k + 2] * al;
+            a += al;
+          }
+        }
+        const o = (y * w + x) * 4;
+        if (a > 0) {
+          out.data[o] = Math.round(r / a);
+          out.data[o + 1] = Math.round(g / a);
+          out.data[o + 2] = Math.round(b / a);
+        }
+        out.data[o + 3] = Math.round(a / 4);
+      }
+    }
+    return out;
+  }
+
   crop(x, y, w, h) {
     const out = new Img(w, h);
     out.blit(this, x, y, w, h, 0, 0);

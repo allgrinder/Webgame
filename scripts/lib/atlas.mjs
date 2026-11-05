@@ -24,12 +24,20 @@ export function writeAtlases(outDir, sprites, extra = {}) {
     if (!groups.has(s.group)) groups.set(s.group, []);
     groups.get(s.group).push(s);
   }
-  const manifest = { version: 1, ...extra, tileSize, atlases: [], sprites: {} };
+  const { downscale: _ds, ...rest } = extra;
+  void _ds;
+  const manifest = { version: 1, ...rest, tileSize, atlases: [], sprites: {} };
   for (const [group, list] of [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
     // Frames sammeln und nach Höhe sortieren (Regalpacken)
     const frames = [];
     for (const s of list) {
-      s.frames.forEach((img, i) => frames.push({ key: `${s.name}#${i}`, img, sprite: s }));
+      s.frames.forEach((img0, i) => {
+        const img = extra.downscale === 2 ? img0.half() : img0;
+        // durchsichtige Ränder abschneiden (spart Grafikspeicher); Lage über spriteSourceSize
+        const t = s.noTrim ? { x: 0, y: 0, w: img.w, h: img.h } : trimBox(img);
+        const cut = t.w === img.w && t.h === img.h ? img : img.crop(t.x, t.y, t.w, t.h);
+        frames.push({ key: `${s.name}#${i}`, img: cut, sprite: s, trim: t, src: { w: img.w, h: img.h } });
+      });
     }
     frames.sort((a, b) => b.img.h - a.img.h || b.img.w - a.img.w || a.key.localeCompare(b.key));
     let pageIndex = 0;
@@ -43,12 +51,13 @@ export function writeAtlases(outDir, sprites, extra = {}) {
         const { img } = p;
         page.blit(img, 0, 0, img.w, img.h, p.x + PAD, p.y + PAD);
         extrude(page, p.x + PAD, p.y + PAD, img.w, img.h);
+        const trimmed = img.w !== p.src.w || img.h !== p.src.h;
         json.frames[p.key] = {
           frame: { x: p.x + PAD, y: p.y + PAD, w: img.w, h: img.h },
           rotated: false,
-          trimmed: false,
-          spriteSourceSize: { x: 0, y: 0, w: img.w, h: img.h },
-          sourceSize: { w: img.w, h: img.h },
+          trimmed,
+          spriteSourceSize: { x: p.trim.x, y: p.trim.y, w: img.w, h: img.h },
+          sourceSize: { w: p.src.w, h: p.src.h },
           anchor: { x: p.sprite.anchor[0], y: p.sprite.anchor[1] },
         };
       }
@@ -64,8 +73,8 @@ export function writeAtlases(outDir, sprites, extra = {}) {
       manifest.sprites[s.name] = {
         group,
         frames: s.frames.map((_, i) => `${s.name}#${i}`),
-        w: s.frames[0].w / resolution,
-        h: s.frames[0].h / resolution,
+        w: s.frames[0].w / (extra.downscale === 2 ? resolution * 2 : resolution),
+        h: s.frames[0].h / (extra.downscale === 2 ? resolution * 2 : resolution),
         anchor: s.anchor,
         ...(s.fps ? { fps: s.fps } : {}),
         ...(s.meta ? { meta: s.meta } : {}),
@@ -114,4 +123,26 @@ function extrude(page, x, y, w, h) {
     page.set(x - 1, y + j, page.get(x, Math.min(y + h - 1, Math.max(y, y + j))));
     page.set(x + w, y + j, page.get(x + w - 1, Math.min(y + h - 1, Math.max(y, y + j))));
   }
+}
+
+/** Kleinstes Rechteck mit sichtbaren Pixeln (Alpha > 0); leer → 1×1. */
+function trimBox(img) {
+  const { w, h, data } = img;
+  let x0 = w;
+  let y0 = h;
+  let x1 = -1;
+  let y1 = -1;
+  for (let y = 0; y < h; y++) {
+    const row = y * w * 4;
+    for (let x = 0; x < w; x++) {
+      if (data[row + x * 4 + 3] !== 0) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        y1 = y;
+      }
+    }
+  }
+  if (x1 < 0) return { x: 0, y: 0, w: 1, h: 1 };
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
 }

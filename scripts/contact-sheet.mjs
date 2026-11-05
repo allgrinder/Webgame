@@ -7,7 +7,7 @@ import { drawText } from './lib/font.mjs';
 import { Img } from './lib/image.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = path.join(root, 'public/assets');
+const OUT = path.join(root, 'assets/atlas');
 const PREV = path.join(root, 'assets/preview');
 fs.mkdirSync(PREV, { recursive: true });
 const manifest = JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'));

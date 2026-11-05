@@ -11,7 +11,10 @@ async function main(): Promise<void> {
     : sceneName === 'freeplay' ? 1 + Math.floor(Math.random() * 999_999) : 12345;
   const debug = params.has('debug');
   const root = document.getElementById('app')!;
-  const sprites = await loadSprites();
+  const loading = document.getElementById('loading');
+  const sprites = await loadSprites('./assets/', (done, total) => {
+    if (loading) loading.textContent = `Eisenwerk wird geladen … Grafik ${done}/${total}`;
+  });
   const renderer = await GameRenderer.create(root, sprites);
   const scene = createScene(sceneName, seed);
   const warp = Number(params.get('warp') ?? 0);

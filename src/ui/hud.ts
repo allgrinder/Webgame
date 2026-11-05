@@ -6,7 +6,7 @@ import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { deserializeWorld, serializeWorld } from '../sim/serialize';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
-import type { SpriteLib } from '../render/assets';
+import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
@@ -1178,6 +1178,14 @@ export class Hud {
     btn('Spielstand exportieren (Datei)', () => this.exportGame());
     btn('Spielstand importieren (Datei)', () => this.importGame());
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
+    const hd = graphicsQuality() === 'hd';
+    btn(hd ? 'Grafik: Hoch (HD) → Standard' : 'Grafik: Standard → Hoch (HD, braucht viel Grafikspeicher)', () => {
+      // vorher sichern, nach dem Neuladen geht es mit „Weiterspielen“ weiter
+      void this.saveGame('autosave').finally(() => {
+        setGraphicsQuality(hd ? 'sd' : 'hd');
+        location.reload();
+      });
+    });
     btn('Neues Spiel (neue Karte)', () => { location.search = '?new'; });
     el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);

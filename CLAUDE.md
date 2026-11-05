@@ -9,7 +9,10 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Aus factorio-data nur einzelne Zahlen ablesen, nichts kopieren, keine Abhängigkeit. Kein Reverse Engineering.
 - Bänder: Transportlinien mit Abständen (`src/sim/belts.ts`), nie Items einzeln pro Tick bewegen.
 - Grafik nur aus Blender-Skripten (`assets/blender/`, headless `blender -b -P`), keine fremden Grafiken/Icons/Sounds.
-  Ergebnis: Atlanten + `public/assets/manifest.json` (eingecheckt). Nach jedem Renderlauf Kontaktbogen ansehen.
+  Ergebnis: PNG-Arbeitsatlanten in `assets/atlas/` (eingecheckt, nicht ausgeliefert) und daraus WebP für die Seite:
+  `public/assets/hd/` (volle Auflösung) und `public/assets/sd/` (halbe, Standard), Liste in `public/assets/manifest.json`.
+  Atlasframes werden auf sichtbare Pixel beschnitten. Grafikqualität: Menü bzw. `?hd`/`?sd`. Nach jedem Renderlauf
+  Kontaktbogen ansehen.
 - Natur-Grafik (Wiese, Kiesel, Gräser, Sträucher, Bäume) nutzt die eigenen Gartenwerk-Generatoren
   (`assets/blender/lib/gartenwerk/`, aus `allgrinder/Greenlabv2`). Szene/Licht für alle Modelle: `gw_lib.reset_scene` (AgX).
 - Stil: natürlich, trockene Steppenwiese. Bäume sind wie im Original fällbar (Holz, `src/sim/trees.ts`) und

@@ -13,7 +13,9 @@ import { Img } from './lib/image.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BL = path.join(root, 'assets/blender');
 const CACHE = path.join(root, 'assets/.cache/renders');
-const OUT = path.join(root, 'public/assets');
+/** Arbeitsatlanten (PNG, eingecheckt, nicht ausgeliefert); die Seite bekommt WebP-Fassungen in public/assets/{hd,sd}. */
+const OUT = path.join(root, 'assets/atlas');
+const PUBLIC = path.join(root, 'public/assets');
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const stamp = args.includes('--stamp');
@@ -97,6 +99,12 @@ function framesFromAtlas(name) {
       const fr = json.frames[f];
       if (fr) {
         found = img.crop(fr.frame.x, fr.frame.y, fr.frame.w, fr.frame.h);
+        if (fr.trimmed) {
+          // beschnittenes Bild wieder auf die volle Leinwand setzen
+          const full = new Img(fr.sourceSize.w, fr.sourceSize.h);
+          full.blit(found, 0, 0, found.w, found.h, fr.spriteSourceSize.x, fr.spriteSourceSize.y);
+          found = full;
+        }
         break;
       }
     }
@@ -193,3 +201,37 @@ if (keep.length) console.log(`  ${keep.length} Platzhalter-Sprites ohne Blender-
 
 const manifest = writeAtlases(OUT, sprites, { tileSize: 128, generator: 'blender', blender: version ?? oldManifest?.blender ?? null, models: modelInfo, placeholders: keep });
 console.log(`Fertig: ${rendered} Modell(e) neu gerendert, ${Object.keys(manifest.sprites).length} Sprites, ${manifest.atlases.length} Atlanten.`);
+publish(manifest, sprites);
+
+/**
+ * Ausliefern: HD (volle Auflösung) und SD (halbe Auflösung, Standard; 1 Pixel je Welteinheit) als WebP.
+ * public/assets/manifest.json enthält beide Atlaslisten.
+ */
+function publish(master, list) {
+  fs.rmSync(PUBLIC, { recursive: true, force: true });
+  const hd = path.join(PUBLIC, 'hd');
+  const sd = path.join(PUBLIC, 'sd');
+  fs.mkdirSync(hd, { recursive: true });
+  for (const a of master.atlases) {
+    const j = JSON.parse(fs.readFileSync(path.join(OUT, a.file), 'utf8'));
+    fs.copyFileSync(path.join(OUT, j.meta.image), path.join(hd, j.meta.image));
+    fs.copyFileSync(path.join(OUT, a.file), path.join(hd, a.file));
+  }
+  const sdMan = writeAtlases(sd, list, { tileSize: 64, downscale: 2 });
+  for (const dir of [hd, sd]) {
+    const r = spawnSync('python3', [path.join(root, 'scripts/webp.py'), dir, '88'], { encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`WebP-Umwandlung fehlgeschlagen: ${r.stderr}`);
+  }
+  fs.rmSync(path.join(sd, 'manifest.json'), { force: true });
+  const pub = {
+    ...master,
+    atlases: master.atlases.map((a) => ({ group: a.group, file: `hd/${a.file}` })),
+    atlasesSd: sdMan.atlases.map((a) => ({ group: a.group, file: `sd/${a.file}` })),
+  };
+  delete pub.models;
+  delete pub.placeholders;
+  fs.writeFileSync(path.join(PUBLIC, 'manifest.json'), JSON.stringify(pub));
+  let bytes = 0;
+  for (const dir of [hd, sd]) for (const f of fs.readdirSync(dir)) bytes += fs.statSync(path.join(dir, f)).size;
+  console.log(`Ausgeliefert: ${pub.atlases.length} HD- und ${pub.atlasesSd.length} SD-Atlanten, ${(bytes / 1e6).toFixed(1)} MB.`);
+}

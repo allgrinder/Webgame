@@ -55,3 +55,13 @@ Pilot: Montagemaschinen 1–3 in `assets/blender/lib/stufen.py` (gerendert von `
   (Prinzip Kantenabrieb über Krümmung, Schmutz über Umgebungsverdeckung).
 - Verlassene Industrieanlagen, Behelfsbauten aus Container- und Wellblech, Werkstatt-Ästhetik (Dieselpunk) als
   Stimmung; je weiter das Spiel, desto „sauberer“ und technischer.
+
+## Licht und Farbe (ganzes Bild)
+
+Farbabstimmung im Spiel (`src/data/look.ts`, Filter in `src/render/look.ts`, abschaltbar mit `?look=0`):
+
+- **Boden** (Gras, Wasser, Erze, Decals) dunkler (×0,8), mehr Kontrast, neutral → Gebäude und Bänder stehen davor.
+- **Ganzes Bild** etwas mehr Kontrast, warme Lichter, leicht kühle Schatten (Split-Toning).
+- **Schlagschatten** kräftiger (Deckkraft 0,74 statt 0,5).
+- **Großflächige Bodenschattierung**: Flecken von ~22 und ~7 Feldern Größe, ±13 % bzw. ±6 % Helligkeit
+  (`LOOK.macro`, `src/render/biome.ts`), damit die Wiese aus der Entfernung nicht gleichförmig wirkt.

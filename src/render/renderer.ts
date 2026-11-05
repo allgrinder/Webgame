@@ -13,7 +13,9 @@ import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
+import { LOOK } from '../data/look';
 import { CloudShadows } from './clouds';
+import { gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
@@ -78,6 +80,7 @@ export class GameRenderer {
   readonly app: Application;
   readonly camera = new Camera();
   private readonly root = new Container();
+  private readonly groundLayer = new Container();
   private ground!: ParticlePool;
   private res!: ParticlePool;
   private water: ParticlePool | null = null;
@@ -163,11 +166,19 @@ export class GameRenderer {
     this.night = new NightLayer(s, this.app.renderer, TILE);
     this.ents.container.sortableChildren = true;
     this.ghostSprites.container.alpha = 0.55;
-    this.root.addChild(
+    // Bodenebenen in eigener Gruppe (eigene Farbabstimmung, data/look.ts)
+    this.groundLayer.addChild(
       this.ground.container,
       ...(this.water ? [this.water.container] : []),
       this.decals.container,
       this.res.container,
+    );
+    if (lookEnabled()) {
+      this.groundLayer.filters = [gradeFilter(LOOK.ground)];
+      this.root.filters = [gradeFilter(LOOK.world)];
+    }
+    this.root.addChild(
+      this.groundLayer,
       this.groundItems.container,
       this.belts.container,
       this.items.container,
@@ -182,7 +193,7 @@ export class GameRenderer {
       this.icons.container,
       this.overlay,
     );
-    this.shadows.container.alpha = 0.5;
+    this.shadows.container.alpha = lookEnabled() ? LOOK.shadowAlpha : 0.5;
     this.app.stage.addChild(this.root);
     while (s.has(`ground.${this.groundPeriod}.0`)) this.groundPeriod++;
     const gp = this.groundPeriod;

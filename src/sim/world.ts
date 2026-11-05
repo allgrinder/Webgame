@@ -1,3 +1,4 @@
+import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
@@ -83,8 +84,8 @@ export class World {
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
 
-  constructor(readonly seed: number) {
-    this.map = new GameMap(seed);
+  constructor(readonly seed: number, readonly settings: MapSettings = LEGACY_MAP_SETTINGS) {
+    this.map = new GameMap(seed, settings);
   }
 
   // ------------------------------------------------------------ Abfragen

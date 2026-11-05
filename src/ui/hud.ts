@@ -1,5 +1,6 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
+import { DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID } from '../data/tech';
 import type { Game } from '../game/game';
@@ -1236,7 +1237,7 @@ export class Hud {
         location.reload();
       });
     });
-    btn('Neues Spiel (neue Karte)', () => { location.search = this.game.world.player?.god ? '?god' : '?new'; });
+    btn('Neues Spiel (neue Karte) …', () => this.newGameDialog());
     el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);
     if (saves.length) {
@@ -1254,6 +1255,51 @@ export class Hud {
     }
   }
 
+  /** Neue Runde: Karteneinstellungen wählen (Rohstoffe, Gegner) und mit neuer Karte starten. */
+  newGameDialog(): void {
+    const cur = this.game.world.settings;
+    let res: ResourceSetting = (localStorage.getItem('eisenwerk.res') as ResourceSetting | null) ?? cur.resources;
+    let enemies: EnemySetting = (localStorage.getItem('eisenwerk.enemies') as EnemySetting | null) ?? DEFAULT_MAP_SETTINGS.enemies;
+    if (!(res in RESOURCE_SETTINGS)) res = DEFAULT_MAP_SETTINGS.resources;
+    if (!(enemies in ENEMY_SETTINGS)) enemies = DEFAULT_MAP_SETTINGS.enemies;
+    this.menu.replaceChildren();
+    const head = el('div', 'win-head', this.menu);
+    head.textContent = 'Neues Spiel';
+    const body = el('div', 'win-body menu-body', this.menu);
+    const group = <K extends string>(title: string, opts: Record<K, { label: string; hint: string }>, get: () => K, set: (k: K) => void) => {
+      el('div', 'sub-head', body).textContent = title;
+      const row = el('div', 'choice-row', body);
+      const btns: HTMLButtonElement[] = [];
+      for (const k of Object.keys(opts) as K[]) {
+        const b = el('button', 'choice', row);
+        b.textContent = opts[k].label;
+        b.title = opts[k].hint;
+        b.dataset.key = k;
+        b.onclick = () => { set(k); for (const x of btns) x.classList.toggle('on', x.dataset.key === get()); hint.textContent = opts[get()].hint; };
+        btns.push(b);
+      }
+      const hint = el('div', 'dim', body);
+      hint.textContent = opts[get()].hint;
+      for (const x of btns) x.classList.toggle('on', x.dataset.key === get());
+    };
+    group('Rohstoffe', RESOURCE_SETTINGS, () => res, (k) => (res = k));
+    group('Gegner', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
+    el('div', 'hint', body).textContent = 'Rohstofffelder sind in neuen Runden deutlich größer als früher.';
+    const go = el('button', 'menu-btn primary', body);
+    go.textContent = 'Starten (neue Karte)';
+    go.onclick = () => {
+      try {
+        localStorage.setItem('eisenwerk.res', res);
+        localStorage.setItem('eisenwerk.enemies', enemies);
+      } catch { /* privat */ }
+      location.search = `?new&res=${res}&enemies=${enemies}${this.game.world.player?.god ? '&god' : ''}`;
+    };
+    const back = el('button', 'menu-btn', body);
+    back.textContent = 'Zurück';
+    back.onclick = () => this.menu.classList.add('hidden');
+    this.menu.classList.remove('hidden');
+  }
+
   /** Startdialog: neuesten Spielstand fortsetzen oder neu beginnen. */
   async offerContinue(): Promise<void> {
     const saves = await listSaves().catch(() => []);
@@ -1267,8 +1313,8 @@ export class Hud {
     b1.textContent = `Weiterspielen – ${latest.name} (${new Date(latest.time).toLocaleString('de-DE')})`;
     b1.onclick = () => { this.menu.classList.add('hidden'); void this.loadGame(latest.name); };
     const b2 = el('button', 'menu-btn', body);
-    b2.textContent = `Neues Spiel (Karte ${this.game.world.seed})`;
-    b2.onclick = () => this.menu.classList.add('hidden');
+    b2.textContent = 'Neues Spiel …';
+    b2.onclick = () => this.newGameDialog();
     if (saves.length > 1) {
       el('div', 'sub-head', body).textContent = 'Weitere Spielstände';
       for (const s of saves.slice(1)) {

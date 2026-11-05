@@ -1,3 +1,33 @@
+/**
+ * Karteneinstellungen einer Runde (wie die Karteneinstellungen im Original, vereinfacht).
+ * resources: Menge je Feld (leicht ≈ fast unendlich, schwer = Grundwerte); size: Faktor auf die Feldgröße;
+ * enemies: Gegner (siehe src/data/enemies.ts).
+ */
+export type ResourceSetting = 'leicht' | 'mittel' | 'schwer';
+export type EnemySetting = 'aus' | 'friedlich' | 'normal' | 'stark';
+export interface MapSettings {
+  readonly resources: ResourceSetting;
+  readonly size: number;
+  readonly enemies: EnemySetting;
+}
+
+export const RESOURCE_SETTINGS: Readonly<Record<ResourceSetting, { label: string; richness: number; hint: string }>> = {
+  leicht: { label: 'Leicht', richness: 25, hint: 'Felder fast unerschöpflich' },
+  mittel: { label: 'Mittel', richness: 4, hint: 'reichlich' },
+  schwer: { label: 'Schwer', richness: 1, hint: 'knapp, Felder erschöpfen sich' },
+};
+
+export const ENEMY_SETTINGS: Readonly<Record<EnemySetting, { label: string; hint: string }>> = {
+  aus: { label: 'Aus', hint: 'keine Gegner auf der Karte' },
+  friedlich: { label: 'Friedlich', hint: 'Gegner wehren sich nur, wenn man sie angreift' },
+  normal: { label: 'Normal', hint: 'Verschmutzung lockt Angriffe an (wie im Original)' },
+  stark: { label: 'Stark', hint: 'mehr Nester, schnellere Entwicklung' },
+};
+
+/** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
+export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 1.8, enemies: 'normal' };
+export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus' };
+
 /** Parameter der Kartengenerierung (eigene Werte, keine Vorlage). */
 export const MAPGEN = {
   chunkSize: 32,

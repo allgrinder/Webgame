@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, type MapSettings, RESOURCE_SETTINGS, type ResourceSetting } from './data/mapgen';
 import { Game } from './game/game';
 import { type SceneName, createScene } from './game/scenes';
 import { loadSprites } from './render/assets';
@@ -16,7 +17,14 @@ async function main(): Promise<void> {
     if (loading) loading.textContent = `Eisenwerk wird geladen … Grafik ${done}/${total}`;
   });
   const renderer = await GameRenderer.create(root, sprites);
-  const scene = createScene(sceneName, seed);
+  const res = params.get('res');
+  const en = params.get('enemies');
+  const settings: MapSettings = {
+    ...DEFAULT_MAP_SETTINGS,
+    ...(res && res in RESOURCE_SETTINGS ? { resources: res as ResourceSetting } : {}),
+    ...(en && en in ENEMY_SETTINGS ? { enemies: en as EnemySetting } : {}),
+  };
+  const scene = createScene(sceneName, seed, settings);
   // Gottmodus (?god): neue Runde mit schnellem Abbau/Handwerk zum Testen
   const god = params.has('god');
   if (god && scene.world.player) scene.world.player.god = true;

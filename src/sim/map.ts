@@ -1,4 +1,4 @@
-import { MAPGEN } from '../data/mapgen';
+import { LEGACY_MAP_SETTINGS, MAPGEN, type MapSettings, RESOURCE_SETTINGS } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel, resourceById } from '../data/resources';
 import { tileKey } from './geom';
 import { fbm, hash01, hash32, valueNoise } from './rng';
@@ -96,18 +96,26 @@ export class GameMap {
   /** Fällbare Bäume (Holz) und Fruchtbarkeit. */
   readonly trees: TreeField;
 
-  constructor(readonly seed: number) {
+  /** Faktor auf die Menge je Feld (Einstellung Rohstoffe). */
+  private readonly richness: number;
+
+  constructor(readonly seed: number, readonly settings: MapSettings = LEGACY_MAP_SETTINGS) {
     const base = hash32(seed, 77) % 8;
+    this.richness = RESOURCE_SETTINGS[settings.resources].richness;
+    const size = settings.size;
     this.startPatches = MAPGEN.startPatches.map((p, i) => {
       const [dx, dy] = DIRS8[(base + i * 3) % 8];
+      const radius = p.radius * size;
+      // größere Felder etwas weiter weg, damit sie sich nicht überlappen
+      const dist = p.distance * (size > 1 ? 0.55 + 0.5 * size : 1);
       return {
         res: resourceById(p.resource).index,
-        x: dx * p.distance,
-        y: dy * p.distance,
-        radius: p.radius,
+        x: dx * dist,
+        y: dy * dist,
+        radius,
         richness: p.richness,
-        lobes: makeLobes(seed, 9000 + i, 77, p.radius),
-        reach: p.radius * 2.3,
+        lobes: makeLobes(seed, 9000 + i, 77, radius),
+        reach: radius * 2.3,
       };
     });
     // Startsee in einer Richtung, die kein Startfeld belegt (Startfelder: base + 0, 3, 6, 1)
@@ -255,7 +263,8 @@ export class GameMap {
       if (p.x + r >= x0 && p.x - r <= x1 && p.y + r >= y0 && p.y - r <= y1) out.push(p);
     }
     const cell = MAPGEN.patchCell;
-    const reach = MAPGEN.patchRadiusMax * 2.3;
+    const size = this.settings.size;
+    const reach = MAPGEN.patchRadiusMax * size * 2.3;
     const gx0 = Math.floor((x0 - reach) / cell);
     const gx1 = Math.floor((x1 + reach) / cell);
     const gy0 = Math.floor((y0 - reach) / cell);
@@ -267,14 +276,14 @@ export class GameMap {
         const px = (gx + 0.15 + hash01(this.seed, gx, gy, 2) * 0.7) * cell;
         const py = (gy + 0.15 + hash01(this.seed, gx, gy, 3) * 0.7) * cell;
         const dist = Math.sqrt(px * px + py * py);
-        if (dist < MAPGEN.startExclusionRadius) continue;
+        if (dist < MAPGEN.startExclusionRadius * Math.max(1, size * 0.8)) continue;
         let pick = hash01(this.seed, gx, gy, 4) * totalWeight;
         let resId: string = MAPGEN.patchWeights[0].resource;
         for (const w of MAPGEN.patchWeights) {
           if (pick < w.weight) { resId = w.resource; break; }
           pick -= w.weight;
         }
-        const radius = MAPGEN.patchRadiusMin + hash01(this.seed, gx, gy, 5) * (MAPGEN.patchRadiusMax - MAPGEN.patchRadiusMin);
+        const radius = (MAPGEN.patchRadiusMin + hash01(this.seed, gx, gy, 5) * (MAPGEN.patchRadiusMax - MAPGEN.patchRadiusMin)) * size;
         out.push({
           res: resourceById(resId).index,
           x: px,
@@ -425,7 +434,7 @@ export class GameMap {
       const rich = 0.6 + 0.8 * valueNoise(this.seed + bestP.res * 13, x / 4.5, y / 4.5);
       c.resource[i] = bestP.res;
       c.resource0[i] = bestP.res;
-      c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich));
+      c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich * this.richness));
       c.amount0[i] = c.amount[i];
     }
     return c;

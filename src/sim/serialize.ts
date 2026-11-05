@@ -1,3 +1,4 @@
+import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
 import type { ProductionStats } from './stats';
@@ -38,6 +39,8 @@ interface EntityData {
 export interface SaveData {
   version: number;
   seed: number;
+  /** Karteneinstellungen (fehlt bei alten Spielständen: LEGACY_MAP_SETTINGS). */
+  settings?: MapSettings;
   tick: number;
   nextId: number;
   entities: EntityData[];
@@ -93,6 +96,7 @@ export function serializeWorld(w: World): SaveData {
   return {
     version: SAVE_VERSION,
     seed: w.seed,
+    settings: w.settings,
     tick: w.tick,
     nextId: w.nextId,
     entities,
@@ -130,7 +134,7 @@ function entityData(e: Entity): EntityData {
 
 export function deserializeWorld(d: SaveData): World {
   if (d.version !== SAVE_VERSION) throw new Error(`Spielstandversion ${d.version} wird nicht unterstützt`);
-  const w = new World(d.seed);
+  const w = new World(d.seed, d.settings ? { ...LEGACY_MAP_SETTINGS, ...d.settings } : LEGACY_MAP_SETTINGS);
   w.tick = d.tick;
   w.map.loadModifications(d.map);
   if (d.water) w.map.loadWater(d.water);

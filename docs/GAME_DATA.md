@@ -327,3 +327,12 @@ geschüttet (wie im Original), nicht mehr verworfen.
 5. ~~Strom des Greifarms~~ – erledigt durch Wiki (6,65 kJ je Zyklus, Grundlast 0,4 kW).
 6. **Ausgabestau der Montagemaschine:** Montagemaschine mit Zahnrad-Rezept, Zutaten von Hand, kein
    Ausgabe-Greifarm. Nach 30 s die Ergebnismenge ablesen (Projekt: 2).
+
+## Karteneinstellungen (neue Runde, Wunsch 05.11.2026)
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Rohstoffe leicht / mittel / schwer | Menge je Feld × 25 / × 4 / × 1 (Grundwerte) | Wunsch („leicht fast unendlich, schwer wie bisher“); Original: Einstellung „Reichtum“ |
+| Feldgröße | × 1,8 gegenüber den Grundwerten (Radius), Startfelder entsprechend weiter weg | Wunsch („deutlich größer“); Original: Einstellung „Größe“ |
+| Alte Spielstände | ohne gespeicherte Einstellung: Größe 1, schwer, keine Gegner (Karte bleibt gleich) | – |
+| Handabbau Rohstoffe | Abbautempo 0,5 × 3 | Wunsch (bewusste Abweichung) |

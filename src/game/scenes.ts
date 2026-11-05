@@ -1,3 +1,4 @@
+import { DEFAULT_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { Dir } from '../sim/geom';
 import { resourceById } from '../data/resources';
 import { type AssemblerEntity, type Entity, type LabEntity, insertInto, itemIndex } from '../sim/machines';
@@ -14,17 +15,17 @@ export interface Scene {
 
 export type SceneName = 'freeplay' | 'sandbox' | 'stress' | 'demo';
 
-export function createScene(name: SceneName, seed = 12345): Scene {
+export function createScene(name: SceneName, seed = 12345, settings: MapSettings = DEFAULT_MAP_SETTINGS): Scene {
   switch (name) {
     case 'stress': return stressScene();
     case 'demo': return demoScene(seed);
     case 'sandbox': return sandboxScene(seed);
-    default: return freeplayScene(seed);
+    default: return freeplayScene(seed, settings);
   }
 }
 
-export function freeplayScene(seed: number): Scene {
-  const world = new World(seed);
+export function freeplayScene(seed: number, settings: MapSettings = DEFAULT_MAP_SETTINGS): Scene {
+  const world = new World(seed, settings);
   const p = new Player(0.5, 0.5);
   p.giveStart();
   world.player = p;

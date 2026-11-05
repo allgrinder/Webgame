@@ -327,6 +327,23 @@ export class World {
     return true;
   }
 
+  /** Item in der Nähe auf den Boden legen: freie Stelle spiralförmig um (px, py) suchen (wie Ausschütten im Original). */
+  spill(px: number, py: number, item: string): boolean {
+    const step = GROUND_SPACING;
+    for (let ring = 0; ring < 40; ring++) {
+      if (ring === 0) {
+        if (this.dropGround(px, py, item)) return true;
+        continue;
+      }
+      for (let i = -ring; i <= ring; i++) {
+        for (const [dx, dy] of [[i, -ring], [i, ring], [-ring, i], [ring, i]] as const) {
+          if (this.dropGround(px + dx * step, py + dy * step, item)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
   takeGround(tx: number, ty: number, accept: (item: string) => boolean = () => true): string | null {
     const k = tileKey(tx, ty);
     const list = this.ground.get(k);

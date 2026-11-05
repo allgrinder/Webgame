@@ -77,6 +77,7 @@ interface PlayerData {
   mine: MineTarget | null;
   mineProgress: number;
   mineTotal: number;
+  god?: boolean;
 }
 
 export function serializeWorld(w: World): SaveData {
@@ -117,6 +118,7 @@ export function serializeWorld(w: World): SaveData {
         mine: p.mineTarget ? { ...p.mineTarget } : null,
         mineProgress: p.mineProgress,
         mineTotal: p.mineTotal,
+        god: p.god,
       }
       : null,
   };
@@ -155,6 +157,7 @@ export function deserializeWorld(d: SaveData): World {
     const pd = d.player;
     const p = new Player(0, 0);
     p.px = pd.px;
+    p.god = !!pd.god;
     p.py = pd.py;
     p.prevPx = pd.ppx;
     p.prevPy = pd.ppy;

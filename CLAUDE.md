@@ -25,7 +25,7 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Richtungen 0=N,1=E,2=S,3=W; y wächst nach Süden. Gebäude-`dir` = Ausgaberichtung (Greifarm: Ablagerichtung).
 - Bandspur 0 = links, 1 = rechts in Laufrichtung. Positionen 256 pro Feld.
 - Spielstand: `src/sim/serialize.ts` (JSON), IndexedDB in `src/game/save.ts`.
-- Szenen über `?scene=freeplay|demo|sandbox|stress`.
+- Szenen über `?scene=freeplay|demo|sandbox|stress`; Gottmodus (Testhilfe) über `?god`.
 
 ## Stand
 - M1 Bänder: fertig.

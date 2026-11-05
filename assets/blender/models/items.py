@@ -173,12 +173,24 @@ def render_new(out):
     finish(out, 'item.fast-transport-belt', root, scale=0.95)
 
 
+def steel_ingots(m):
+    """Stahl: dunkle, bläuliche, dicke Barren mit Fase, über Kreuz gestapelt (deutlich anders als Eisenblech)."""
+    import bauten
+    st = bauten.weathered('a_steelingot', '#3e4855', metal=0.95, rough=0.3, rust=0.0, dust=0.1, edge=0.6, grime=0.1)
+    o = []
+    for k, (x, y, z, rot) in enumerate(((-0.12, 0, 0.07, 0), (0.12, 0, 0.07, 0), (0, 0, 0.21, 90))):
+        o.append(eisen.box(f'ingot{k}', (0.2, 0.62, 0.14), (x, y, z), st, bevel=0.035, rot=(0, 0, math.radians(rot))))
+    root = eisen.parent_all(o, 'steel')
+    root.rotation_euler = (0, 0, math.radians(25))
+    return root
+
+
 def render_early(out):
     """Items der frühen Phase (Holz, Stahl, Masten, Montage 2 …)."""
     import bauten
     simple = [
         ('wood', lambda m: anlagen.wood_logs(m), 1.0),
-        ('steel-plate', lambda m: anlagen.steel_plates(m), 1.0),
+        ('steel-plate', steel_ingots, 1.0),
         ('engine-unit', lambda m: anlagen.engine_unit(m), 1.15),
         ('landfill', lambda m: anlagen.landfill_pile(m), 1.1),
         ('wooden-chest', lambda m: anlagen.wooden_chest(m), 0.8),

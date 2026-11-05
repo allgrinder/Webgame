@@ -17,6 +17,18 @@ export const PLAYER = {
   groundPickupDistance: 1,
 } as const;
 
+/**
+ * Gottmodus (eigener Link `?god`, Testhilfe – nicht im Original): schneller Handabbau, Handwerk, Laufen, Reichweite.
+ */
+export const GOD = {
+  /** Handabbau von Erz/Stein/Kohle: Stück je Sekunde. */
+  minePerSecond: 40,
+  /** Faktor für Handwerk, Laufen und Reichweite. */
+  craftingSpeed: 20,
+  runningFactor: 2,
+  reachFactor: 3,
+} as const;
+
 /** Freeplay-Startausrüstung. */
 export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'iron-plate', amount: 8 },

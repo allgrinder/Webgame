@@ -305,6 +305,12 @@ Silo 9×9, 4 MW, Tempo 1, 4 Module; Raketenteil 10 Leichtbauteile + 10 Prozessor
 100 Teile je Rakete; 1632 Ticks je Start; Satellit → 1000 Weltraum-Pakete am Fracht-Landeplatz (8×8, 80 Plätze) ~29 s
 nach dem Start. Erster Start: Sieg.
 
+## Gottmodus (Testhilfe, nicht im Original, `src/data/player.ts` GOD)
+
+Link `?god` startet eine neue Runde: Handabbau 40 Stück/s, Bäume und Gebäude sofort, Handwerk ×20, Laufen ×2,
+Reichweite ×3. Der Modus wird im Spielstand gespeichert. Volles Inventar beim Handwerk: Ergebnis wird neben die Figur
+geschüttet (wie im Original), nicht mehr verworfen.
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf

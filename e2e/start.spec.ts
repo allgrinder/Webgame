@@ -51,3 +51,11 @@ test('Demo: Stromteil, Forschungsfenster und Übersichtskarte', async ({ page })
   await page.screenshot({ path: 'test-results/research.png' });
   expect(errors).toEqual([]);
 });
+
+test('Gottmodus-Link: neue Runde mit Gottmodus, ohne Weiterspielen-Dialog', async ({ page }) => {
+  const errors = await openScene(page, '?god');
+  await expect(page.locator('.hud-info')).toContainText('GOTTMODUS');
+  const god = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { player: { god: boolean } } } }).eisenwerk.world.player.god);
+  expect(god).toBe(true);
+  expect(errors).toEqual([]);
+});

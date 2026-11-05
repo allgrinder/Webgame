@@ -1,6 +1,5 @@
 import { entityDef, sizeOf } from '../data/entities';
 import { ITEMS } from '../data/items';
-import { PLAYER } from '../data/player';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import type { SpriteLib } from '../render/assets';
 import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
@@ -67,7 +66,7 @@ export class Game {
     this.input = new Input(renderer.app.canvas);
     this.hud = new Hud(root, this, sprites);
     this.applySceneCamera(scene);
-    this.hud.setTitle(scene.title);
+    this.hud.setTitle(scene.world.player?.god ? `${scene.title} · GOTTMODUS` : scene.title);
     if (this.creative) this.cursorItem = 'transport-belt';
   }
 
@@ -85,7 +84,7 @@ export class Game {
     this.creative = creative;
     this.acc = 0;
     this.lastAutosaveTick = world.tick;
-    this.hud.setTitle(creative ? 'Sandkasten' : `Freies Spiel · Karte ${world.seed}`);
+    this.hud.setTitle(creative ? 'Sandkasten' : `Freies Spiel${world.player?.god ? ' · GOTTMODUS' : ''} · Karte ${world.seed}`);
     if (world.player) {
       this.renderer.camera.x = world.player.px / 256;
       this.renderer.camera.y = world.player.py / 256;
@@ -430,7 +429,7 @@ export class Game {
     const chk = this.world.canPlace(place, x, y, dir);
     let ok = chk.ok;
     const p = this.world.player;
-    if (p && !this.creative && p.distanceTo(x + w / 2, y + h / 2) > PLAYER.buildDistance) ok = false;
+    if (p && !this.creative && p.distanceTo(x + w / 2, y + h / 2) > (p.buildDistance)) ok = false;
     return { name: place, x, y, dir, ok };
   }
 
@@ -676,7 +675,7 @@ export class Game {
       const p = this.world.player;
       if (!p || p.inventory.count(def.item) < 1) return false;
       const [w, h] = sizeOf(def, g.dir);
-      if (p.distanceTo(g.x + w / 2, g.y + h / 2) > PLAYER.buildDistance) return false;
+      if (p.distanceTo(g.x + w / 2, g.y + h / 2) > (p.buildDistance)) return false;
     }
     return this.world.canPlace(g.name, g.x, g.y, g.dir).ok;
   }

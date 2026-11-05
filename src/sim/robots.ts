@@ -285,8 +285,8 @@ export class RobotSystem {
     }
     if (!best) {
       // kein Hangar mehr: Roboter landet als Item auf dem Boden
-      w.dropGround(r.x, r.y, r.kind);
-      for (const s of r.cargo) for (let k = 0; k < s.count; k++) w.dropGround(r.x, r.y, s.item);
+      w.spill(r.x, r.y, r.kind);
+      for (const s of r.cargo) for (let k = 0; k < s.count; k++) w.spill(r.x, r.y, s.item);
       r.cargo = [];
       this.retask(r, { t: 'home', port: -1 });
       return;
@@ -299,7 +299,7 @@ export class RobotSystem {
     for (const s of r.cargo) {
       let left = s.count;
       if (c && c.kind === 'container') left -= c.inventory.add(s.item, left);
-      for (let k = 0; k < left; k++) w.dropGround(r.x, r.y, s.item);
+      for (let k = 0; k < left; k++) w.spill(r.x, r.y, s.item);
     }
     r.cargo = [];
   }

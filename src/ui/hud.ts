@@ -1186,7 +1186,7 @@ export class Hud {
         location.reload();
       });
     });
-    btn('Neues Spiel (neue Karte)', () => { location.search = '?new'; });
+    btn('Neues Spiel (neue Karte)', () => { location.search = this.game.world.player?.god ? '?god' : '?new'; });
     el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);
     if (saves.length) {

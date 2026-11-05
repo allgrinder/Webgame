@@ -1,7 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
-import { PLAYER, START_INVENTORY } from '../data/player';
+import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { secondsToTicks } from '../data/time';
@@ -55,6 +55,9 @@ export class Player {
   onCrafted: (item: string, n: number) => void = () => {};
   /** Von der Welt gesetzt: Verbrauch melden (Statistik). */
   onUsed: (item: string, n: number) => void = () => {};
+  /** Gottmodus (Testhilfe, `?god`): schneller Abbau, Handwerk, Laufen, Reichweite. */
+  god = false;
+  private godAcc = 0;
   /** Vom Spieler abgebaute Gebäude (für Rückgängig; vom Spiel geleert). */
   readonly minedLog: { name: string; x: number; y: number; dir: number }[] = [];
 
@@ -97,7 +100,7 @@ export class Player {
     this.prevPy = this.py;
     this.updateMovement(world);
     this.updateMining(world);
-    this.updateCrafting();
+    this.updateCrafting(world);
     if (this.pickingUp && world.tick % 4 === 0) this.pickUpGround(world);
   }
 
@@ -128,7 +131,7 @@ export class Player {
     this.walking = mx !== 0 || my !== 0;
     if (!this.walking) return;
     if (mx !== 0 || my !== 0) this.facing = my < 0 ? 0 : my > 0 ? 2 : mx > 0 ? 1 : 3;
-    const speed = Math.round(PLAYER.runningSpeed * SUB);
+    const speed = Math.round(PLAYER.runningSpeed * SUB * (this.god ? GOD.runningFactor : 1));
     // Diagonal: 181/256 ≈ 1/√2
     const diag = mx !== 0 && my !== 0;
     const step = diag ? Math.round((speed * 181) / 256) : speed;
@@ -183,11 +186,23 @@ export class Player {
     // Abstand zum nächsten Punkt des Feldes
     const cx = Math.max(x, Math.min(this.x, x + 1));
     const cy = Math.max(y, Math.min(this.y, y + 1));
-    return Math.hypot(this.x - cx, this.y - cy) <= PLAYER.resourceReachDistance;
+    return Math.hypot(this.x - cx, this.y - cy) <= PLAYER.resourceReachDistance * (this.god ? GOD.reachFactor : 1);
   }
 
   canReach(x: number, y: number): boolean {
-    return this.distanceTo(x, y) <= PLAYER.reachDistance;
+    return this.distanceTo(x, y) <= this.reach;
+  }
+
+  /** Reichweite zum Bauen und Öffnen (Felder). */
+  get reach(): number {
+    return PLAYER.reachDistance * (this.god ? GOD.reachFactor : 1);
+  }
+  get buildDistance(): number {
+    return PLAYER.buildDistance * (this.god ? GOD.reachFactor : 1);
+  }
+  /** Abbautempo: im Gottmodus fast sofort (Bäume, Gebäude). */
+  private mineTicks(seconds: number): number {
+    return this.god ? 1 : Math.max(1, secondsToTicks(seconds / PLAYER.miningSpeed));
   }
 
   private updateMining(world: World): void {
@@ -205,7 +220,7 @@ export class Player {
         this.note('Inventar voll');
         return;
       }
-      this.mineTotal = secondsToTicks(kind.mineTime / PLAYER.miningSpeed);
+      this.mineTotal = this.mineTicks(kind.mineTime);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
@@ -227,6 +242,18 @@ export class Player {
         this.note('Inventar voll');
         return;
       }
+      if (this.god) {
+        // Gottmodus: GOD.minePerSecond Stück je Sekunde vom selben Feld
+        this.mineTotal = 1;
+        this.godAcc += GOD.minePerSecond;
+        while (this.godAcc >= 60) {
+          this.godAcc -= 60;
+          if (this.inventory.space(def.result) < 1 || !world.map.mineOne(t.x, t.y)) break;
+          this.inventory.add(def.result, 1);
+          world.stats.made(def.result, 1);
+        }
+        return;
+      }
       this.mineTotal = secondsToTicks(def.miningTime / PLAYER.miningSpeed);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
@@ -246,7 +273,7 @@ export class Player {
         this.mineProgress = 0;
         return;
       }
-      this.mineTotal = Math.max(1, secondsToTicks(def.mineTime / PLAYER.miningSpeed));
+      this.mineTotal = this.mineTicks(def.mineTime);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         const rec = { name: e.name, x: e.x, y: e.y, dir: e.dir };
@@ -340,7 +367,7 @@ export class Player {
         const last = k === jobs.length - 1;
         this.craftQueue.push({
           recipe: j,
-          ticks: secondsToTicks(RECIPES[j].time / PLAYER.craftingSpeed),
+          ticks: Math.max(1, secondsToTicks(RECIPES[j].time / (PLAYER.craftingSpeed * (this.god ? GOD.craftingSpeed : 1)))),
           toInventory: last,
           refund: last ? raw : undefined,
         });
@@ -350,7 +377,7 @@ export class Player {
     return done;
   }
 
-  private updateCrafting(): void {
+  private updateCrafting(world: World): void {
     const job = this.craftQueue[0];
     if (!job) return;
     if (--job.ticks > 0) return;
@@ -360,7 +387,11 @@ export class Player {
     if (!job.toInventory) return; // Zwischenprodukt wird vom folgenden Auftrag verbraucht
     for (const res of RECIPES[job.recipe].results) {
       const added = this.inventory.add(res.item, res.amount);
-      if (added < res.amount) this.note('Inventar voll – Ergebnis verloren');
+      if (added < res.amount) {
+        // Inventar voll: Rest fällt neben die Figur (geht nicht verloren)
+        for (let k = added; k < res.amount; k++) world.spill(this.x, this.y, res.item);
+        this.note('Inventar voll – Ergebnis liegt auf dem Boden');
+      }
     }
   }
 

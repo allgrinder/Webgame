@@ -17,6 +17,9 @@ async function main(): Promise<void> {
   });
   const renderer = await GameRenderer.create(root, sprites);
   const scene = createScene(sceneName, seed);
+  // Gottmodus (?god): neue Runde mit schnellem Abbau/Handwerk zum Testen
+  const god = params.has('god');
+  if (god && scene.world.player) scene.world.player.god = true;
   const warp = Number(params.get('warp') ?? 0);
   if (warp > 0) scene.world.run(Math.min(warp, 60 * 60 * 30));
   const game = new Game(root, renderer, sprites, scene, debug);
@@ -26,7 +29,7 @@ async function main(): Promise<void> {
   (window as unknown as { eisenwerk: Game }).eisenwerk = game;
   document.body.dataset.ready = '1';
   // Weiterspielen anbieten, wenn es Spielstände gibt (nur beim normalen Start des freien Spiels)
-  if (sceneName === 'freeplay' && !params.has('seed') && !params.has('new')) void game.hud.offerContinue();
+  if (sceneName === 'freeplay' && !params.has('seed') && !params.has('new') && !god) void game.hud.offerContinue();
 }
 
 main().catch((err) => {

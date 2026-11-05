@@ -76,8 +76,15 @@ export class InserterEntity extends EntityBase {
    * und im selben Tick den ersten Schritt zurück. Ergibt 2 × halfTurnTicks Ticks je Zyklus (Wiki: 76/70/48).
    */
   override update(w: World): void {
+    // Schaltbedingung: steht still (hält ein gegriffenes Item fest)
+    if (!w.circuit.enabled(this.id)) {
+      this.status = Status.Disabled;
+      return;
+    }
     const { pickup, drop } = this.points();
-    const dst = w.entityAt(drop[0], drop[1]);
+    // Gleise sind für Greifarme durchlässig (dahinter ggf. ein stehender Wagen)
+    const dstRaw = w.entityAt(drop[0], drop[1]);
+    const dst = dstRaw?.kind === 'rail' ? undefined : dstRaw;
     // Ziel: Gebäude (außer Greifarm) oder freier Boden
     const groundTarget = !dst && !w.map.isWater(Math.floor(drop[0]), Math.floor(drop[1]));
     this.targetKind = dst?.kind;

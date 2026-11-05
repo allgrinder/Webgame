@@ -1,4 +1,4 @@
-import { LOCKED_RECIPES, TECHS, TECH_BY_ID, type TechDef } from '../data/tech';
+import { LOCKED_RECIPES, RESEARCH_QUEUE_MAX, TECHS, TECH_BY_ID, type TechDef } from '../data/tech';
 import { secondsToTicks } from '../data/time';
 
 export interface ResearchData {
@@ -8,6 +8,8 @@ export interface ResearchData {
   prog: [string, number][];
   /** Hergestellte Mengen für Auslöser-Forschung. */
   made?: [string, number][];
+  /** Forschungswarteschlange. */
+  q?: string[];
 }
 
 /**
@@ -17,6 +19,8 @@ export interface ResearchData {
  */
 export class ResearchSystem {
   current: string | null = null;
+  /** Warteschlange (ohne die laufende Forschung); wird nach Abschluss der laufenden abgearbeitet. */
+  readonly queue: string[] = [];
   readonly done = new Set<string>();
   readonly progress = new Map<string, number>();
   private readonly unlocked = new Set<string>();
@@ -67,7 +71,58 @@ export class ResearchSystem {
     }
     if (!this.available(id) || TECH_BY_ID[id].trigger) return false;
     this.current = id;
+    const i = this.queue.indexOf(id);
+    if (i >= 0) this.queue.splice(i, 1);
     return true;
+  }
+
+  /**
+   * In die Warteschlange stellen; fehlende Voraussetzungen kommen davor (wie im Original).
+   * Liefert false, wenn nichts hinzukam (erforscht, schon eingereiht oder Schlange voll).
+   */
+  enqueue(id: string): boolean {
+    if (!TECH_BY_ID[id] || this.done.has(id) || this.current === id || this.queue.includes(id)) return false;
+    const add: string[] = [];
+    const visit = (t: string) => {
+      if (this.done.has(t) || this.current === t || this.queue.includes(t) || add.includes(t)) return;
+      for (const p of TECH_BY_ID[t].prerequisites) visit(p);
+      add.push(t);
+    };
+    visit(id);
+    const labs = add.filter((t) => !TECH_BY_ID[t].trigger);
+    if (this.queue.length + labs.length > RESEARCH_QUEUE_MAX) return false;
+    this.queue.push(...labs);
+    if (!this.current) this.advance();
+    return true;
+  }
+
+  /** Aus der Schlange nehmen, samt eingereihter Technologien, die darauf aufbauen. */
+  dequeue(id: string): void {
+    const drop = new Set([id]);
+    let grown = true;
+    while (grown) {
+      grown = false;
+      for (const t of this.queue) {
+        if (!drop.has(t) && TECH_BY_ID[t].prerequisites.some((p) => drop.has(p))) {
+          drop.add(t);
+          grown = true;
+        }
+      }
+    }
+    for (let i = this.queue.length - 1; i >= 0; i--) if (drop.has(this.queue[i])) this.queue.splice(i, 1);
+    if (this.current && drop.has(this.current)) {
+      this.current = null;
+      this.advance();
+    }
+  }
+
+  /** Nächste erforschbare Technologie aus der Schlange starten. */
+  private advance(): void {
+    if (this.current) return;
+    const i = this.queue.findIndex((t) => this.available(t) && !TECH_BY_ID[t].trigger);
+    if (i < 0) return;
+    this.current = this.queue[i];
+    this.queue.splice(i, 1);
   }
 
   get currentTech(): TechDef | null {
@@ -99,8 +154,11 @@ export class ResearchSystem {
     this.progress.delete(id);
     for (const r of t.unlocks) this.unlocked.add(r);
     if (this.current === id) this.current = null;
+    const qi = this.queue.indexOf(id);
+    if (qi >= 0) this.queue.splice(qi, 1);
     this.finished.push(id);
     this.checkTriggers();
+    this.advance();
   }
 
   recipeUnlocked(recipe: string): boolean {
@@ -113,6 +171,7 @@ export class ResearchSystem {
       done: TECHS.filter((t) => this.done.has(t.id)).map((t) => t.id),
       prog: [...this.progress.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)),
       made: [...this.made.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)),
+      q: [...this.queue],
     };
   }
 
@@ -121,6 +180,8 @@ export class ResearchSystem {
     this.finished.length = 0;
     for (const [id, p] of d.prog) this.progress.set(id, p);
     for (const [item, n] of d.made ?? []) this.made.set(item, n);
+    this.queue.length = 0;
+    this.queue.push(...(d.q ?? []));
     this.current = d.cur;
   }
 }

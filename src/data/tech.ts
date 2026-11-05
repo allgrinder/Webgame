@@ -26,6 +26,9 @@ export interface TechDef {
 const RED = ['automation-science-pack'];
 const RED_GREEN = ['automation-science-pack', 'logistic-science-pack'];
 const RGB = ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack'];
+const RGBP = [...RGB, 'production-science-pack'];
+const RGBU = [...RGB, 'utility-science-pack'];
+const RGBPU = [...RGBP, 'utility-science-pack'];
 
 export const TECHS: readonly TechDef[] = [
   {
@@ -78,6 +81,14 @@ export const TECHS: readonly TechDef[] = [
   { id: 'advanced-circuit', name: 'Fortgeschrittene Schaltkreise', count: 200, time: 15, packs: RED_GREEN, prerequisites: ['plastics'], unlocks: ['advanced-circuit'] },
   { id: 'sulfur-processing', name: 'Schwefelverarbeitung', count: 150, time: 30, packs: RED_GREEN, prerequisites: ['oil-processing'], unlocks: ['sulfur', 'sulfuric-acid'] },
   { id: 'battery', name: 'Batterie', count: 150, time: 30, packs: RED_GREEN, prerequisites: ['sulfur-processing'], unlocks: ['battery'] },
+  {
+    id: 'solar-energy', name: 'Solarenergie', count: 250, time: 30, packs: RED_GREEN,
+    prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['solar-panel'],
+  },
+  {
+    id: 'electric-energy-accumulators', name: 'Akkumulatoren', count: 150, time: 30, packs: RED_GREEN,
+    prerequisites: ['battery', 'electric-energy-distribution-1'], unlocks: ['accumulator'],
+  },
   { id: 'explosives', name: 'Sprengstoff', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['sulfur-processing'], unlocks: ['explosives'] },
   {
     id: 'chemical-science-pack', name: 'Chemie-Wissenschaft', count: 75, time: 10, packs: RED_GREEN,
@@ -101,9 +112,80 @@ export const TECHS: readonly TechDef[] = [
     id: 'logistics-2', name: 'Logistik 2', count: 200, time: 30, packs: RED_GREEN,
     prerequisites: ['logistics', 'logistic-science-pack'], unlocks: ['fast-transport-belt', 'fast-underground-belt', 'fast-splitter'],
   },
+  // Spätes Spiel (2.0): Module, Leuchtfeuer, Montage 3, Logistik 3, Produktions-/Hightech-Wissenschaft
+  { id: 'modules', name: 'Module', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['advanced-circuit'], unlocks: [] },
+  { id: 'speed-module', name: 'Geschwindigkeitsmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['speed-module'] },
+  { id: 'productivity-module', name: 'Produktivitätsmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['productivity-module'] },
+  { id: 'efficiency-module', name: 'Effizienzmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['efficiency-module'] },
+  { id: 'processing-unit', name: 'Prozessor', count: 300, time: 30, packs: RGB, prerequisites: ['chemical-science-pack'], unlocks: ['processing-unit'] },
+  ...(['speed', 'productivity', 'efficiency'] as const).map((k) => ({
+    id: `${k}-module-2`, name: `${k === 'speed' ? 'Geschwindigkeits' : k === 'productivity' ? 'Produktivitäts' : 'Effizienz'}modul 2`,
+    count: 75, time: 30, packs: RGB, prerequisites: ['processing-unit', `${k}-module`], unlocks: [`${k}-module-2`],
+  })),
+  {
+    id: 'low-density-structure', name: 'Leichtbauteil', count: 300, time: 45, packs: RGB,
+    prerequisites: ['advanced-material-processing', 'chemical-science-pack'], unlocks: ['low-density-structure'],
+  },
+  { id: 'railway', name: 'Eisenbahn', count: 75, time: 30, packs: RED_GREEN, prerequisites: ['engine', 'logistics-2'], unlocks: ['cargo-wagon', 'iron-stick', 'locomotive', 'rail'] },
+  {
+    id: 'automated-rail-transportation', name: 'Automatischer Schienenverkehr', count: 200, time: 30, packs: RED_GREEN, prerequisites: ['railway'],
+    unlocks: ['train-stop'],
+  },
+  {
+    id: 'production-science-pack', name: 'Produktions-Wissenschaftspaket', count: 100, time: 30, packs: RGB,
+    prerequisites: ['advanced-material-processing-2', 'productivity-module', 'railway'], unlocks: ['production-science-pack'],
+  },
+  ...(['speed', 'productivity', 'efficiency'] as const).map((k) => ({
+    id: `${k}-module-3`, name: `${k === 'speed' ? 'Geschwindigkeits' : k === 'productivity' ? 'Produktivitäts' : 'Effizienz'}modul 3`,
+    count: 300, time: 60, packs: RGBP, prerequisites: ['production-science-pack', `${k}-module-2`], unlocks: [`${k}-module-3`],
+  })),
+  { id: 'effect-transmission', name: 'Wirkungsübertragung', count: 75, time: 30, packs: RGBP, prerequisites: ['processing-unit', 'production-science-pack'], unlocks: ['beacon'] },
+  {
+    id: 'automation-3', name: 'Automatisierung 3', count: 150, time: 60, packs: RGBP,
+    prerequisites: ['electric-engine', 'production-science-pack', 'speed-module'], unlocks: ['assembling-machine-3'],
+  },
+  {
+    id: 'logistics-3', name: 'Logistik 3', count: 300, time: 15, packs: RGBP, prerequisites: ['lubricant', 'production-science-pack'],
+    unlocks: ['express-transport-belt', 'express-underground-belt', 'express-splitter'],
+  },
+  { id: 'flammables', name: 'Brennstoffe', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['oil-processing'], unlocks: [] },
+  { id: 'rocket-fuel', name: 'Raketentreibstoff', count: 300, time: 45, packs: RGB, prerequisites: ['advanced-oil-processing', 'flammables'], unlocks: ['rocket-fuel'] },
+  { id: 'robotics', name: 'Robotik', count: 75, time: 30, packs: RGB, prerequisites: ['battery', 'electric-engine'], unlocks: ['flying-robot-frame'] },
+  {
+    id: 'utility-science-pack', name: 'Hightech-Wissenschaftspaket', count: 100, time: 30, packs: RGB,
+    prerequisites: ['low-density-structure', 'processing-unit', 'robotics'], unlocks: ['utility-science-pack'],
+  },
+  {
+    id: 'construction-robotics', name: 'Bauroboter', count: 100, time: 30, packs: RGB, prerequisites: ['robotics'],
+    unlocks: ['construction-robot', 'passive-provider-chest', 'roboport', 'storage-chest'],
+  },
+  {
+    id: 'logistic-robotics', name: 'Logistikroboter', count: 250, time: 30, packs: RGB, prerequisites: ['robotics'],
+    unlocks: ['logistic-robot', 'passive-provider-chest', 'roboport', 'storage-chest'],
+  },
+  {
+    id: 'logistic-system', name: 'Logistiksystem', count: 500, time: 30, packs: RGBU, prerequisites: ['logistic-robotics', 'utility-science-pack'],
+    unlocks: ['active-provider-chest', 'buffer-chest', 'requester-chest'],
+  },
+  {
+    id: 'circuit-network', name: 'Schaltungsnetz', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['logistic-science-pack'],
+    unlocks: ['arithmetic-combinator', 'constant-combinator', 'decider-combinator', 'iron-stick'],
+  },
+  { id: 'radar', name: 'Radar', count: 20, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['radar'] },
+  {
+    id: 'rocket-silo', name: 'Raketensilo', count: 1000, time: 60, packs: RGBPU,
+    prerequisites: [
+      'concrete', 'electric-energy-accumulators', 'productivity-module-3', 'radar', 'rocket-fuel', 'solar-energy', 'speed-module-3', 'utility-science-pack',
+    ],
+    unlocks: ['cargo-landing-pad', 'rocket-part', 'rocket-silo', 'satellite'],
+  },
+  { id: 'concrete', name: 'Beton', count: 250, time: 30, packs: RED_GREEN, prerequisites: ['advanced-material-processing', 'automation-2'], unlocks: ['concrete', 'iron-stick'] },
 ];
 
 export const TECH_BY_ID: Readonly<Record<string, TechDef>> = Object.fromEntries(TECHS.map((t) => [t.id, t]));
 
 /** Rezepte, die erst durch Forschung freigeschaltet werden. */
+/** Länge der Forschungswarteschlange (Wiki „Research“: bis zu 7 Technologien). */
+export const RESEARCH_QUEUE_MAX = 7;
+
 export const LOCKED_RECIPES: ReadonlySet<string> = new Set(TECHS.flatMap((t) => t.unlocks));

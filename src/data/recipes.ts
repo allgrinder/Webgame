@@ -8,7 +8,7 @@
  * crafting-with-fluid: Montagemaschine 2/3 mit Flüssigkeit (z. B. Schmiermittel), oil-processing: Raffinerie,
  * chemistry: Chemiefabrik. Flüssigkeiten in Zutaten/Ergebnissen erkennt man an FLUIDS (src/data/fluids.ts).
  */
-export type RecipeCategory = 'crafting' | 'advanced-crafting' | 'crafting-with-fluid' | 'oil-processing' | 'chemistry' | 'smelting';
+export type RecipeCategory = 'rocket-building' | 'crafting' | 'advanced-crafting' | 'crafting-with-fluid' | 'oil-processing' | 'chemistry' | 'smelting';
 
 export interface ItemAmount {
   readonly item: string;
@@ -190,6 +190,15 @@ const list: RecipeDef[] = [
     results: [{ item: 'electric-furnace', amount: 1 }],
   },
   {
+    id: 'solar-panel', category: 'crafting', time: 10,
+    ingredients: [{ item: 'copper-plate', amount: 5 }, { item: 'electronic-circuit', amount: 15 }, { item: 'steel-plate', amount: 5 }],
+    results: [{ item: 'solar-panel', amount: 1 }],
+  },
+  {
+    id: 'accumulator', category: 'crafting', time: 10,
+    ingredients: [{ item: 'battery', amount: 5 }, { item: 'iron-plate', amount: 2 }], results: [{ item: 'accumulator', amount: 1 }],
+  },
+  {
     id: 'substation', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'copper-cable', amount: 6 }, { item: 'steel-plate', amount: 10 }],
     results: [{ item: 'substation', amount: 1 }],
@@ -259,6 +268,141 @@ const list: RecipeDef[] = [
     results: [{ item: 'logistic-science-pack', amount: 1 }],
   },
   { id: 'iron-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 8 }], results: [{ item: 'iron-chest', amount: 1 }] },
+  // Spätes Spiel (Wiki-Rezepte 2.0)
+  ...(['speed', 'productivity', 'efficiency'] as const).flatMap((k) => [
+    {
+      id: `${k}-module`, category: 'crafting' as const, time: 15,
+      ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'electronic-circuit', amount: 5 }], results: [{ item: `${k}-module`, amount: 1 }],
+    },
+    {
+      id: `${k}-module-2`, category: 'crafting' as const, time: 30,
+      ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'processing-unit', amount: 5 }, { item: `${k}-module`, amount: 4 }],
+      results: [{ item: `${k}-module-2`, amount: 1 }],
+    },
+    {
+      id: `${k}-module-3`, category: 'crafting' as const, time: 60,
+      ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'processing-unit', amount: 5 }, { item: `${k}-module-2`, amount: 4 }],
+      results: [{ item: `${k}-module-3`, amount: 1 }],
+    },
+  ]),
+  {
+    id: 'beacon', category: 'crafting', time: 15,
+    ingredients: [{ item: 'advanced-circuit', amount: 20 }, { item: 'copper-cable', amount: 10 }, { item: 'electronic-circuit', amount: 20 }, { item: 'steel-plate', amount: 10 }],
+    results: [{ item: 'beacon', amount: 1 }],
+  },
+  {
+    id: 'assembling-machine-3', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'assembling-machine-2', amount: 2 }, { item: 'speed-module', amount: 4 }], results: [{ item: 'assembling-machine-3', amount: 1 }],
+  },
+  {
+    id: 'processing-unit', category: 'crafting-with-fluid', time: 10,
+    ingredients: [{ item: 'electronic-circuit', amount: 20 }, { item: 'advanced-circuit', amount: 2 }, { item: 'sulfuric-acid', amount: 5 }],
+    results: [{ item: 'processing-unit', amount: 1 }],
+  },
+  {
+    id: 'low-density-structure', category: 'crafting', time: 15,
+    ingredients: [{ item: 'copper-plate', amount: 20 }, { item: 'steel-plate', amount: 2 }, { item: 'plastic-bar', amount: 5 }],
+    results: [{ item: 'low-density-structure', amount: 1 }],
+  },
+  {
+    id: 'rocket-fuel', category: 'crafting-with-fluid', time: 15,
+    ingredients: [{ item: 'light-oil', amount: 10 }, { item: 'solid-fuel', amount: 10 }], results: [{ item: 'rocket-fuel', amount: 1 }],
+  },
+  {
+    id: 'flying-robot-frame', category: 'crafting', time: 20,
+    ingredients: [{ item: 'battery', amount: 2 }, { item: 'electric-engine-unit', amount: 1 }, { item: 'electronic-circuit', amount: 3 }, { item: 'steel-plate', amount: 1 }],
+    results: [{ item: 'flying-robot-frame', amount: 1 }],
+  },
+  {
+    id: 'production-science-pack', category: 'crafting', time: 21,
+    ingredients: [{ item: 'electric-furnace', amount: 1 }, { item: 'productivity-module', amount: 1 }, { item: 'rail', amount: 30 }],
+    results: [{ item: 'production-science-pack', amount: 3 }],
+  },
+  {
+    id: 'utility-science-pack', category: 'crafting', time: 21,
+    ingredients: [{ item: 'flying-robot-frame', amount: 1 }, { item: 'low-density-structure', amount: 3 }, { item: 'processing-unit', amount: 2 }],
+    results: [{ item: 'utility-science-pack', amount: 3 }],
+  },
+  {
+    id: 'concrete', category: 'crafting-with-fluid', time: 10,
+    ingredients: [{ item: 'iron-ore', amount: 1 }, { item: 'stone-brick', amount: 5 }, { item: 'water', amount: 100 }], results: [{ item: 'concrete', amount: 10 }],
+  },
+  {
+    id: 'roboport', category: 'crafting', time: 5,
+    ingredients: [{ item: 'advanced-circuit', amount: 45 }, { item: 'iron-gear-wheel', amount: 45 }, { item: 'steel-plate', amount: 45 }],
+    results: [{ item: 'roboport', amount: 1 }],
+  },
+  {
+    id: 'construction-robot', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 2 }, { item: 'flying-robot-frame', amount: 1 }], results: [{ item: 'construction-robot', amount: 1 }],
+  },
+  {
+    id: 'logistic-robot', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'advanced-circuit', amount: 2 }, { item: 'flying-robot-frame', amount: 1 }], results: [{ item: 'logistic-robot', amount: 1 }],
+  },
+  ...['passive-provider-chest', 'active-provider-chest', 'storage-chest', 'requester-chest', 'buffer-chest'].map((id) => ({
+    id, category: 'crafting' as const, time: 0.5,
+    ingredients: [{ item: 'advanced-circuit', amount: 1 }, { item: 'electronic-circuit', amount: 3 }, { item: 'steel-chest', amount: 1 }],
+    results: [{ item: id, amount: 1 }],
+  })),
+  {
+    id: 'rocket-silo', category: 'crafting', time: 30,
+    ingredients: [
+      { item: 'concrete', amount: 1000 }, { item: 'electric-engine-unit', amount: 200 }, { item: 'pipe', amount: 100 },
+      { item: 'processing-unit', amount: 200 }, { item: 'steel-plate', amount: 1000 },
+    ],
+    results: [{ item: 'rocket-silo', amount: 1 }],
+  },
+  {
+    id: 'rocket-part', category: 'rocket-building', time: 3,
+    ingredients: [{ item: 'low-density-structure', amount: 10 }, { item: 'processing-unit', amount: 10 }, { item: 'rocket-fuel', amount: 10 }],
+    results: [{ item: 'rocket-part', amount: 1 }],
+  },
+  {
+    id: 'satellite', category: 'crafting', time: 5,
+    ingredients: [
+      { item: 'accumulator', amount: 100 }, { item: 'low-density-structure', amount: 100 }, { item: 'processing-unit', amount: 100 },
+      { item: 'radar', amount: 5 }, { item: 'rocket-fuel', amount: 50 }, { item: 'solar-panel', amount: 100 },
+    ],
+    results: [{ item: 'satellite', amount: 1 }],
+  },
+  {
+    id: 'cargo-landing-pad', category: 'crafting', time: 30,
+    ingredients: [{ item: 'concrete', amount: 200 }, { item: 'processing-unit', amount: 10 }, { item: 'steel-plate', amount: 25 }],
+    results: [{ item: 'cargo-landing-pad', amount: 1 }],
+  },
+  {
+    id: 'radar', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 5 }, { item: 'iron-gear-wheel', amount: 5 }, { item: 'iron-plate', amount: 10 }],
+    results: [{ item: 'radar', amount: 1 }],
+  },
+  {
+    id: 'constant-combinator', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'copper-cable', amount: 5 }, { item: 'electronic-circuit', amount: 2 }], results: [{ item: 'constant-combinator', amount: 1 }],
+  },
+  ...['arithmetic-combinator', 'decider-combinator'].map((id) => ({
+    id, category: 'crafting' as const, time: 0.5,
+    ingredients: [{ item: 'copper-cable', amount: 5 }, { item: 'electronic-circuit', amount: 5 }], results: [{ item: id, amount: 1 }],
+  })),
+  {
+    id: 'locomotive', category: 'crafting', time: 4,
+    ingredients: [{ item: 'electronic-circuit', amount: 10 }, { item: 'engine-unit', amount: 20 }, { item: 'steel-plate', amount: 30 }],
+    results: [{ item: 'locomotive', amount: 1 }],
+  },
+  {
+    id: 'cargo-wagon', category: 'crafting', time: 1,
+    ingredients: [{ item: 'iron-gear-wheel', amount: 10 }, { item: 'iron-plate', amount: 20 }, { item: 'steel-plate', amount: 20 }],
+    results: [{ item: 'cargo-wagon', amount: 1 }],
+  },
+  {
+    id: 'train-stop', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'electronic-circuit', amount: 5 }, { item: 'iron-plate', amount: 6 }, { item: 'iron-stick', amount: 6 }, { item: 'steel-plate', amount: 3 }],
+    results: [{ item: 'train-stop', amount: 1 }],
+  },
+  {
+    id: 'rail', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'iron-stick', amount: 1 }, { item: 'steel-plate', amount: 1 }, { item: 'stone', amount: 1 }], results: [{ item: 'rail', amount: 2 }],
+  },
 ];
 
 export const RECIPES: Readonly<Record<string, RecipeDef>> = Object.freeze(Object.fromEntries(list.map((r) => [r.id, r])));

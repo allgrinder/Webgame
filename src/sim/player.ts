@@ -53,6 +53,8 @@ export class Player {
   recipeUnlocked: (recipe: string) => boolean = () => true;
   /** Von der Welt gesetzt: Herstellung melden (Auslöser-Forschung). */
   onCrafted: (item: string, n: number) => void = () => {};
+  /** Von der Welt gesetzt: Verbrauch melden (Statistik). */
+  onUsed: (item: string, n: number) => void = () => {};
   /** Vom Spieler abgebaute Gebäude (für Rückgängig; vom Spiel geleert). */
   readonly minedLog: { name: string; x: number; y: number; dir: number }[] = [];
 
@@ -206,7 +208,10 @@ export class Player {
       this.mineTotal = secondsToTicks(kind.mineTime / PLAYER.miningSpeed);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
-        if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) this.inventory.add('wood', kind.wood);
+        if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
+          this.inventory.add('wood', kind.wood);
+          world.stats.made('wood', kind.wood);
+        }
         this.mineTarget = null;
       }
       return;
@@ -225,7 +230,10 @@ export class Player {
       this.mineTotal = secondsToTicks(def.miningTime / PLAYER.miningSpeed);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
-        if (world.map.mineOne(t.x, t.y)) this.inventory.add(def.result, 1);
+        if (world.map.mineOne(t.x, t.y)) {
+          this.inventory.add(def.result, 1);
+          world.stats.made(def.result, 1);
+        }
       }
     } else {
       const e = world.entities.get(t.id);
@@ -347,6 +355,7 @@ export class Player {
     if (!job) return;
     if (--job.ticks > 0) return;
     this.craftQueue.shift();
+    for (const ing of RECIPES[job.recipe].ingredients) this.onUsed(ing.item, ing.amount);
     for (const res of RECIPES[job.recipe].results) this.onCrafted(res.item, res.amount);
     if (!job.toInventory) return; // Zwischenprodukt wird vom folgenden Auftrag verbraucht
     for (const res of RECIPES[job.recipe].results) {

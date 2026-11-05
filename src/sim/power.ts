@@ -1,9 +1,13 @@
 import type { PoleDef } from '../data/entities';
 import type { ElectricSource } from './energy';
+import { ProductionStats } from './stats';
 import type { World } from './world';
 
-/** Stromerzeuger (Dampfmaschine). */
+/** Stromerzeuger. Vorrang wie im Original: 'primary' (Solar) vor 'secondary' (Dampf) vor Akkumulatoren. */
 export interface Generator {
+  readonly priority?: 'primary' | 'secondary';
+  /** Tageslicht 0..1 (nur Solar), vom Netz gesetzt. */
+  light?: number;
   /** Mögliche Leistung in diesem Tick (J). */
   potential(): number;
   /** Tatsächlich abgerufene Energie (J); verbraucht Dampf. */
@@ -12,6 +16,29 @@ export interface Generator {
 
 export function isGenerator(e: unknown): e is Generator {
   return typeof (e as Generator | null)?.potential === 'function';
+}
+
+/** Speicher im Netz (Akkumulator). */
+export interface Storage {
+  chargeRoom(): number;
+  dischargeMax(): number;
+  charge(j: number): void;
+  discharge(j: number): void;
+}
+
+export function isStorage(e: unknown): e is Storage {
+  return typeof (e as Storage | null)?.chargeRoom === 'function';
+}
+
+/** Verteilt amount anteilig nach weights (ganzzahlig, Rest an die ersten). */
+function share(amount: number, weights: number[], total: number, apply: (i: number, j: number) => void): void {
+  if (amount <= 0 || total <= 0) return;
+  let left = amount;
+  weights.forEach((w, i) => {
+    const j = Math.min(left, Math.ceil((amount * w) / total));
+    if (j > 0) apply(i, j);
+    left -= j;
+  });
 }
 
 /** Gebäude mit elektrischem Verbrauch. */
@@ -28,10 +55,23 @@ export class PowerNet {
   readonly poles: number[] = [];
   readonly consumers: ElectricSource[] = [];
   readonly generators: Generator[] = [];
+  readonly storages: Storage[] = [];
+  /** Gebäudenamen parallel zu consumers/generators/storages (Statistik). */
+  readonly consumerNames: string[] = [];
+  readonly generatorNames: string[] = [];
+  readonly storageNames: string[] = [];
+  /** Schlüssel des Netzes (kleinste Mast-ID) und seine Statistik (J je Gebäudeart). */
+  key = 0;
+  stats = new ProductionStats();
   /** Statistik des letzten Ticks (J/Tick). */
   demand = 0;
   supplied = 0;
   potential = 0;
+  /** Davon aus Solar, Dampf, Akkumulatoren; in die Akkumulatoren geladen. */
+  fromPrimary = 0;
+  fromSecondary = 0;
+  fromStorage = 0;
+  charged = 0;
 }
 
 /**
@@ -45,6 +85,8 @@ export class PowerSystem {
   wires: [number, number][] = [];
   /** Netz je Gebäude-ID (Masten, Verbraucher, Erzeuger). */
   readonly netOf = new Map<number, PowerNet>();
+  /** Statistik je Netzschlüssel, bleibt über Umbauten erhalten. */
+  private readonly statsByKey = new Map<number, ProductionStats>();
 
   ensure(w: World): void {
     if (this.version === w.structureVersion) return;
@@ -92,13 +134,20 @@ export class PowerSystem {
       net.poles.push(p.id);
       this.netOf.set(p.id, net);
     }
+    for (const net of nets) {
+      net.key = net.poles[0];
+      net.stats = this.statsByKey.get(net.key) ?? new ProductionStats();
+    }
+    this.statsByKey.clear();
+    for (const net of nets) this.statsByKey.set(net.key, net.stats);
     // Verbraucher und Erzeuger zuordnen
     for (const e of w.entities.values()) {
       if (e.kind === 'pole') continue;
       const el = electricOf(e);
       const gen = isGenerator(e) ? e : null;
+      const sto = isStorage(e) ? e : null;
       if (el) el.connected = false;
-      if (!el && !gen) continue;
+      if (!el && !gen && !sto) continue;
       let found: PowerNet | null = null;
       for (const p of poles) {
         const r = (p.def as PoleDef).supplyRadius;
@@ -112,33 +161,96 @@ export class PowerSystem {
       if (el) {
         el.connected = true;
         found.consumers.push(el);
+        found.consumerNames.push(e.name);
       }
-      if (gen) found.generators.push(gen);
+      if (gen) {
+        found.generators.push(gen);
+        found.generatorNames.push(e.name);
+      }
+      if (sto) {
+        found.storages.push(sto);
+        found.storageNames.push(e.name);
+      }
     }
     this.nets = nets;
   }
 
-  /** Verteilt die verfügbare Leistung anteilig auf die Puffer der Verbraucher. */
-  update(): void {
+  /**
+   * Verteilt die Leistung: Bedarf zuerst aus Solar, dann aus Dampf, Rest aus Akkumulatoren.
+   * Überschuss (Solar zuerst, dann Dampf) lädt die Akkumulatoren. Quelle: Wiki „Electric system“.
+   */
+  update(light = 1): void {
     for (const net of this.nets) {
       let demand = 0;
       for (const c of net.consumers) demand += c.request();
-      let potential = 0;
-      const pots = net.generators.map((g) => {
-        const p = g.potential();
-        potential += p;
-        return p;
+      const prim: Generator[] = [];
+      const sec: Generator[] = [];
+      const primN: string[] = [];
+      const secN: string[] = [];
+      net.generators.forEach((g, i) => {
+        if (g.priority === 'primary') {
+          g.light = light;
+          prim.push(g);
+          primN.push(net.generatorNames[i]);
+        } else {
+          sec.push(g);
+          secN.push(net.generatorNames[i]);
+        }
       });
-      const supply = Math.min(demand, potential);
+      const st = net.stats;
+      const p1 = prim.map((g) => g.potential());
+      const p2 = sec.map((g) => g.potential());
+      const P1 = p1.reduce((a, b) => a + b, 0);
+      const P2 = p2.reduce((a, b) => a + b, 0);
+      const s1 = Math.min(demand, P1);
+      const s2 = Math.min(demand - s1, P2);
+      const outMax = net.storages.map((a) => a.dischargeMax());
+      const OUT = outMax.reduce((a, b) => a + b, 0);
+      const s3 = Math.min(demand - s1 - s2, OUT);
+      let c1 = 0;
+      let c2 = 0;
+      const room = net.storages.map((a) => a.chargeRoom());
+      const ROOM = room.reduce((a, b) => a + b, 0);
+      if (s3 === 0 && ROOM > 0) {
+        c1 = Math.min(ROOM, P1 - s1);
+        c2 = Math.min(ROOM - c1, P2 - s2);
+      }
+      const supply = s1 + s2 + s3;
       net.demand = demand;
-      net.potential = potential;
+      net.potential = P1 + P2 + OUT;
       net.supplied = supply;
+      net.fromPrimary = s1;
+      net.fromSecondary = s2;
+      net.fromStorage = s3;
+      net.charged = c1 + c2;
       if (demand > 0) {
-        for (const c of net.consumers) c.supply(Math.floor((c.request() * supply) / demand));
+        net.consumers.forEach((c, i) => {
+          const j = Math.floor((c.request() * supply) / demand);
+          c.supply(j);
+          st.used(net.consumerNames[i], j);
+        });
       }
-      if (potential > 0 && supply > 0) {
-        net.generators.forEach((g, i) => g.produce(Math.ceil((supply * pots[i]) / potential)));
-      }
+      share(s1 + c1, p1, P1, (i, j) => {
+        prim[i].produce(j);
+        st.made(primN[i], j);
+      });
+      share(s2 + c2, p2, P2, (i, j) => {
+        sec[i].produce(j);
+        st.made(secN[i], j);
+      });
+      share(s3, outMax, OUT, (i, j) => {
+        net.storages[i].discharge(j);
+        st.made(net.storageNames[i], j);
+      });
+      share(c1 + c2, room, ROOM, (i, j) => {
+        net.storages[i].charge(j);
+        st.used(net.storageNames[i], j);
+      });
     }
+  }
+
+  /** Jede Sekunde: Statistik aller Netze fortschreiben. */
+  second(seconds: number): void {
+    for (const st of this.statsByKey.values()) st.second(seconds);
   }
 }

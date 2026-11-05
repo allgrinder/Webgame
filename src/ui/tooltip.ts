@@ -1,3 +1,4 @@
+import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
 import { MJ } from '../data/time';
 import { type RecipeDef, craftingRecipeFor, smeltingRecipeFor } from '../data/recipes';
@@ -73,7 +74,7 @@ export class Tooltip {
     const res = r.results[0];
     const head = document.createElement('div');
     head.className = 'tt-head';
-    head.textContent = `${ITEMS[res.item]?.name ?? res.item}${res.amount > 1 ? ` ×${res.amount}` : ''}`;
+    head.textContent = `${nameOf(res.item)}${res.amount > 1 ? ` ×${res.amount}` : ''}`;
     box.appendChild(head);
     const tree = document.createElement('div');
     tree.className = 'tt-tree';
@@ -95,7 +96,7 @@ export class Tooltip {
         cell.className = 'tt-total' + (have && have(item) < n ? ' missing' : '');
         cell.appendChild(this.icon(item));
         cell.appendChild(document.createTextNode(`${n}`));
-        cell.title = ITEMS[item]?.name ?? item;
+        cell.title = nameOf(item);
         row.appendChild(cell);
       }
       box.appendChild(row);
@@ -126,7 +127,7 @@ export class Tooltip {
     row.appendChild(this.icon(item));
     const t = document.createElement('span');
     const stock = have ? have(item) : undefined;
-    t.textContent = `${fmt(amount)} × ${ITEMS[item]?.name ?? item}`;
+    t.textContent = `${fmt(amount)} × ${nameOf(item)}`;
     row.appendChild(t);
     if (stock !== undefined) {
       const st = document.createElement('span');
@@ -166,4 +167,9 @@ function expand(item: string, amount: number, out: Map<string, number>, depth: n
   const n = r.results.find((x) => x.item === item)!.amount;
   const crafts = Math.ceil(amount / n);
   for (const g of r.ingredients) expand(g.item, g.amount * crafts, out, depth + 1);
+}
+
+/** Anzeigename eines Items oder einer Flüssigkeit. */
+export function nameOf(id: string): string {
+  return ITEMS[id]?.name ?? FLUIDS[id]?.name ?? id;
 }

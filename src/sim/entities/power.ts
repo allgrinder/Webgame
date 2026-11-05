@@ -1,4 +1,4 @@
-import type { BoilerDef, GeneratorDef, PipeDef, PumpDef } from '../../data/entities';
+import type { AccumulatorDef, BoilerDef, GeneratorDef, PipeDef, PumpDef, SolarDef } from '../../data/entities';
 import { FLUID_UNIT, steamEnergyPerUnit } from '../../data/fluids';
 import { wattsToJoulesPerTick } from '../../data/time';
 import { Burner } from '../burner';
@@ -95,6 +95,7 @@ export class PumpEntity extends EntityBase implements FluidHolder {
       return;
     }
     const n = net.add(this.def.fluid, this.def.pumpingSpeed * FLUID_UNIT);
+    w.stats.made(this.def.fluid, n / FLUID_UNIT);
     this.status = n > 0 ? Status.Working : Status.OutputBlocked;
     if (n > 0) this.workTicks++;
   }
@@ -144,7 +145,7 @@ export class BoilerEntity extends EntityBase implements FluidHolder {
     // Richtung Nord: Dampf oben Mitte, Wasser an beiden Schmalseiten unten
     return [port(this.steam, 1, 0, 0), port(this.water, 0, 1, 3), port(this.water, w - 1, 1, 1)];
   }
-  override update(): void {
+  override update(w: World): void {
     const wn = this.water.net;
     const sn = this.steam.net;
     const amt = this.steamPerTick;
@@ -163,6 +164,8 @@ export class BoilerEntity extends EntityBase implements FluidHolder {
     }
     wn.take(this.def.inputFluid, water);
     sn.add(this.def.outputFluid, amt);
+    w.stats.used(this.def.inputFluid, water / FLUID_UNIT);
+    w.stats.made(this.def.outputFluid, amt / FLUID_UNIT);
     this.status = Status.Working;
     this.workTicks++;
   }
@@ -228,10 +231,14 @@ export class GeneratorEntity extends EntityBase implements FluidHolder, Generato
   produce(joules: number): void {
     const net = this.box.net;
     if (!net) return;
-    net.take(this.def.fluid, Math.ceil(joules / this.energyPerMilli));
+    this.lastSteam = net.take(this.def.fluid, Math.ceil(joules / this.energyPerMilli));
     this.lastOutput = joules;
   }
-  override update(): void {
+  /** Im letzten Tick verbrauchter Dampf (Tausendstel Einheiten). */
+  private lastSteam = 0;
+  override update(w: World): void {
+    if (this.lastSteam > 0) w.stats.used(this.def.fluid, this.lastSteam / FLUID_UNIT);
+    this.lastSteam = 0;
     if (this.lastOutput > 0) {
       this.status = Status.Working;
       this.workTicks++;
@@ -251,4 +258,67 @@ export class GeneratorEntity extends EntityBase implements FluidHolder, Generato
 
 export class PoleEntity extends EntityBase {
   readonly kind = 'pole' as const;
+}
+
+// ------------------------------------------------------------------------- Solarpanel
+
+/** Solarpanel: liefert Höchstleistung × Tageslicht (1 − Dunkelheit); Vorrang vor Dampfmaschinen. */
+export class SolarEntity extends EntityBase implements Generator {
+  readonly kind = 'solar' as const;
+  declare readonly def: SolarDef;
+  readonly priority = 'primary' as const;
+  /** Tageslicht 0..1, vom Stromnetz je Tick gesetzt. */
+  light = 1;
+  lastOutput = 0;
+  potential(): number {
+    return Math.floor(wattsToJoulesPerTick(this.def.production) * this.light);
+  }
+  produce(joules: number): void {
+    this.lastOutput = joules;
+  }
+  override update(): void {
+    this.status = this.lastOutput > 0 ? Status.Working : Status.Idle;
+    this.lastOutput = 0;
+  }
+}
+
+// ------------------------------------------------------------------------- Akkumulator
+
+/** Akkumulator: Speicher, den das Netz aus Überschuss lädt und bei Mangel entlädt (Vorrang nach Erzeugern). */
+export class AccumulatorEntity extends EntityBase {
+  readonly kind = 'accumulator' as const;
+  declare readonly def: AccumulatorDef;
+  /** Gespeicherte Energie (J). */
+  stored = 0;
+  /** Letzter Tick: + geladen, − entladen (J). */
+  lastFlow = 0;
+  /** Höchstens ladbar in diesem Tick (J). */
+  chargeRoom(): number {
+    return Math.min(wattsToJoulesPerTick(this.def.inputFlow), this.def.buffer - this.stored);
+  }
+  /** Höchstens entnehmbar in diesem Tick (J). */
+  dischargeMax(): number {
+    return Math.min(wattsToJoulesPerTick(this.def.outputFlow), this.stored);
+  }
+  charge(j: number): void {
+    this.stored = Math.min(this.def.buffer, this.stored + j);
+    this.lastFlow = j;
+  }
+  discharge(j: number): void {
+    this.stored = Math.max(0, this.stored - j);
+    this.lastFlow = -j;
+  }
+  get fraction(): number {
+    return this.stored / this.def.buffer;
+  }
+  override update(): void {
+    this.status = this.lastFlow !== 0 ? Status.Working : Status.Idle;
+    this.lastFlow = 0;
+  }
+  override save() {
+    return { st: this.stored };
+  }
+  override load(d: Record<string, unknown>): void {
+    this.stored = (d.st as number) ?? 0;
+  }
 }

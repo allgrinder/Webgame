@@ -17,3 +17,13 @@ export const MINIMAP = {
   /** Abdunklung der Bodenfarbe (Wiesentextur ist hell, Kartenfarben sollen ruhiger wirken). */
   groundBase: 0x7c7848,
 } as const;
+
+/** Zeitfenster der Produktions- und Stromstatistik (wie im Original: 1 min, 10 min, 1 h, 10 h). */
+export const STATS = {
+  windows: [
+    { label: '1 min', step: 1, count: 60 },
+    { label: '10 min', step: 10, count: 60 },
+    { label: '1 h', step: 60, count: 60 },
+    { label: '10 h', step: 600, count: 60 },
+  ],
+} as const;

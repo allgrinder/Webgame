@@ -799,3 +799,218 @@ def landfill_pile(m, rnd_seed=5):
         s.location.x *= 0.35
         s.location.y *= 0.35
     return eisen.parent_all(o, 'landfill')
+
+
+# --------------------------------------------------------------------------- Öl und Chemie
+
+def port_stub(o, m, x, y, d, name):
+    """Rohranschluss am Gebäuderand: Punkt (x, y) auf der Kante, Richtung d (0 N, 1 O, 2 S, 3 W)."""
+    dx, dy = DIRV[d]
+    z = PIPE_Z
+    o.append(pipe(name, (x - dx * 0.35, y - dy * 0.35, z), (x + dx * 0.03, y + dy * 0.03, z), PIPE_R, m.pipe, 20))
+    flange(o, name + 'f', (x - dx * 0.03, y - dy * 0.03, z), 'Y' if dy else 'X', m)
+
+
+def pumpjack(m, phase=0.0):
+    """Pumpjack 3×3: Sockel, Bock, schwingender Balken mit Pferdekopf, Gegengewicht; Anschluss NO nach Norden."""
+    o = []
+    a = math.sin(phase * math.tau) * 0.28
+    o.append(eisen.box('pad', (2.8, 2.8, 0.14), (0, 0, 0.07), m.concrete, bevel=0.03))
+    o.append(eisen.cylinder('wellhead', 0.18, 0.3, (0, 1.0, 0.29), m.dark, segments=16))
+    o.append(eisen.cylinder('wellflange', 0.24, 0.06, (0, 1.0, 0.44), m.steel, segments=16))
+    # Bock (A-Gestell) in der Mitte
+    for sx in (-1, 1):
+        o.append(beam(f'samson{sx}a', (sx * 0.42, -0.55, 0.14), (sx * 0.1, -0.1, 1.8), (0.12, 0.12), m.paint))
+        o.append(beam(f'samson{sx}b', (sx * 0.42, 0.35, 0.14), (sx * 0.1, -0.1, 1.8), (0.12, 0.12), m.paint))
+    o.append(eisen.cylinder('bearing', 0.12, 0.34, (0, -0.1, 1.85), m.dark, segments=16, rot=(0, math.pi / 2, 0)))
+    pivot = (0, -0.1, 1.85)
+    beam_root = []
+    beam_root.append(eisen.box('walking', (0.28, 2.1, 0.26), (0, 0.1, 0.06), m.paint, bevel=0.03))
+    beam_root.append(eisen.box('head', (0.42, 0.3, 0.8), (0, 1.12, -0.18), m.dark, bevel=0.06))
+    beam_root.append(eisen.box('weight', (0.6, 0.4, 0.45), (0, -0.85, -0.05), m.steel, bevel=0.04))
+    br = eisen.parent_all(beam_root, 'beam')
+    br.location = pivot
+    br.rotation_euler = (a, 0, 0)
+    o.append(br)
+    # Gestänge vom Pferdekopf zum Bohrloch
+    head_y = -0.1 + math.cos(a) * 1.1 + math.sin(a) * 0.5
+    head_z = 1.85 + math.sin(a) * 1.1 - math.cos(a) * 0.5
+    o.append(pipe('rod', (0, 1.0, 0.45), (0, head_y, head_z), 0.025, m.bright))
+    # Kurbel und Motor hinten
+    o.append(eisen.box('gearbox', (0.5, 0.45, 0.5), (0, -1.0, 0.39), m.dark, bevel=0.03))
+    o.append(eisen.cylinder('crank', 0.3, 0.08, (0.3, -1.0, 0.55), m.steel, segments=20, rot=(0, math.pi / 2, 0)))
+    o.append(eisen.box('motor', (0.35, 0.35, 0.3), (-0.6, -1.0, 0.29), m.green, bevel=0.03))
+    o.append(pipe('out1', (0.15, 1.0, PIPE_Z), (1.0, 1.0, PIPE_Z), PIPE_R * 0.7, m.pipe))
+    port_stub(o, m, 1.0, 1.5, 0, 'port')
+    o.append(pipe('out2', (1.0, 1.0, PIPE_Z), (1.0, 1.2, PIPE_Z), PIPE_R, m.pipe))
+    return eisen.parent_all(o, 'pumpjack')
+
+
+def oil_refinery(m, phase=0.0):
+    """Ölraffinerie 5×5: Kolonnen, Tanks, Rohrleitungen; Eingänge Süd (x −1/+1), Ausgänge Nord (x −2/0/+2)."""
+    o = []
+    o.append(eisen.box('pad', (4.8, 4.8, 0.14), (0, 0, 0.07), m.concrete, bevel=0.03))
+    for k, (x, y, r, h) in enumerate(((-1.2, 0.15, 0.45, 3.2), (0.0, 0.3, 0.38, 2.6), (1.25, 0.05, 0.5, 2.9))):
+        o.append(eisen.cylinder(f'col{k}', r, h, (x, y, h / 2 + 0.14), m.steel, segments=28, bevel=0.03))
+        for z in (0.6, 1.4, 2.2):
+            if z < h:
+                o.append(eisen.cylinder(f'ring{k}{z}', r + 0.04, 0.06, (x, y, z), m.dark, segments=28))
+        o.append(eisen.cylinder(f'cap{k}', r * 0.6, 0.2, (x, y, h + 0.24), m.paint, segments=20, bevel=0.04))
+    for k, x in enumerate((-1.3, 1.3)):
+        o.append(eisen.cylinder(f'tank{k}', 0.5, 1.6, (x, -1.2, 0.64), m.green, segments=28, rot=(0, math.pi / 2, 0), bevel=0.04))
+    o.append(eisen.box('furnace', (1.2, 1.0, 0.9), (0, -1.3, 0.59), m.brick, bevel=0.04))
+    o.append(eisen.cylinder('stack', 0.16, 2.2, (0.3, -1.5, 1.6), m.dark, segments=16))
+    flare = eisen.emission_material('flare', (1.0, 0.5, 0.15), 2.0 + 2.0 * math.sin(phase * math.tau) ** 2)
+    o.append(eisen.cylinder('flame', 0.07, 0.16, (0.3, -1.5, 2.78), flare, segments=10, bevel=0.03))
+    for k, x in enumerate((-2.0, 0.0, 2.0)):
+        o.append(pipe(f'riser{k}', (x * 0.6, 0.4, 1.0), (x, 2.0, PIPE_Z), PIPE_R * 0.7, m.pipe))
+        port_stub(o, m, x, 2.5, 0, f'out{k}')
+    for k, x in enumerate((-1.0, 1.0)):
+        port_stub(o, m, x, -2.5, 2, f'in{k}')
+        o.append(pipe(f'feed{k}', (x, -2.2, PIPE_Z), (x * 1.2, -1.2, 0.64), PIPE_R * 0.7, m.pipe))
+    for k in range(5):
+        o.append(eisen.box(f'stair{k}', (0.3, 0.12, 0.04), (-1.8, 0.1 + k * 0.14, 0.2 + k * 0.28), m.bright))
+    return eisen.parent_all(o, 'refinery')
+
+
+def chemical_plant(m, phase=0.0):
+    """Chemiefabrik 3×3: Rührkessel mit drehendem Rührwerk, zwei Behälter, Anschlüsse Nord (aus) und Süd (ein)."""
+    o = []
+    o.append(eisen.box('pad', (2.8, 2.8, 0.14), (0, 0, 0.07), m.concrete, bevel=0.03))
+    o.append(eisen.cylinder('vessel', 0.85, 1.1, (0, 0, 0.7), m.copper, segments=36, bevel=0.06))
+    o.append(eisen.cylinder('lid', 0.88, 0.1, (0, 0, 1.28), m.dark, segments=36, bevel=0.02))
+    glass = eisen.material('chemglass', eisen.srgb('#7fa98f'), rough=0.08, metal=0.1)
+    o.append(eisen.cylinder('window', 0.86, 0.25, (0, 0, 0.75), glass, segments=36))
+    a = phase * math.tau
+    o.append(eisen.cylinder('motor', 0.2, 0.3, (0, 0, 1.48), m.green, segments=20, bevel=0.03))
+    for k in range(3):
+        b = a + k * math.tau / 3
+        o.append(beam(f'stir{k}', (0, 0, 1.4), (math.cos(b) * 0.5, math.sin(b) * 0.5, 1.4), (0.08, 0.03), m.bright))
+    for k, (x, y) in enumerate(((-0.95, -0.85), (0.95, -0.85))):
+        o.append(eisen.cylinder(f'drum{k}', 0.32, 0.8, (x, y, 0.54), m.steel, segments=20, bevel=0.03))
+    for x in (-1.0, 1.0):
+        port_stub(o, m, x, 1.5, 0, f'out{x}')
+        o.append(pipe(f'up{x}', (x, 1.2, PIPE_Z), (x * 0.6, 0.6, 1.0), PIPE_R * 0.6, m.pipe))
+        port_stub(o, m, x, -1.5, 2, f'in{x}')
+    return eisen.parent_all(o, 'chemplant')
+
+
+def electric_furnace(m, fire=0.0):
+    """Elektrischer Ofen 3×3: Stahlgehäuse mit Heizwendeln (glühen beim Arbeiten), Schaltschrank."""
+    o = []
+    o.append(eisen.box('pad', (2.8, 2.8, 0.14), (0, 0, 0.07), m.dark, bevel=0.03))
+    o.append(eisen.box('body', (2.4, 2.3, 1.0), (0, 0.05, 0.64), m.steel, bevel=0.08))
+    o.append(eisen.box('top', (2.0, 1.9, 0.1), (0, 0.05, 1.18), m.paint, bevel=0.03))
+    coil = eisen.emission_material('coil', (1.0, 0.45, 0.1), 0.2 + 10.0 * fire)
+    for k in range(4):
+        o.append(eisen.box(f'coil{k}', (1.4, 0.06, 0.03), (0, -0.5 + k * 0.3, 1.24), coil))
+    o.append(eisen.box('door', (0.8, 0.06, 0.5), (0, -1.12, 0.5), m.dark, bevel=0.02))
+    o.append(eisen.box('slit', (0.6, 0.02, 0.06), (0, -1.16, 0.6), coil))
+    o.append(eisen.box('cabinet', (0.5, 0.4, 0.7), (0.95, 0.8, 0.5), m.green, bevel=0.03))
+    o.append(eisen.box('lamp', (0.06, 0.02, 0.05), (0.95, 0.59, 0.75), eisen.emission_material('eflamp', (0.4, 1.0, 0.35), 2.0)))
+    if fire > 0:
+        light = bpy.data.lights.new('efire', 'POINT')
+        light.energy = 25 * fire
+        light.color = (1.0, 0.5, 0.2)
+        lo = bpy.data.objects.new('efire', light)
+        lo.location = (0, -1.3, 0.6)
+        eisen.link(lo)
+    bolts(o, m.bright, [(x, y) for x in (-1.25, 1.25) for y in (-1.25, 1.25)], 0.15, 0.03)
+    return eisen.parent_all(o, 'efurnace')
+
+
+SUBSTATION_TOP = 2.2
+
+
+def substation(m):
+    """Umspannwerk 2×2: Transformator mit Kühlrippen und Isolatoren."""
+    o = []
+    o.append(eisen.box('pad', (1.8, 1.8, 0.12), (0, 0, 0.06), m.concrete, bevel=0.03))
+    o.append(eisen.box('body', (1.2, 1.0, 1.0), (0, 0, 0.62), m.green, bevel=0.05))
+    for k in range(7):
+        o.append(eisen.box(f'fin{k}', (0.04, 1.1, 0.8), (-0.6 + k * 0.2, 0, 0.6), m.dark))
+    for x in (-0.35, 0.0, 0.35):
+        for k in range(5):
+            o.append(eisen.cylinder(f'ins{x}{k}', 0.07 - k * 0.006, 0.08, (x, 0.2, 1.2 + k * 0.1), m.insul, segments=12))
+    o.append(beam('frame1', (-0.75, 0.75, 0.1), (-0.75, 0.75, SUBSTATION_TOP), (0.06, 0.06), m.steel))
+    o.append(beam('frame2', (0.75, 0.75, 0.1), (0.75, 0.75, SUBSTATION_TOP), (0.06, 0.06), m.steel))
+    o.append(eisen.box('crossbar', (1.6, 0.08, 0.08), (0, 0.75, SUBSTATION_TOP), m.paint))
+    return eisen.parent_all(o, 'substation')
+
+
+# --------------------------------------------------------------------------- Items der Ölstufe
+
+def plastic_bars(m):
+    mat = eisen.material('plastic', eisen.srgb('#e8e4dc'), rough=0.35)
+    o = [eisen.box(f'bar{k}', (0.6, 0.18, 0.12), (0, -0.2 + k * 0.2, 0.06 + (k % 2) * 0.02), mat, bevel=0.03) for k in range(3)]
+    o.append(eisen.box('bar3', (0.6, 0.18, 0.12), (0.02, -0.1, 0.18), mat, bevel=0.03))
+    return eisen.parent_all(o, 'plastic')
+
+
+def sulfur_pile(m):
+    import random as _r
+    rnd = _r.Random(9)
+    mat = eisen.material('sulfur', eisen.srgb('#d9c43a'), rough=0.7, noise=0.3, noise_scale=20)
+    o = []
+    for k in range(9):
+        r = rnd.uniform(0.07, 0.13)
+        o.append(eisen.rock(f'su{k}', r, (rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), r * 0.5), mat, 40 + k, squash=0.6, detail=1))
+    return eisen.parent_all(o, 'sulfur')
+
+
+def battery_cell(m):
+    o = []
+    body = eisen.material('batbody', eisen.srgb('#c8a040'), rough=0.4, metal=0.3)
+    o.append(eisen.cylinder('body', 0.18, 0.55, (0, 0, 0.18), body, segments=24, rot=(0, math.pi / 2, 0), bevel=0.03))
+    o.append(eisen.cylinder('band', 0.185, 0.2, (-0.12, 0, 0.18), m.dark, segments=24, rot=(0, math.pi / 2, 0)))
+    o.append(eisen.cylinder('pole', 0.06, 0.08, (0.31, 0, 0.18), m.bright, segments=12, rot=(0, math.pi / 2, 0)))
+    return eisen.parent_all(o, 'battery')
+
+
+def solid_fuel(m):
+    mat = eisen.material('sfuel', eisen.srgb('#3c3a36'), rough=0.6, metal=0.2, noise=0.3, noise_scale=12)
+    o = [eisen.box(f'brick{k}', (0.4, 0.26, 0.16), (-0.1 + k * 0.18, -0.08 + k * 0.1, 0.08 + k * 0.1), mat, bevel=0.04) for k in range(3)]
+    return eisen.parent_all(o, 'solidfuel')
+
+
+def explosives_box(m):
+    wood = gw_ground.pmat('a_crate', lin('#8a6a42'), 0.85, 0.3, 0.5, 30)
+    o = [eisen.box('crate', (0.6, 0.45, 0.35), (0, 0, 0.18), wood, bevel=0.02)]
+    red = eisen.material('dyn', eisen.srgb('#a8342a'), rough=0.6)
+    for k in range(4):
+        o.append(eisen.cylinder(f'dyn{k}', 0.05, 0.5, (-0.15 + k * 0.1, 0, 0.42), red, segments=12, rot=(0, math.pi / 2, 0)))
+    return eisen.parent_all(o, 'explosives')
+
+
+def advanced_circuit(m):
+    board = bauten.weathered('a_pcb2', '#7a2a24', metal=0.2, rough=0.5, rust=0.0, dust=0.15, edge=0.3, grime=0.2)
+    o = [eisen.box('pcb', (0.72, 0.52, 0.05), (0, 0, 0.03), board, bevel=0.01)]
+    for k, (x, y) in enumerate(((-0.15, 0.08), (0.15, 0.08), (0.0, -0.12))):
+        o.append(eisen.box(f'chip{k}', (0.18, 0.14, 0.05), (x, y, 0.08), m.dark, bevel=0.008))
+    for k in range(6):
+        o.append(eisen.box(f'tr{k}', (0.55, 0.012, 0.005), (0, -0.22 + k * 0.09, 0.058), m.copper))
+    return eisen.parent_all(o, 'advcircuit')
+
+
+def electric_engine(m):
+    o = []
+    body = bauten.weathered('a_eeng', '#3f5d80', metal=0.5, rough=0.45, rust=0.15, dust=0.3, edge=0.5)
+    o.append(eisen.cylinder('stator', 0.22, 0.5, (0, 0, 0.24), body, segments=28, rot=(0, math.pi / 2, 0), bevel=0.03))
+    for k in range(10):
+        b = k / 10 * math.tau
+        o.append(eisen.box(f'fin{k}', (0.46, 0.03, 0.05), (0, math.cos(b) * 0.23, 0.24 + math.sin(b) * 0.23), m.dark))
+    o.append(eisen.cylinder('shaft', 0.04, 0.2, (0.33, 0, 0.24), m.bright, segments=12, rot=(0, math.pi / 2, 0)))
+    o.append(eisen.box('box', (0.18, 0.14, 0.1), (0, 0, 0.5), m.dark, bevel=0.02))
+    return eisen.parent_all(o, 'eengine')
+
+
+def fluid_barrel(m, color):
+    """Symbol für eine Flüssigkeit: Fass mit farbigem Band und Deckel."""
+    o = []
+    tint = eisen.material('fl_' + '%02x%02x%02x' % tuple(int(c * 255) for c in color), color, rough=0.4, metal=0.2)
+    o.append(eisen.cylinder('barrel', 0.24, 0.55, (0, 0, 0.28), m.steel, segments=28, bevel=0.04))
+    for z in (0.12, 0.44):
+        o.append(eisen.cylinder(f'hoop{z}', 0.25, 0.04, (0, 0, z), m.dark, segments=28))
+    o.append(eisen.cylinder('band', 0.245, 0.18, (0, 0, 0.28), tint, segments=28))
+    o.append(eisen.cylinder('lid', 0.2, 0.02, (0, 0, 0.56), tint, segments=28))
+    return eisen.parent_all(o, 'barrel')

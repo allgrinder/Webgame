@@ -5,11 +5,16 @@ import { TECHS, TECH_BY_ID } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { deserializeWorld, serializeWorld } from '../sim/serialize';
+import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
 import type { SpriteLib } from '../render/assets';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
+import { ARITHMETIC_OPS, COMPARATORS, VIRTUAL_SIGNALS, signalLabel } from '../data/circuit';
+import { FLUIDS } from '../data/fluids';
+import type { Condition } from '../sim/circuit';
 import { Minimap } from './minimap';
+import { StatsView, fmtPower } from './stats';
 import { Tooltip } from './tooltip';
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -21,6 +26,7 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.Depleted]: 'Ressourcen erschöpft',
   [Status.NoTarget]: 'Kein Ziel',
   [Status.NoPower]: 'Kein Strom',
+  [Status.Disabled]: 'Durch Schaltbedingung aus',
 };
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?: HTMLElement): HTMLElementTagNameMap[K] {
@@ -44,6 +50,12 @@ export class Hud {
   private readonly entWin: HTMLDivElement;
   private readonly menu: HTMLDivElement;
   private readonly techWin: HTMLDivElement;
+  private readonly statsWin: HTMLDivElement;
+  private readonly bpWin: HTMLDivElement;
+  private readonly trainWin: HTMLDivElement;
+  private openTrainId: { train: number; vehicle: number } | null = null;
+  private readonly prodView: StatsView;
+  private readonly powerView: StatsView;
   readonly tip: Tooltip;
   readonly minimap: Minimap;
   private readonly researchEl: HTMLDivElement;
@@ -69,6 +81,12 @@ export class Hud {
     this.entWin = el('div', 'window entity hidden', row);
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
+    this.statsWin = el('div', 'window stats hidden', this.layer);
+    this.bpWin = el('div', 'window blueprints hidden', this.layer);
+    this.trainWin = el('div', 'window train hidden', this.layer);
+    const statIcon = (id: string) => (this.sprites.has(`item.${id}`) ? this.icon(`item.${id}`, 'icon small') : null);
+    this.prodView = new StatsView(statIcon, 'items');
+    this.powerView = new StatsView(statIcon, 'power');
     this.researchEl = el('div', 'research-bar', this.layer);
     this.minimap = new Minimap(this.layer, () => game.renderer.biomeField(game.world));
     this.minimap.onPick = (x, y) => {
@@ -88,6 +106,7 @@ export class Hud {
 
   setTitle(t: string): void {
     this.title = t;
+    this.rocketsSeen = -1; // neue Welt: Starts nicht erneut melden
   }
 
   icon(name: string, cls = 'icon'): HTMLImageElement {
@@ -148,9 +167,14 @@ export class Hud {
         p.messages.length = 0;
       } else if (Number(this.msgEl.dataset.t ?? 0) + 180 < this.frame) this.msgEl.textContent = '';
     }
+    if (this.frame % 60 === 0 && !this.statsWin.classList.contains('hidden')) this.buildStats();
+    if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
-      if (this.openEntityId !== null) this.buildEntity();
+      if (this.openEntityId !== null) {
+        this.buildEntity();
+        this.updateCircuitLive();
+      }
     }
   }
 
@@ -399,6 +423,25 @@ export class Hud {
     }
     const en = (e as { energy?: { type?: string; buffer?: number; capacity?: number } }).energy;
     if (en?.type === 'electric') bar('Strom', (en.buffer ?? 0) / Math.max(1, en.capacity ?? 1), 'power');
+    if (e.kind === 'pole') this.powerInfo(e.id, body);
+    if (e.kind === 'train-stop') {
+      const r = el('div', 'circ-row', body);
+      el('span', 'dim', r).textContent = 'Name';
+      const n = el('input', 'stop-name', r);
+      n.value = e.stationName;
+      n.onchange = () => (e.stationName = n.value.trim() || e.stationName);
+    }
+    if (e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || g.world.circuit.isWired(e.id)) this.circuitPanel(e, body);
+    if (e.kind === 'rocket-silo') {
+      bar(`Raketenteile ${e.parts} / ${e.def.partsPerRocket}`, e.parts / e.def.partsPerRocket);
+      bar('Teil', e.crafting ? e.progress / e.recipeTicks : 0);
+      el('div', 'dim', body).textContent = e.launchAt >= 0
+        ? 'Rakete gestartet – Fracht unterwegs zum Landeplatz'
+        : e.rocketReady ? (e.satellite.isEmpty() ? 'Rakete bereit – Satellit einlegen' : 'Startet, sobald ein Fracht-Landeplatz steht') : 'Rakete im Bau';
+    }
+    if (e.kind === 'container' && (e.logistic === 'requester' || e.logistic === 'buffer')) this.requestEditor(e, body);
+    if (e.kind === 'solar') bar(`Leistung ${Math.round(e.potential() * 0.06)} kW`, e.potential() / 1000, 'power');
+    if (e.kind === 'accumulator') bar(`Ladung ${(e.stored / 1e6).toFixed(2)} MJ`, e.fraction, 'power');
     if (e.kind === 'drill') bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
     if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
     const burner = e.burner;
@@ -409,7 +452,8 @@ export class Hud {
   private entityKey(e: Entity): string {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots)).join('|');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
-    const extra = e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '';
+    const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
+    const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
     const power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
     return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
@@ -439,7 +483,7 @@ export class Hud {
 
   closeWindows(): boolean {
     let any = false;
-    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -505,12 +549,486 @@ export class Hud {
     });
   }
 
+  // ---------------------------------------------------------- Blaupausen
+
+  rememberClipboard(bp: Blueprint): void {
+    this.flash(`Blaupause kopiert (${bp.entities.length} Gebäude) · Klick: Geister ablegen · R drehen · B: Bibliothek`);
+    if (!this.bpWin.classList.contains('hidden')) this.buildBlueprints();
+  }
+
+  toggleBlueprints(): void {
+    const hidden = this.bpWin.classList.toggle('hidden');
+    if (!hidden) this.buildBlueprints();
+  }
+
+  /** Gespeicherte Blaupausen dieses Browsers (wie die Bibliothek im Original spielstandübergreifend). */
+  private loadLibrary(): { name: string; text: string }[] {
+    try {
+      const raw = localStorage.getItem('eisenwerk.blueprints');
+      const list = raw ? (JSON.parse(raw) as { name: string; text: string }[]) : [];
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  }
+  private saveLibrary(list: { name: string; text: string }[]): void {
+    try {
+      localStorage.setItem('eisenwerk.blueprints', JSON.stringify(list));
+    } catch {
+      this.flash('Speichern im Browser nicht möglich');
+    }
+  }
+
+  private buildBlueprints(): void {
+    const g = this.game;
+    this.bpWin.replaceChildren();
+    const head = el('div', 'win-head', this.bpWin);
+    head.textContent = 'Blaupausen';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => this.toggleBlueprints();
+    const body = el('div', 'win-body bp-body', this.bpWin);
+    el('div', 'hint', body).textContent = 'Strg+C: Bereich kopieren · Strg+V: einfügen · Klick: Geister ablegen · R drehen · Klick auf Geist: von Hand bauen · Rechtsklick: Geist entfernen';
+    const lib = this.loadLibrary();
+    const clip = g.clipboard;
+    const row = el('div', 'bp-row', body);
+    const name = el('input', 'bp-name', row);
+    name.placeholder = 'Name';
+    const save = el('button', '', row);
+    save.textContent = 'Zwischenablage speichern';
+    save.disabled = !clip;
+    save.onclick = () => {
+      if (!clip) return;
+      lib.push({ name: name.value.trim() || `Blaupause ${lib.length + 1}`, text: bpEncode(clip) });
+      this.saveLibrary(lib);
+      this.buildBlueprints();
+    };
+    const list = el('div', 'bp-list', body);
+    if (!lib.length) el('div', 'dim', list).textContent = 'Noch keine gespeicherten Blaupausen.';
+    lib.forEach((b, i) => {
+      const it = el('div', 'bp-item', list);
+      const bp = bpDecode(b.text);
+      const icons = el('span', 'bp-icons', it);
+      if (bp) {
+        const counts = new Map<string, number>();
+        for (const e of bp.entities) counts.set(e.name, (counts.get(e.name) ?? 0) + 1);
+        for (const [n] of [...counts].sort((a, c) => c[1] - a[1]).slice(0, 4)) icons.appendChild(this.icon(`item.${entityDef(n).item}`, 'icon small'));
+      }
+      el('span', '', it).textContent = `${b.name}${bp ? ` (${bp.entities.length})` : ' – ungültig'}`;
+      const use = el('button', '', it);
+      use.textContent = 'Nehmen';
+      use.disabled = !bp;
+      use.onclick = () => {
+        if (!bp) return;
+        g.setBlueprint(bp);
+        this.toggleBlueprints();
+      };
+      const exp = el('button', '', it);
+      exp.textContent = 'Text';
+      exp.onclick = () => {
+        area.value = b.text;
+        area.select();
+        void navigator.clipboard?.writeText(b.text).then(() => this.flash('Text in die Zwischenablage kopiert'), () => {});
+      };
+      const del = el('button', 'bad', it);
+      del.textContent = '×';
+      del.onclick = () => {
+        lib.splice(i, 1);
+        this.saveLibrary(lib);
+        this.buildBlueprints();
+      };
+    });
+    const area = el('textarea', 'bp-text', body);
+    area.placeholder = 'Blaupausen-Text hier einfügen …';
+    const imp = el('button', '', body);
+    imp.textContent = 'Text übernehmen';
+    imp.onclick = () => {
+      const bp = bpDecode(area.value);
+      if (!bp) {
+        this.flash('Kein gültiger Blaupausen-Text');
+        return;
+      }
+      g.clipboard = bp;
+      g.setBlueprint(bp);
+      this.toggleBlueprints();
+    };
+  }
+
+  // ---------------------------------------------------------- Züge
+
+  openTrain(train: number, vehicle: number): void {
+    this.openTrainId = { train, vehicle };
+    this.trainWin.classList.remove('hidden');
+    this.trainWin.dataset.key = '';
+    this.buildTrain();
+  }
+
+  private buildTrain(): void {
+    const g = this.game;
+    const ts = g.world.trains;
+    const id = this.openTrainId;
+    const t = id ? ts.trains.find((x) => x.id === id.train) : undefined;
+    const v = t?.vehicles.find((x) => x.id === id!.vehicle);
+    if (!t || !v || this.trainWin.classList.contains('hidden')) {
+      this.trainWin.classList.add('hidden');
+      this.openTrainId = null;
+      return;
+    }
+    const key = JSON.stringify([t.schedule, t.state, t.current, v.inv.slots, t.vehicles.length, Math.round(t.speed * 100)]);
+    if (this.trainWin.dataset.key === key) return;
+    if (this.trainWin.contains(document.activeElement) && document.activeElement !== document.body) return; // nicht beim Tippen
+    this.trainWin.dataset.key = key;
+    this.trainWin.replaceChildren();
+    const head = el('div', 'win-head', this.trainWin);
+    head.textContent = v.kind === 'locomotive' ? 'Lokomotive' : 'Güterwagen';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => {
+      this.trainWin.classList.add('hidden');
+      this.openTrainId = null;
+    };
+    const body = el('div', 'win-body', this.trainWin);
+    const stateText = { moving: 'fährt', waiting: 'wartet am Bahnhof', 'no-path': 'kein Weg zum Ziel', manual: 'angehalten (Handbetrieb)' }[t.state];
+    el('div', 'dim', body).textContent = `Zug aus ${t.vehicles.length} Fahrzeug(en) · ${stateText} · ${(t.speed * 216).toFixed(0)} km/h`;
+    // Inhalt des Fahrzeugs
+    const r = el('div', 'slot-row', body);
+    el('span', 'label', r).textContent = v.kind === 'locomotive' ? 'Brennstoff' : 'Ladung';
+    v.inv.slots.forEach((st, i) => {
+      const sl = el('div', 'slot small', r);
+      if (st) {
+        sl.appendChild(this.icon(`item.${st.item}`));
+        el('span', 'count', sl).textContent = String(st.count);
+      }
+      sl.onclick = () => {
+        const p = g.world.player;
+        const ci = g.cursorItem;
+        if (ci && (p || g.creative)) {
+          const have = g.creative ? 1e9 : p!.inventory.count(ci);
+          const n = v.inv.add(ci, Math.min(have, ITEMS[ci]?.stackSize ?? 1));
+          if (!g.creative) p!.inventory.remove(ci, n);
+        } else if (st) {
+          const n = p ? p.inventory.add(st.item, st.count) : st.count;
+          v.inv.remove(st.item, n);
+          void i;
+        }
+        this.trainWin.dataset.key = '';
+        this.buildTrain();
+      };
+    });
+    // Fahrplan
+    el('div', 'stats-title', body).textContent = 'Fahrplan';
+    const stations = [...new Set([...g.world.entities.values()].filter((e) => e.kind === 'train-stop').map((e) => (e as { stationName: string }).stationName))].sort();
+    t.schedule.forEach((s, i) => {
+      const row = el('div', `circ-row${i === t.current ? ' current' : ''}`, body);
+      el('span', 'dim', row).textContent = i === t.current ? '▶' : `${i + 1}.`;
+      const sel = el('select', '', row);
+      for (const n of new Set([...stations, s.station])) Object.assign(el('option', '', sel), { value: n, textContent: n });
+      sel.value = s.station;
+      sel.onchange = () => (s.station = sel.value);
+      const wait = el('select', '', row);
+      for (const [k, txt] of [['time', 'Zeit (s)'], ['full', 'Wagen voll'], ['empty', 'Wagen leer'], ['inactivity', 'Inaktivität (s)']] as const) {
+        Object.assign(el('option', '', wait), { value: k, textContent: txt });
+      }
+      wait.value = s.wait;
+      wait.onchange = () => {
+        s.wait = wait.value as typeof s.wait;
+        this.trainWin.dataset.key = '';
+        this.buildTrain();
+      };
+      if (s.wait === 'time' || s.wait === 'inactivity') {
+        const n = el('input', 'num', row);
+        n.type = 'number';
+        n.min = '0';
+        n.value = String(s.seconds);
+        n.onchange = () => (s.seconds = Math.max(0, Number(n.value) || 0));
+      }
+      const x = el('button', 'bad', row);
+      x.textContent = '×';
+      x.onclick = () => {
+        t.schedule.splice(i, 1);
+        t.current = 0;
+        t.path = null;
+        this.trainWin.dataset.key = '';
+        this.buildTrain();
+      };
+    });
+    const ctl = el('div', 'circ-row', body);
+    const add = el('button', '', ctl);
+    add.textContent = '+ Bahnhof';
+    add.disabled = !stations.length;
+    add.onclick = () => {
+      t.schedule.push({ station: stations[0], wait: 'time', seconds: 5 });
+      this.trainWin.dataset.key = '';
+      this.buildTrain();
+    };
+    const auto = el('button', '', ctl);
+    auto.textContent = t.state === 'manual' ? 'Automatik starten' : 'Anhalten';
+    auto.onclick = () => {
+      t.state = t.state === 'manual' ? 'moving' : 'manual';
+      t.path = null;
+      this.trainWin.dataset.key = '';
+      this.buildTrain();
+    };
+    if (!stations.length) el('div', 'dim', body).textContent = 'Noch keine Bahnhöfe – Bahnhof rechts neben das Gleis setzen (in Fahrtrichtung).';
+  }
+
+  toggleStats(): void {
+    const hidden = this.statsWin.classList.toggle('hidden');
+    if (!hidden) this.buildStats();
+  }
+
+  /** Produktionsstatistik (P), Werte je Sekunde aus der Simulation. */
+  private buildStats(): void {
+    const old = this.statsWin.querySelector<HTMLElement>('.win-body');
+    if (old) {
+      this.prodView.render(old, this.game.world.stats);
+      return;
+    }
+    this.statsWin.replaceChildren();
+    const head = el('div', 'win-head', this.statsWin);
+    head.textContent = 'Produktion';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => this.toggleStats();
+    const body = el('div', 'win-body', this.statsWin);
+    this.prodView.render(body, this.game.world.stats);
+  }
+
+  /** Auswahlfeld für ein Signal (virtuell, Items, Flüssigkeiten). */
+  private signalSelect(parent: HTMLElement, value: string | null, onChange: (v: string | null) => void, allowNone = true): HTMLSelectElement {
+    const sel = el('select', 'sig-select', parent);
+    if (allowNone) Object.assign(el('option', '', sel), { value: '', textContent: '–' });
+    const grp = (label: string, list: [string, string][]) => {
+      const og = el('optgroup', '', sel);
+      og.label = label;
+      for (const [v, t] of list) Object.assign(el('option', '', og), { value: v, textContent: t });
+    };
+    grp('Signale', VIRTUAL_SIGNALS.map((v) => [v, `Signal ${signalLabel(v)}`]));
+    grp('Items', Object.values(ITEMS).sort((a, b) => a.order - b.order).map((i) => [i.id, i.name]));
+    grp('Flüssigkeiten', Object.values(FLUIDS).map((f) => [f.id, f.name]));
+    sel.value = value ?? '';
+    sel.onchange = () => onChange(sel.value || null);
+    return sel;
+  }
+
+  /** Schaltungsnetz im Gebäudefenster: Kombinator-Einstellungen, Schaltbedingung, aktuelle Signale. */
+  private circuitPanel(e: Entity, body: HTMLElement): void {
+    const c = this.game.world.circuit;
+    const box = el('div', 'circuit', body);
+    el('div', 'stats-title', box).textContent = 'Schaltungsnetz';
+    const rebuild = () => {
+      this.entWin.dataset.key = '';
+      this.buildEntity();
+    };
+    const opSelect = (parent: HTMLElement, ops: readonly string[], value: string, onChange: (v: string) => void) => {
+      const sel = el('select', 'op-select', parent);
+      for (const o of ops) Object.assign(el('option', '', sel), { value: o, textContent: o });
+      sel.value = value;
+      sel.onchange = () => onChange(sel.value);
+    };
+    const num = (parent: HTMLElement, value: number, onChange: (v: number) => void) => {
+      const n = el('input', 'num', parent);
+      n.type = 'number';
+      n.value = String(value);
+      n.onchange = () => onChange(Math.trunc(Number(n.value) || 0));
+    };
+    /** Zweiter Operand: Signal oder Zahl. */
+    const operand = (parent: HTMLElement, second: string | null, constant: number, set: (s: string | null, k: number) => void) => {
+      this.signalSelect(parent, second, (v) => {
+        set(v, constant);
+        rebuild();
+      });
+      if (!second) num(parent, constant, (v) => set(null, v));
+    };
+    if (e.kind === 'combinator') {
+      const st = c.settings.get(e.id) ?? {};
+      c.settings.set(e.id, st);
+      if (e.def.mode === 'constant') {
+        const list = (st.signals ??= []);
+        list.forEach((x, i) => {
+          const r = el('div', 'circ-row', box);
+          this.signalSelect(r, x.signal, (v) => {
+            if (v) x.signal = v;
+            else list.splice(i, 1);
+            rebuild();
+          });
+          num(r, x.count, (v) => (x.count = v));
+        });
+        const add = el('button', '', box);
+        add.textContent = '+ Signal';
+        add.onclick = () => {
+          list.push({ signal: 'signal-A', count: 1 });
+          rebuild();
+        };
+      } else if (e.def.mode === 'arithmetic') {
+        const a = (st.arith ??= { first: null, op: '*', constant: 1, second: null, output: null });
+        const r = el('div', 'circ-row', box);
+        this.signalSelect(r, a.first, (v) => (a.first = v));
+        opSelect(r, ARITHMETIC_OPS, a.op, (v) => (a.op = v as typeof a.op));
+        operand(r, a.second, a.constant, (s2, k) => {
+          a.second = s2;
+          a.constant = k;
+        });
+        const o = el('div', 'circ-row', box);
+        el('span', 'dim', o).textContent = 'Ausgabe';
+        this.signalSelect(o, a.output, (v) => (a.output = v));
+      } else {
+        const d = (st.decide ??= { first: null, op: '>', constant: 0, second: null, output: null, copyCount: false });
+        const r = el('div', 'circ-row', box);
+        this.signalSelect(r, d.first, (v) => (d.first = v));
+        opSelect(r, COMPARATORS, d.op, (v) => (d.op = v as typeof d.op));
+        operand(r, d.second, d.constant, (s2, k) => {
+          d.second = s2;
+          d.constant = k;
+        });
+        const o = el('div', 'circ-row', box);
+        el('span', 'dim', o).textContent = 'Ausgabe';
+        this.signalSelect(o, d.output, (v) => (d.output = v));
+        const lab = el('label', 'dim', o);
+        const cb = el('input', '', lab);
+        cb.type = 'checkbox';
+        cb.checked = d.copyCount;
+        cb.onchange = () => (d.copyCount = cb.checked);
+        lab.append(' Eingangswert statt 1');
+      }
+    } else if (e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump') {
+      const cur: Condition | undefined = c.conditions.get(e.id);
+      const r = el('div', 'circ-row', box);
+      el('span', 'dim', r).textContent = 'Ein, wenn';
+      const cond = cur ?? { first: null, op: '>', constant: 0, second: null };
+      this.signalSelect(r, cond.first, (v) => {
+        cond.first = v;
+        if (v) c.conditions.set(e.id, cond);
+        else c.conditions.delete(e.id);
+      });
+      opSelect(r, COMPARATORS, cond.op, (v) => (cond.op = v as Condition['op']));
+      operand(r, cond.second, cond.constant, (s2, k) => {
+        cond.second = s2;
+        cond.constant = k;
+      });
+      if (!c.isWired(e.id)) el('div', 'dim', box).textContent = 'Nicht verdrahtet (G: Drahtwerkzeug) – die Bedingung wirkt erst mit Draht.';
+    }
+    el('div', 'circuit-live', box);
+    this.updateCircuitLive();
+  }
+
+  /** Aktuelle Signale am geöffneten Gebäude (ohne das Fenster neu aufzubauen). */
+  private updateCircuitLive(): void {
+    const live = this.entWin.querySelector<HTMLElement>('.circuit-live');
+    if (!live || this.openEntityId === null) return;
+    const c = this.game.world.circuit;
+    const id = this.openEntityId;
+    const parts: string[] = [];
+    for (const side of [0, 1] as const) {
+      for (const color of ['red', 'green'] as const) {
+        const net = c.network(id, side, color);
+        if (!net) continue;
+        const sig = [...net].map(([k, v]) => `${ITEMS[k]?.name ?? FLUIDS[k]?.name ?? signalLabel(k)} ${v}`).join(', ') || 'keine Signale';
+        parts.push(`${color === 'red' ? 'Rot' : 'Grün'}${side ? ' (Ausgang)' : ''}: ${sig}`);
+      }
+    }
+    live.textContent = parts.join(' · ');
+  }
+
+  /** Anforderungen einer Anforderungs-/Pufferkiste: Item und Sollmenge (Logistikroboter liefern). */
+  private requestEditor(e: Extract<Entity, { kind: 'container' }>, body: HTMLElement): void {
+    const box = el('div', 'requests', body);
+    el('div', 'stats-title', box).textContent = 'Anforderungen';
+    e.requests.forEach((r, i) => {
+      const row = el('div', 'req-row', box);
+      row.appendChild(this.icon(`item.${r.item}`, 'icon small'));
+      el('span', '', row).textContent = ITEMS[r.item]?.name ?? r.item;
+      const n = el('input', 'req-count', row);
+      n.type = 'number';
+      n.min = '0';
+      n.value = String(r.count);
+      n.onchange = () => {
+        r.count = Math.max(0, Math.floor(Number(n.value) || 0));
+      };
+      const x = el('button', 'bad', row);
+      x.textContent = '×';
+      x.onclick = () => {
+        e.requests.splice(i, 1);
+        this.entWin.dataset.key = '';
+        this.buildEntity();
+      };
+    });
+    if (e.requests.length < 10) {
+      const add = el('div', 'req-row', box);
+      const sel = el('select', 'req-item', add);
+      for (const it of Object.values(ITEMS).sort((a, b) => a.order - b.order)) {
+        const o = el('option', '', sel);
+        o.value = it.id;
+        o.textContent = it.name;
+      }
+      if (this.game.cursorItem) sel.value = this.game.cursorItem;
+      const n = el('input', 'req-count', add);
+      n.type = 'number';
+      n.min = '1';
+      n.value = String(ITEMS[sel.value]?.stackSize ?? 50);
+      sel.onchange = () => (n.value = String(ITEMS[sel.value]?.stackSize ?? 50));
+      const b = el('button', '', add);
+      b.textContent = 'Anfordern';
+      b.onclick = () => {
+        const count = Math.max(1, Math.floor(Number(n.value) || 1));
+        const ex = e.requests.find((r) => r.item === sel.value);
+        if (ex) ex.count = count;
+        else e.requests.push({ item: sel.value, count });
+        this.entWin.dataset.key = '';
+        this.buildEntity();
+      };
+    }
+  }
+
+  /** Stromnetz eines Masts: Zufriedenheit, Erzeugung/Verbrauch je Gebäudeart, Akkuladung, Verlauf. */
+  private powerInfo(poleId: number, body: HTMLElement): void {
+    const w = this.game.world;
+    const net = w.power.netOf.get(poleId);
+    if (!net) return;
+    const sec = el('div', 'power-info', body);
+    const sat = net.demand > 0 ? net.supplied / net.demand : 1;
+    const line = (label: string, frac: number, text: string, cls = 'power') => {
+      const r = el('div', 'progress-row', sec);
+      el('span', 'label', r).textContent = label;
+      const b = el('div', `progress ${cls}`, r);
+      el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
+      el('span', 'dim', r).textContent = text;
+    };
+    line('Versorgung', sat, `${Math.round(sat * 100)} %`);
+    line('Leistung', net.potential > 0 ? net.supplied / net.potential : 0, `${fmtPower(net.supplied)} / ${fmtPower(net.potential)}`);
+    if (net.storages.length) {
+      let stored = 0;
+      let cap = 0;
+      for (const id of w.entities.keys()) {
+        const e = w.entities.get(id)!;
+        if (e.kind === 'accumulator' && w.power.netOf.get(id) === net) {
+          stored += e.stored;
+          cap += e.def.buffer;
+        }
+      }
+      line('Akkumulatoren', cap ? stored / cap : 0, `${(stored / 1e6).toFixed(1)} / ${(cap / 1e6).toFixed(0)} MJ`, 'energy');
+    }
+    const st = el('div', 'power-stats', body);
+    this.powerView.render(st, net.stats);
+  }
+
+  /** Symbol einer Technologie: erstes freigeschaltetes Item bzw. Auslöser-Item. */
+  private techIcon(id: string): HTMLImageElement {
+    const t = TECH_BY_ID[id];
+    const item = t.unlocks.find((u) => this.sprites.has(`item.${u}`) || this.sprites.has(`item.${RECIPE_LIST.find((x) => x.id === u)?.results[0].item}`));
+    const rec = item ? RECIPE_LIST.find((x) => x.id === item) : undefined;
+    const ic = this.icon(`item.${rec ? rec.results[0].item : item ?? t.packs[0] ?? 'iron-plate'}`);
+    ic.title = t.name;
+    return ic;
+  }
+
   toggleResearch(): void {
     const hidden = this.techWin.classList.toggle('hidden');
     if (!hidden) this.buildResearch();
   }
 
   private researchKey = '';
+  private rocketsSeen = -1;
   private updateResearch(): void {
     const r = this.game.world.research;
     if (r.finished.length) {
@@ -518,8 +1036,15 @@ export class Hud {
       r.finished.length = 0;
       this.refreshAll();
     }
+    if (this.rocketsSeen < 0) this.rocketsSeen = this.game.world.rocketsLaunched;
+    if (this.game.world.rocketsLaunched > this.rocketsSeen) {
+      if (this.rocketsSeen === 0 && this.game.world.rocketsLaunched === 1) {
+        this.flash('Rakete gestartet! Sieg – die Fabrik darf weiterwachsen.');
+      } else this.flash(`Rakete ${this.game.world.rocketsLaunched} gestartet`);
+      this.rocketsSeen = this.game.world.rocketsLaunched;
+    }
     const t = r.currentTech;
-    const key = t ? `${t.id}${Math.floor(r.fraction(t.id) * 200)}` : '-';
+    const key = (t ? `${t.id}${Math.floor(r.fraction(t.id) * 200)}` : '-') + r.queue.join(',');
     if (key === this.researchKey) return;
     this.researchKey = key;
     this.researchEl.replaceChildren();
@@ -528,6 +1053,10 @@ export class Hud {
     el('span', '', this.researchEl).textContent = t.name;
     const b = el('div', 'progress', this.researchEl);
     el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
+    if (r.queue.length) {
+      const q = el('div', 'queued', this.researchEl);
+      for (const id of r.queue) q.appendChild(this.techIcon(id));
+    }
     if (!this.techWin.classList.contains('hidden')) this.buildResearch();
   }
 
@@ -539,14 +1068,32 @@ export class Hud {
     const close = el('button', 'close', head);
     close.textContent = '×';
     close.onclick = () => this.toggleResearch();
+    if (r.current || r.queue.length) {
+      const qe = el('div', 'tech-queue', this.techWin);
+      el('span', 'dim', qe).textContent = 'Warteschlange:';
+      for (const id of [...(r.current ? [r.current] : []), ...r.queue]) {
+        const q = el('div', `q${id === r.current ? ' cur' : ''}`, qe);
+        q.appendChild(this.techIcon(id));
+        el('span', '', q).textContent = TECH_BY_ID[id].name;
+        const x = el('button', '', q);
+        x.textContent = '×';
+        x.title = 'Aus der Warteschlange nehmen';
+        x.onclick = () => {
+          r.dequeue(id);
+          this.researchKey = '';
+          this.buildResearch();
+        };
+      }
+    }
     const body = el('div', 'win-body tech-body', this.techWin);
     for (const t of TECHS) {
       const done = r.done.has(t.id);
       const avail = r.available(t.id);
-      const card = el('div', `tech-card${done ? ' done' : avail ? '' : ' locked'}${r.current === t.id ? ' active' : ''}`, body);
+      const queued = r.queue.includes(t.id);
+      const card = el('div', `tech-card${done ? ' done' : avail || queued ? '' : ' locked'}${r.current === t.id ? ' active' : ''}${queued ? ' queued' : ''}`, body);
       const top = el('div', 'tech-top', card);
       el('b', '', top).textContent = t.name;
-      el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : avail ? '' : 'gesperrt';
+      el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : queued ? `Warteschlange ${r.queue.indexOf(t.id) + 1}` : avail ? '' : 'gesperrt';
       const cost = el('div', 'tech-cost', card);
       if (t.trigger) {
         cost.appendChild(this.icon(`item.${t.trigger.item}`));
@@ -568,15 +1115,17 @@ export class Hud {
         const b = el('div', 'progress', card);
         el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
       }
-      if (avail && !t.trigger) {
-        card.addEventListener('click', () => {
-          r.start(r.current === t.id ? null : t.id);
+      if (!done && !t.trigger) {
+        card.addEventListener('click', (ev) => {
+          if (ev.shiftKey || !avail) {
+            if (!r.enqueue(t.id)) this.flash(queued ? 'Schon in der Warteschlange' : 'Warteschlange voll');
+          } else r.start(r.current === t.id ? null : t.id);
           this.researchKey = '';
           this.buildResearch();
         });
       }
     }
-    el('div', 'hint', body).textContent = 'Klick: Forschung starten/anhalten · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte) · Auslöser-Forschungen schließen sich von selbst ab';
+    el('div', 'hint', body).textContent = 'Klick: Forschung starten/anhalten · Umschalt+Klick oder Klick auf gesperrte: in die Warteschlange (mit Voraussetzungen) · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte) · Auslöser-Forschungen schließen sich von selbst ab';
   }
 
   toggleHelp(): void {
@@ -594,11 +1143,11 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden aufheben · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
-        <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>P</b> Pause</p>
+        <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
       </div>`;
     this.help.querySelector('.close')!.addEventListener('click', () => this.toggleHelp());
   }

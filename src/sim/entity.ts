@@ -10,6 +10,8 @@ export enum Status {
   Depleted = 5,
   NoTarget = 6,
   NoPower = 7,
+  /** Durch Schaltbedingung abgeschaltet. */
+  Disabled = 8,
 }
 
 export interface EntityBase {

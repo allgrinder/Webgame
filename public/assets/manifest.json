@@ -5,7 +5,7 @@
  "blender": "bpy 5.2.3 LTS",
  "models": {
   "belt": {
-   "hash": "4669b9fdabc96b71",
+   "hash": "fc35fbcd0e5e56d5",
    "sprites": [
     "belt.s.0",
     "belt.s.1",
@@ -46,11 +46,31 @@
     "fast-belt.cap.start.0",
     "fast-belt.cap.start.1",
     "fast-belt.cap.start.2",
-    "fast-belt.cap.start.3"
+    "fast-belt.cap.start.3",
+    "express-belt.s.0",
+    "express-belt.s.1",
+    "express-belt.s.2",
+    "express-belt.s.3",
+    "express-belt.l.0",
+    "express-belt.l.1",
+    "express-belt.l.2",
+    "express-belt.l.3",
+    "express-belt.r.0",
+    "express-belt.r.1",
+    "express-belt.r.2",
+    "express-belt.r.3",
+    "express-belt.cap.end.0",
+    "express-belt.cap.end.1",
+    "express-belt.cap.end.2",
+    "express-belt.cap.end.3",
+    "express-belt.cap.start.0",
+    "express-belt.cap.start.1",
+    "express-belt.cap.start.2",
+    "express-belt.cap.start.3"
    ]
   },
   "chest": {
-   "hash": "842008c4ee680b59",
+   "hash": "41e24e1d3621f9e6",
    "sprites": [
     "iron-chest",
     "iron-chest.shadow",
@@ -129,7 +149,7 @@
    ]
   },
   "edrill": {
-   "hash": "2ece64a596ae76d1",
+   "hash": "9e05bcdc63058d8a",
    "sprites": [
     "electric-mining-drill.0",
     "electric-mining-drill.0.shadow",
@@ -204,7 +224,7 @@
    ]
   },
   "fluids2": {
-   "hash": "b1f0693c87e6a9e3",
+   "hash": "1f34b164887678e1",
    "sprites": [
     "pipe-to-ground.0",
     "pipe-to-ground.0.shadow",
@@ -527,7 +547,7 @@
    ]
   },
   "items": {
-   "hash": "03df6e77d7d78a01",
+   "hash": "300724a0d2496b00",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
@@ -601,8 +621,78 @@
     "flora.rocks.3.shadow"
    ]
   },
+  "late": {
+   "hash": "882e06623c33d6c0",
+   "sprites": [
+    "assembling-machine-3",
+    "assembling-machine-3.shadow",
+    "beacon",
+    "beacon.glow",
+    "beacon.shadow",
+    "roboport",
+    "roboport.shadow",
+    "radar",
+    "radar.shadow",
+    "rocket-silo",
+    "rocket-silo.shadow",
+    "cargo-landing-pad",
+    "cargo-landing-pad.shadow",
+    "passive-provider-chest",
+    "passive-provider-chest.shadow",
+    "active-provider-chest",
+    "active-provider-chest.shadow",
+    "storage-chest",
+    "storage-chest.shadow",
+    "requester-chest",
+    "requester-chest.shadow",
+    "buffer-chest",
+    "buffer-chest.shadow",
+    "robot.construction-robot",
+    "robot.construction-robot.shadow",
+    "robot.logistic-robot",
+    "robot.logistic-robot.shadow"
+   ]
+  },
+  "lateitems": {
+   "hash": "774af81a71b8362e",
+   "sprites": [
+    "item.speed-module",
+    "item.speed-module-2",
+    "item.speed-module-3",
+    "item.productivity-module",
+    "item.productivity-module-2",
+    "item.productivity-module-3",
+    "item.efficiency-module",
+    "item.efficiency-module-2",
+    "item.efficiency-module-3",
+    "item.processing-unit",
+    "item.low-density-structure",
+    "item.rocket-fuel",
+    "item.flying-robot-frame",
+    "item.concrete",
+    "item.rail",
+    "item.rocket-part",
+    "item.satellite",
+    "item.production-science-pack",
+    "item.utility-science-pack",
+    "item.space-science-pack",
+    "item.assembling-machine-3",
+    "item.beacon",
+    "item.roboport",
+    "item.radar",
+    "item.rocket-silo",
+    "item.cargo-landing-pad",
+    "item.passive-provider-chest",
+    "item.active-provider-chest",
+    "item.storage-chest",
+    "item.requester-chest",
+    "item.buffer-chest",
+    "item.construction-robot",
+    "item.logistic-robot"
+   ]
+  },
   "logistics": {
-   "hash": "fd0d13fa1beb45df",
+   "hash": "bdf0e739296f2205",
    "sprites": [
     "underground-belt.in.0",
     "underground-belt.in.1",
@@ -635,11 +725,120 @@
     "fast-splitter.2",
     "fast-splitter.2.shadow",
     "fast-splitter.3",
-    "fast-splitter.3.shadow"
+    "fast-splitter.3.shadow",
+    "express-underground-belt.in.0",
+    "express-underground-belt.in.1",
+    "express-underground-belt.in.2",
+    "express-underground-belt.in.3",
+    "express-underground-belt.out.0",
+    "express-underground-belt.out.1",
+    "express-underground-belt.out.2",
+    "express-underground-belt.out.3",
+    "express-splitter.0",
+    "express-splitter.0.shadow",
+    "express-splitter.1",
+    "express-splitter.1.shadow",
+    "express-splitter.2",
+    "express-splitter.2.shadow",
+    "express-splitter.3",
+    "express-splitter.3.shadow"
+   ]
+  },
+  "oil": {
+   "hash": "dd3c69b29e210aa9",
+   "sprites": [
+    "pumpjack.0",
+    "pumpjack.0.shadow",
+    "pumpjack.1",
+    "pumpjack.1.shadow",
+    "pumpjack.2",
+    "pumpjack.2.shadow",
+    "pumpjack.3",
+    "pumpjack.3.shadow",
+    "chemical-plant.0",
+    "chemical-plant.0.shadow",
+    "chemical-plant.1",
+    "chemical-plant.1.shadow",
+    "chemical-plant.2",
+    "chemical-plant.2.shadow",
+    "chemical-plant.3",
+    "chemical-plant.3.shadow",
+    "oil-refinery.0",
+    "oil-refinery.0.shadow",
+    "oil-refinery.1",
+    "oil-refinery.1.shadow",
+    "oil-refinery.2",
+    "oil-refinery.2.shadow",
+    "oil-refinery.3",
+    "oil-refinery.3.shadow",
+    "electric-furnace.off",
+    "electric-furnace.on",
+    "electric-furnace.glow",
+    "electric-furnace.shadow",
+    "substation",
+    "substation.shadow"
+   ]
+  },
+  "oilitems": {
+   "hash": "c260f839267281bd",
+   "sprites": [
+    "item.plastic-bar",
+    "item.sulfur",
+    "item.battery",
+    "item.solid-fuel",
+    "item.explosives",
+    "item.advanced-circuit",
+    "item.electric-engine-unit",
+    "item.pumpjack",
+    "item.oil-refinery",
+    "item.chemical-plant",
+    "item.electric-furnace",
+    "item.substation",
+    "item.chemical-science-pack",
+    "item.water",
+    "item.steam",
+    "item.crude-oil",
+    "item.heavy-oil",
+    "item.light-oil",
+    "item.petroleum-gas",
+    "item.lubricant",
+    "item.sulfuric-acid",
+    "item.express-splitter",
+    "item.express-underground-belt",
+    "item.express-transport-belt"
+   ]
+  },
+  "oilwell": {
+   "hash": "975a383b9756bdd0",
+   "sprites": [
+    "res.crude-oil.0.0",
+    "res.crude-oil.0.1",
+    "res.crude-oil.0.2",
+    "res.crude-oil.0.3",
+    "res.crude-oil.1.0",
+    "res.crude-oil.1.1",
+    "res.crude-oil.1.2",
+    "res.crude-oil.1.3",
+    "res.crude-oil.2.0",
+    "res.crude-oil.2.1",
+    "res.crude-oil.2.2",
+    "res.crude-oil.2.3",
+    "res.crude-oil.3.0",
+    "res.crude-oil.3.1",
+    "res.crude-oil.3.2",
+    "res.crude-oil.3.3",
+    "res.crude-oil.4.0",
+    "res.crude-oil.4.1",
+    "res.crude-oil.4.2",
+    "res.crude-oil.4.3",
+    "res.crude-oil.5.0",
+    "res.crude-oil.5.1",
+    "res.crude-oil.5.2",
+    "res.crude-oil.5.3"
    ]
   },
   "pipe": {
-   "hash": "927153a1beb02f82",
+   "hash": "572cfe9a4f9a3b57",
    "sprites": [
     "pipe.0",
     "pipe.1",
@@ -689,7 +888,7 @@
    ]
   },
   "poles2": {
-   "hash": "5ad59da866c81d01",
+   "hash": "89356ec0811a1696",
    "sprites": [
     "medium-electric-pole",
     "medium-electric-pole.shadow",
@@ -701,7 +900,7 @@
    ]
   },
   "power": {
-   "hash": "e1e71f8d67cbec14",
+   "hash": "93d396ffa7e9877b",
    "sprites": [
     "offshore-pump.0",
     "offshore-pump.0.shadow",
@@ -736,7 +935,7 @@
    ]
   },
   "production": {
-   "hash": "cc7159898f28f902",
+   "hash": "e763175b040092e4",
    "sprites": [
     "assembling-machine-1",
     "assembling-machine-1.shadow",
@@ -847,8 +1046,20 @@
     "res.copper-ore.5.3"
    ]
   },
+  "solar": {
+   "hash": "4e6f67b8aa91c62a",
+   "sprites": [
+    "solar-panel",
+    "solar-panel.shadow",
+    "accumulator",
+    "accumulator.glow",
+    "accumulator.shadow",
+    "item.solar-panel",
+    "item.accumulator"
+   ]
+  },
   "steelfurnace": {
-   "hash": "3be9e4d4c5bc59cb",
+   "hash": "20be81a0e56513e0",
    "sprites": [
     "steel-furnace.off",
     "steel-furnace.on",
@@ -952,6 +1163,18 @@
   {
    "group": "entities",
    "file": "atlas-entities-6.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-7.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-8.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-9.json"
   },
   {
    "group": "flora",
@@ -1398,6 +1621,438 @@
     "belt.s.3#13",
     "belt.s.3#14",
     "belt.s.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.cap.end.0": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.end.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.end.1": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.end.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.end.2": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.end.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.end.3": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.end.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.start.0": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.start.0#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.start.1": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.start.1#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.start.2": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.start.2#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.cap.start.3": {
+   "group": "belts",
+   "frames": [
+    "express-belt.cap.start.3#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "express-belt.l.0": {
+   "group": "belts",
+   "frames": [
+    "express-belt.l.0#0",
+    "express-belt.l.0#1",
+    "express-belt.l.0#2",
+    "express-belt.l.0#3",
+    "express-belt.l.0#4",
+    "express-belt.l.0#5",
+    "express-belt.l.0#6",
+    "express-belt.l.0#7",
+    "express-belt.l.0#8",
+    "express-belt.l.0#9",
+    "express-belt.l.0#10",
+    "express-belt.l.0#11",
+    "express-belt.l.0#12",
+    "express-belt.l.0#13",
+    "express-belt.l.0#14",
+    "express-belt.l.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.l.1": {
+   "group": "belts",
+   "frames": [
+    "express-belt.l.1#0",
+    "express-belt.l.1#1",
+    "express-belt.l.1#2",
+    "express-belt.l.1#3",
+    "express-belt.l.1#4",
+    "express-belt.l.1#5",
+    "express-belt.l.1#6",
+    "express-belt.l.1#7",
+    "express-belt.l.1#8",
+    "express-belt.l.1#9",
+    "express-belt.l.1#10",
+    "express-belt.l.1#11",
+    "express-belt.l.1#12",
+    "express-belt.l.1#13",
+    "express-belt.l.1#14",
+    "express-belt.l.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.l.2": {
+   "group": "belts",
+   "frames": [
+    "express-belt.l.2#0",
+    "express-belt.l.2#1",
+    "express-belt.l.2#2",
+    "express-belt.l.2#3",
+    "express-belt.l.2#4",
+    "express-belt.l.2#5",
+    "express-belt.l.2#6",
+    "express-belt.l.2#7",
+    "express-belt.l.2#8",
+    "express-belt.l.2#9",
+    "express-belt.l.2#10",
+    "express-belt.l.2#11",
+    "express-belt.l.2#12",
+    "express-belt.l.2#13",
+    "express-belt.l.2#14",
+    "express-belt.l.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.l.3": {
+   "group": "belts",
+   "frames": [
+    "express-belt.l.3#0",
+    "express-belt.l.3#1",
+    "express-belt.l.3#2",
+    "express-belt.l.3#3",
+    "express-belt.l.3#4",
+    "express-belt.l.3#5",
+    "express-belt.l.3#6",
+    "express-belt.l.3#7",
+    "express-belt.l.3#8",
+    "express-belt.l.3#9",
+    "express-belt.l.3#10",
+    "express-belt.l.3#11",
+    "express-belt.l.3#12",
+    "express-belt.l.3#13",
+    "express-belt.l.3#14",
+    "express-belt.l.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.r.0": {
+   "group": "belts",
+   "frames": [
+    "express-belt.r.0#0",
+    "express-belt.r.0#1",
+    "express-belt.r.0#2",
+    "express-belt.r.0#3",
+    "express-belt.r.0#4",
+    "express-belt.r.0#5",
+    "express-belt.r.0#6",
+    "express-belt.r.0#7",
+    "express-belt.r.0#8",
+    "express-belt.r.0#9",
+    "express-belt.r.0#10",
+    "express-belt.r.0#11",
+    "express-belt.r.0#12",
+    "express-belt.r.0#13",
+    "express-belt.r.0#14",
+    "express-belt.r.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.r.1": {
+   "group": "belts",
+   "frames": [
+    "express-belt.r.1#0",
+    "express-belt.r.1#1",
+    "express-belt.r.1#2",
+    "express-belt.r.1#3",
+    "express-belt.r.1#4",
+    "express-belt.r.1#5",
+    "express-belt.r.1#6",
+    "express-belt.r.1#7",
+    "express-belt.r.1#8",
+    "express-belt.r.1#9",
+    "express-belt.r.1#10",
+    "express-belt.r.1#11",
+    "express-belt.r.1#12",
+    "express-belt.r.1#13",
+    "express-belt.r.1#14",
+    "express-belt.r.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.r.2": {
+   "group": "belts",
+   "frames": [
+    "express-belt.r.2#0",
+    "express-belt.r.2#1",
+    "express-belt.r.2#2",
+    "express-belt.r.2#3",
+    "express-belt.r.2#4",
+    "express-belt.r.2#5",
+    "express-belt.r.2#6",
+    "express-belt.r.2#7",
+    "express-belt.r.2#8",
+    "express-belt.r.2#9",
+    "express-belt.r.2#10",
+    "express-belt.r.2#11",
+    "express-belt.r.2#12",
+    "express-belt.r.2#13",
+    "express-belt.r.2#14",
+    "express-belt.r.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.r.3": {
+   "group": "belts",
+   "frames": [
+    "express-belt.r.3#0",
+    "express-belt.r.3#1",
+    "express-belt.r.3#2",
+    "express-belt.r.3#3",
+    "express-belt.r.3#4",
+    "express-belt.r.3#5",
+    "express-belt.r.3#6",
+    "express-belt.r.3#7",
+    "express-belt.r.3#8",
+    "express-belt.r.3#9",
+    "express-belt.r.3#10",
+    "express-belt.r.3#11",
+    "express-belt.r.3#12",
+    "express-belt.r.3#13",
+    "express-belt.r.3#14",
+    "express-belt.r.3#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.s.0": {
+   "group": "belts",
+   "frames": [
+    "express-belt.s.0#0",
+    "express-belt.s.0#1",
+    "express-belt.s.0#2",
+    "express-belt.s.0#3",
+    "express-belt.s.0#4",
+    "express-belt.s.0#5",
+    "express-belt.s.0#6",
+    "express-belt.s.0#7",
+    "express-belt.s.0#8",
+    "express-belt.s.0#9",
+    "express-belt.s.0#10",
+    "express-belt.s.0#11",
+    "express-belt.s.0#12",
+    "express-belt.s.0#13",
+    "express-belt.s.0#14",
+    "express-belt.s.0#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.s.1": {
+   "group": "belts",
+   "frames": [
+    "express-belt.s.1#0",
+    "express-belt.s.1#1",
+    "express-belt.s.1#2",
+    "express-belt.s.1#3",
+    "express-belt.s.1#4",
+    "express-belt.s.1#5",
+    "express-belt.s.1#6",
+    "express-belt.s.1#7",
+    "express-belt.s.1#8",
+    "express-belt.s.1#9",
+    "express-belt.s.1#10",
+    "express-belt.s.1#11",
+    "express-belt.s.1#12",
+    "express-belt.s.1#13",
+    "express-belt.s.1#14",
+    "express-belt.s.1#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.s.2": {
+   "group": "belts",
+   "frames": [
+    "express-belt.s.2#0",
+    "express-belt.s.2#1",
+    "express-belt.s.2#2",
+    "express-belt.s.2#3",
+    "express-belt.s.2#4",
+    "express-belt.s.2#5",
+    "express-belt.s.2#6",
+    "express-belt.s.2#7",
+    "express-belt.s.2#8",
+    "express-belt.s.2#9",
+    "express-belt.s.2#10",
+    "express-belt.s.2#11",
+    "express-belt.s.2#12",
+    "express-belt.s.2#13",
+    "express-belt.s.2#14",
+    "express-belt.s.2#15"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "fps": 60
+  },
+  "express-belt.s.3": {
+   "group": "belts",
+   "frames": [
+    "express-belt.s.3#0",
+    "express-belt.s.3#1",
+    "express-belt.s.3#2",
+    "express-belt.s.3#3",
+    "express-belt.s.3#4",
+    "express-belt.s.3#5",
+    "express-belt.s.3#6",
+    "express-belt.s.3#7",
+    "express-belt.s.3#8",
+    "express-belt.s.3#9",
+    "express-belt.s.3#10",
+    "express-belt.s.3#11",
+    "express-belt.s.3#12",
+    "express-belt.s.3#13",
+    "express-belt.s.3#14",
+    "express-belt.s.3#15"
    ],
    "w": 64,
    "h": 64,
@@ -2394,6 +3049,73 @@
     "blend": "add"
    }
   },
+  "accumulator": {
+   "group": "entities",
+   "frames": [
+    "accumulator#0"
+   ],
+   "w": 160,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6285714285714287
+   ]
+  },
+  "accumulator.glow": {
+   "group": "entities",
+   "frames": [
+    "accumulator.glow#0",
+    "accumulator.glow#1",
+    "accumulator.glow#2",
+    "accumulator.glow#3"
+   ],
+   "w": 160,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6285714285714287
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "accumulator.shadow": {
+   "group": "entities",
+   "frames": [
+    "accumulator.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.35714285714285715,
+    0.35714285714285715
+   ]
+  },
+  "active-provider-chest": {
+   "group": "entities",
+   "frames": [
+    "active-provider-chest#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "active-provider-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "active-provider-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.34285714285714286,
+    0.34285714285714286
+   ]
+  },
   "assembling-machine-1": {
    "group": "entities",
    "frames": [
@@ -2459,6 +3181,87 @@
    "anchor": [
     0.42105263157894735,
     0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "assembling-machine-3": {
+   "group": "entities",
+   "frames": [
+    "assembling-machine-3#0",
+    "assembling-machine-3#1",
+    "assembling-machine-3#2",
+    "assembling-machine-3#3",
+    "assembling-machine-3#4",
+    "assembling-machine-3#5",
+    "assembling-machine-3#6",
+    "assembling-machine-3#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "assembling-machine-3.shadow": {
+   "group": "entities",
+   "frames": [
+    "assembling-machine-3.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "beacon": {
+   "group": "entities",
+   "frames": [
+    "beacon#0"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.6111111111111112
+   ]
+  },
+  "beacon.glow": {
+   "group": "entities",
+   "frames": [
+    "beacon.glow#0",
+    "beacon.glow#1",
+    "beacon.glow#2",
+    "beacon.glow#3"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.6111111111111112
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "beacon.shadow": {
+   "group": "entities",
+   "frames": [
+    "beacon.shadow#0"
+   ],
+   "w": 144,
+   "h": 144,
+   "anchor": [
+    0.4222222222222222,
+    0.4222222222222222
    ],
    "meta": {
     "scale": 2
@@ -2678,6 +3481,197 @@
     "scale": 2
    }
   },
+  "buffer-chest": {
+   "group": "entities",
+   "frames": [
+    "buffer-chest#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "buffer-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "buffer-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.34285714285714286,
+    0.34285714285714286
+   ]
+  },
+  "cargo-landing-pad": {
+   "group": "entities",
+   "frames": [
+    "cargo-landing-pad#0"
+   ],
+   "w": 560,
+   "h": 640,
+   "anchor": [
+    0.5,
+    0.5599999999999999
+   ]
+  },
+  "cargo-landing-pad.shadow": {
+   "group": "entities",
+   "frames": [
+    "cargo-landing-pad.shadow#0"
+   ],
+   "w": 320,
+   "h": 320,
+   "anchor": [
+    0.44000000000000006,
+    0.44000000000000006
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "chemical-plant.0": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.0#0",
+    "chemical-plant.0#1",
+    "chemical-plant.0#2",
+    "chemical-plant.0#3",
+    "chemical-plant.0#4",
+    "chemical-plant.0#5",
+    "chemical-plant.0#6",
+    "chemical-plant.0#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "chemical-plant.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.0.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "chemical-plant.1": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.1#0",
+    "chemical-plant.1#1",
+    "chemical-plant.1#2",
+    "chemical-plant.1#3",
+    "chemical-plant.1#4",
+    "chemical-plant.1#5",
+    "chemical-plant.1#6",
+    "chemical-plant.1#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "chemical-plant.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.1.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "chemical-plant.2": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.2#0",
+    "chemical-plant.2#1",
+    "chemical-plant.2#2",
+    "chemical-plant.2#3",
+    "chemical-plant.2#4",
+    "chemical-plant.2#5",
+    "chemical-plant.2#6",
+    "chemical-plant.2#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "chemical-plant.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.2.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "chemical-plant.3": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.3#0",
+    "chemical-plant.3#1",
+    "chemical-plant.3#2",
+    "chemical-plant.3#3",
+    "chemical-plant.3#4",
+    "chemical-plant.3#5",
+    "chemical-plant.3#6",
+    "chemical-plant.3#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 15
+  },
+  "chemical-plant.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "chemical-plant.3.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "drill.0": {
    "group": "entities",
    "frames": [
@@ -2838,6 +3832,65 @@
     0.35714285714285715
    ]
   },
+  "electric-furnace.glow": {
+   "group": "entities",
+   "frames": [
+    "electric-furnace.glow#0",
+    "electric-furnace.glow#1",
+    "electric-furnace.glow#2",
+    "electric-furnace.glow#3",
+    "electric-furnace.glow#4",
+    "electric-furnace.glow#5",
+    "electric-furnace.glow#6",
+    "electric-furnace.glow#7"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ],
+   "fps": 10,
+   "meta": {
+    "blend": "add"
+   }
+  },
+  "electric-furnace.off": {
+   "group": "entities",
+   "frames": [
+    "electric-furnace.off#0"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ]
+  },
+  "electric-furnace.on": {
+   "group": "entities",
+   "frames": [
+    "electric-furnace.on#0"
+   ],
+   "w": 240,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5777777777777778
+   ]
+  },
+  "electric-furnace.shadow": {
+   "group": "entities",
+   "frames": [
+    "electric-furnace.shadow#0"
+   ],
+   "w": 304,
+   "h": 304,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ]
+  },
   "electric-mining-drill.0": {
    "group": "entities",
    "frames": [
@@ -2977,6 +4030,198 @@
    "meta": {
     "scale": 2
    }
+  },
+  "express-splitter.0": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.0#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "express-splitter.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.0.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "express-splitter.1": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.1#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "express-splitter.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.1.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "express-splitter.2": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.2#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "express-splitter.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.2.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "express-splitter.3": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.3#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5833333333333334
+   ]
+  },
+  "express-splitter.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "express-splitter.3.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.3333333333333333,
+    0.3333333333333333
+   ]
+  },
+  "express-underground-belt.in.0": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.in.0#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.in.1": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.in.1#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.in.2": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.in.2#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.in.3": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.in.3#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.out.0": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.out.0#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.out.1": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.out.1#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.out.2": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.out.2#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
+  },
+  "express-underground-belt.out.3": {
+   "group": "entities",
+   "frames": [
+    "express-underground-belt.out.3#0"
+   ],
+   "w": 80,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.5714285714285714
+   ]
   },
   "fast-splitter.0": {
    "group": "entities",
@@ -3737,6 +4982,154 @@
    "anchor": [
     0.3333333333333333,
     0.3333333333333333
+   ]
+  },
+  "oil-refinery.0": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.0#0",
+    "oil-refinery.0#1",
+    "oil-refinery.0#2",
+    "oil-refinery.0#3"
+   ],
+   "w": 352,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5407407407407407
+   ],
+   "fps": 15
+  },
+  "oil-refinery.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.375,
+    0.375
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "oil-refinery.1": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.1#0",
+    "oil-refinery.1#1",
+    "oil-refinery.1#2",
+    "oil-refinery.1#3"
+   ],
+   "w": 352,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5407407407407407
+   ],
+   "fps": 15
+  },
+  "oil-refinery.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.375,
+    0.375
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "oil-refinery.2": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.2#0",
+    "oil-refinery.2#1",
+    "oil-refinery.2#2",
+    "oil-refinery.2#3"
+   ],
+   "w": 352,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5407407407407407
+   ],
+   "fps": 15
+  },
+  "oil-refinery.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.375,
+    0.375
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "oil-refinery.3": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.3#0",
+    "oil-refinery.3#1",
+    "oil-refinery.3#2",
+    "oil-refinery.3#3"
+   ],
+   "w": 352,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5407407407407407
+   ],
+   "fps": 15
+  },
+  "oil-refinery.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-refinery.3.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.375,
+    0.375
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "passive-provider-chest": {
+   "group": "entities",
+   "frames": [
+    "passive-provider-chest#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "passive-provider-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "passive-provider-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.34285714285714286,
+    0.34285714285714286
    ]
   },
   "pipe-to-ground.0": {
@@ -4683,6 +6076,307 @@
     0.3333333333333333
    ]
   },
+  "pumpjack.0": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.0#0",
+    "pumpjack.0#1",
+    "pumpjack.0#2",
+    "pumpjack.0#3",
+    "pumpjack.0#4",
+    "pumpjack.0#5",
+    "pumpjack.0#6",
+    "pumpjack.0#7"
+   ],
+   "w": 240,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "pumpjack.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.0.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pumpjack.1": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.1#0",
+    "pumpjack.1#1",
+    "pumpjack.1#2",
+    "pumpjack.1#3",
+    "pumpjack.1#4",
+    "pumpjack.1#5",
+    "pumpjack.1#6",
+    "pumpjack.1#7"
+   ],
+   "w": 240,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "pumpjack.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.1.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pumpjack.2": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.2#0",
+    "pumpjack.2#1",
+    "pumpjack.2#2",
+    "pumpjack.2#3",
+    "pumpjack.2#4",
+    "pumpjack.2#5",
+    "pumpjack.2#6",
+    "pumpjack.2#7"
+   ],
+   "w": 240,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "pumpjack.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.2.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pumpjack.3": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.3#0",
+    "pumpjack.3#1",
+    "pumpjack.3#2",
+    "pumpjack.3#3",
+    "pumpjack.3#4",
+    "pumpjack.3#5",
+    "pumpjack.3#6",
+    "pumpjack.3#7"
+   ],
+   "w": 240,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 15
+  },
+  "pumpjack.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "pumpjack.3.shadow#0"
+   ],
+   "w": 152,
+   "h": 152,
+   "anchor": [
+    0.42105263157894735,
+    0.42105263157894735
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "radar": {
+   "group": "entities",
+   "frames": [
+    "radar#0",
+    "radar#1",
+    "radar#2",
+    "radar#3",
+    "radar#4",
+    "radar#5",
+    "radar#6",
+    "radar#7"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.631578947368421
+   ],
+   "fps": 15
+  },
+  "radar.shadow": {
+   "group": "entities",
+   "frames": [
+    "radar.shadow#0"
+   ],
+   "w": 144,
+   "h": 144,
+   "anchor": [
+    0.4222222222222222,
+    0.4222222222222222
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "requester-chest": {
+   "group": "entities",
+   "frames": [
+    "requester-chest#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "requester-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "requester-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.34285714285714286,
+    0.34285714285714286
+   ]
+  },
+  "roboport": {
+   "group": "entities",
+   "frames": [
+    "roboport#0"
+   ],
+   "w": 304,
+   "h": 384,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "roboport.shadow": {
+   "group": "entities",
+   "frames": [
+    "roboport.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.4166666666666667,
+    0.4166666666666667
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "robot.construction-robot": {
+   "group": "entities",
+   "frames": [
+    "robot.construction-robot#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "robot.construction-robot.shadow": {
+   "group": "entities",
+   "frames": [
+    "robot.construction-robot.shadow#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "robot.logistic-robot": {
+   "group": "entities",
+   "frames": [
+    "robot.logistic-robot#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "robot.logistic-robot.shadow": {
+   "group": "entities",
+   "frames": [
+    "robot.logistic-robot.shadow#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "rocket-silo": {
+   "group": "entities",
+   "frames": [
+    "rocket-silo#0"
+   ],
+   "w": 640,
+   "h": 832,
+   "anchor": [
+    0.5,
+    0.6153846153846154
+   ]
+  },
+  "rocket-silo.shadow": {
+   "group": "entities",
+   "frames": [
+    "rocket-silo.shadow#0"
+   ],
+   "w": 416,
+   "h": 416,
+   "anchor": [
+    0.38461538461538464,
+    0.38461538461538464
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "small-electric-pole": {
    "group": "entities",
    "frames": [
@@ -4709,6 +6403,33 @@
     0.24,
     0.24
    ]
+  },
+  "solar-panel": {
+   "group": "entities",
+   "frames": [
+    "solar-panel#0"
+   ],
+   "w": 224,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "solar-panel.shadow": {
+   "group": "entities",
+   "frames": [
+    "solar-panel.shadow#0"
+   ],
+   "w": 144,
+   "h": 144,
+   "anchor": [
+    0.4222222222222222,
+    0.4222222222222222
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "splitter.0": {
    "group": "entities",
@@ -5029,6 +6750,30 @@
     0.35714285714285715
    ]
   },
+  "storage-chest": {
+   "group": "entities",
+   "frames": [
+    "storage-chest#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5333333333333333
+   ]
+  },
+  "storage-chest.shadow": {
+   "group": "entities",
+   "frames": [
+    "storage-chest.shadow#0"
+   ],
+   "w": 112,
+   "h": 112,
+   "anchor": [
+    0.34285714285714286,
+    0.34285714285714286
+   ]
+  },
   "storage-tank.0": {
    "group": "entities",
    "frames": [
@@ -5136,6 +6881,33 @@
    "meta": {
     "scale": 2
    }
+  },
+  "substation": {
+   "group": "entities",
+   "frames": [
+    "substation#0"
+   ],
+   "w": 176,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.725
+   ],
+   "meta": {
+    "wireLift": 1.2413
+   }
+  },
+  "substation.shadow": {
+   "group": "entities",
+   "frames": [
+    "substation.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.3125,
+    0.3125
+   ]
   },
   "underground-belt.in.0": {
    "group": "entities",
@@ -6097,6 +7869,42 @@
     0.5
    ]
   },
+  "item.accumulator": {
+   "group": "items",
+   "frames": [
+    "item.accumulator#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.active-provider-chest": {
+   "group": "items",
+   "frames": [
+    "item.active-provider-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.advanced-circuit": {
+   "group": "items",
+   "frames": [
+    "item.advanced-circuit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.assembling-machine-1": {
    "group": "items",
    "frames": [
@@ -6121,10 +7929,46 @@
     0.5
    ]
   },
+  "item.assembling-machine-3": {
+   "group": "items",
+   "frames": [
+    "item.assembling-machine-3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.automation-science-pack": {
    "group": "items",
    "frames": [
     "item.automation-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.battery": {
+   "group": "items",
+   "frames": [
+    "item.battery#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.beacon": {
+   "group": "items",
+   "frames": [
+    "item.beacon#0"
    ],
    "w": 64,
    "h": 64,
@@ -6157,6 +8001,18 @@
     0.5
    ]
   },
+  "item.buffer-chest": {
+   "group": "items",
+   "frames": [
+    "item.buffer-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.burner-inserter": {
    "group": "items",
    "frames": [
@@ -6181,10 +8037,70 @@
     0.5
    ]
   },
+  "item.cargo-landing-pad": {
+   "group": "items",
+   "frames": [
+    "item.cargo-landing-pad#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.chemical-plant": {
+   "group": "items",
+   "frames": [
+    "item.chemical-plant#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.chemical-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.chemical-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.coal": {
    "group": "items",
    "frames": [
     "item.coal#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.concrete": {
+   "group": "items",
+   "frames": [
+    "item.concrete#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.construction-robot": {
+   "group": "items",
+   "frames": [
+    "item.construction-robot#0"
    ],
    "w": 64,
    "h": 64,
@@ -6229,6 +8145,78 @@
     0.5
    ]
   },
+  "item.crude-oil": {
+   "group": "items",
+   "frames": [
+    "item.crude-oil#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.efficiency-module": {
+   "group": "items",
+   "frames": [
+    "item.efficiency-module#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.efficiency-module-2": {
+   "group": "items",
+   "frames": [
+    "item.efficiency-module-2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.efficiency-module-3": {
+   "group": "items",
+   "frames": [
+    "item.efficiency-module-3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.electric-engine-unit": {
+   "group": "items",
+   "frames": [
+    "item.electric-engine-unit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.electric-furnace": {
+   "group": "items",
+   "frames": [
+    "item.electric-furnace#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.electric-mining-drill": {
    "group": "items",
    "frames": [
@@ -6257,6 +8245,54 @@
    "group": "items",
    "frames": [
     "item.engine-unit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.explosives": {
+   "group": "items",
+   "frames": [
+    "item.explosives#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.express-splitter": {
+   "group": "items",
+   "frames": [
+    "item.express-splitter#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.express-transport-belt": {
+   "group": "items",
+   "frames": [
+    "item.express-transport-belt#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.express-underground-belt": {
+   "group": "items",
+   "frames": [
+    "item.express-underground-belt#0"
    ],
    "w": 64,
    "h": 64,
@@ -6305,6 +8341,30 @@
    "group": "items",
    "frames": [
     "item.fast-underground-belt#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.flying-robot-frame": {
+   "group": "items",
+   "frames": [
+    "item.flying-robot-frame#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.heavy-oil": {
+   "group": "items",
+   "frames": [
+    "item.heavy-oil#0"
    ],
    "w": 64,
    "h": 64,
@@ -6421,6 +8481,30 @@
     0.5
    ]
   },
+  "item.light-oil": {
+   "group": "items",
+   "frames": [
+    "item.light-oil#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.logistic-robot": {
+   "group": "items",
+   "frames": [
+    "item.logistic-robot#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.logistic-science-pack": {
    "group": "items",
    "frames": [
@@ -6437,6 +8521,30 @@
    "group": "items",
    "frames": [
     "item.long-handed-inserter#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.low-density-structure": {
+   "group": "items",
+   "frames": [
+    "item.low-density-structure#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.lubricant": {
+   "group": "items",
+   "frames": [
+    "item.lubricant#0"
    ],
    "w": 64,
    "h": 64,
@@ -6469,6 +8577,42 @@
     0.5
    ]
   },
+  "item.oil-refinery": {
+   "group": "items",
+   "frames": [
+    "item.oil-refinery#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.passive-provider-chest": {
+   "group": "items",
+   "frames": [
+    "item.passive-provider-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.petroleum-gas": {
+   "group": "items",
+   "frames": [
+    "item.petroleum-gas#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.pipe": {
    "group": "items",
    "frames": [
@@ -6493,10 +8637,190 @@
     0.5
    ]
   },
+  "item.plastic-bar": {
+   "group": "items",
+   "frames": [
+    "item.plastic-bar#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.processing-unit": {
+   "group": "items",
+   "frames": [
+    "item.processing-unit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.production-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.production-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.productivity-module": {
+   "group": "items",
+   "frames": [
+    "item.productivity-module#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.productivity-module-2": {
+   "group": "items",
+   "frames": [
+    "item.productivity-module-2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.productivity-module-3": {
+   "group": "items",
+   "frames": [
+    "item.productivity-module-3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.pump": {
    "group": "items",
    "frames": [
     "item.pump#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.pumpjack": {
+   "group": "items",
+   "frames": [
+    "item.pumpjack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.radar": {
+   "group": "items",
+   "frames": [
+    "item.radar#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.rail": {
+   "group": "items",
+   "frames": [
+    "item.rail#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.requester-chest": {
+   "group": "items",
+   "frames": [
+    "item.requester-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.roboport": {
+   "group": "items",
+   "frames": [
+    "item.roboport#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.rocket-fuel": {
+   "group": "items",
+   "frames": [
+    "item.rocket-fuel#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.rocket-part": {
+   "group": "items",
+   "frames": [
+    "item.rocket-part#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.rocket-silo": {
+   "group": "items",
+   "frames": [
+    "item.rocket-silo#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.satellite": {
+   "group": "items",
+   "frames": [
+    "item.satellite#0"
    ],
    "w": 64,
    "h": 64,
@@ -6529,10 +8853,94 @@
     0.5
    ]
   },
+  "item.solar-panel": {
+   "group": "items",
+   "frames": [
+    "item.solar-panel#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.solid-fuel": {
+   "group": "items",
+   "frames": [
+    "item.solid-fuel#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.space-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.space-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.speed-module": {
+   "group": "items",
+   "frames": [
+    "item.speed-module#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.speed-module-2": {
+   "group": "items",
+   "frames": [
+    "item.speed-module-2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.speed-module-3": {
+   "group": "items",
+   "frames": [
+    "item.speed-module-3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.splitter": {
    "group": "items",
    "frames": [
     "item.splitter#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.steam": {
+   "group": "items",
+   "frames": [
+    "item.steam#0"
    ],
    "w": 64,
    "h": 64,
@@ -6625,10 +9033,58 @@
     0.5
    ]
   },
+  "item.storage-chest": {
+   "group": "items",
+   "frames": [
+    "item.storage-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.storage-tank": {
    "group": "items",
    "frames": [
     "item.storage-tank#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.substation": {
+   "group": "items",
+   "frames": [
+    "item.substation#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.sulfur": {
+   "group": "items",
+   "frames": [
+    "item.sulfur#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.sulfuric-acid": {
+   "group": "items",
+   "frames": [
+    "item.sulfuric-acid#0"
    ],
    "w": 64,
    "h": 64,
@@ -6653,6 +9109,30 @@
    "group": "items",
    "frames": [
     "item.underground-belt#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.utility-science-pack": {
+   "group": "items",
+   "frames": [
+    "item.utility-science-pack#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.water": {
+   "group": "items",
+   "frames": [
+    "item.water#0"
    ],
    "w": 64,
    "h": 64,
@@ -10325,6 +12805,294 @@
    "group": "terrain",
    "frames": [
     "res.copper-ore.5.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.0.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.0.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.0.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.0.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.0.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.0.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.0.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.0.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.1.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.1.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.1.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.1.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.1.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.1.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.1.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.1.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.2.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.2.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.2.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.2.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.2.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.2.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.2.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.2.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.3.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.3.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.3.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.3.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.3.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.3.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.3.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.3.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.4.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.4.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.4.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.4.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.4.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.4.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.4.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.4.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.5.0": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.5.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.5.1": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.5.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.5.2": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.5.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "res.crude-oil.5.3": {
+   "group": "terrain",
+   "frames": [
+    "res.crude-oil.5.3#0"
    ],
    "w": 96,
    "h": 96,

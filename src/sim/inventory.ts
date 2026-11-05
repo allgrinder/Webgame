@@ -10,6 +10,8 @@ export interface Stack {
 /** Inventar aus festen Slots. Optional mit Filter (z. B. nur Brennstoff). */
 export class Inventory {
   readonly slots: (Stack | null)[];
+  /** Höchstmenge je Slot (z. B. 1 für Modulplätze). */
+  maxPerSlot = Infinity;
   constructor(size: number, readonly filter?: (item: string) => boolean) {
     this.slots = new Array(size).fill(null);
   }
@@ -35,7 +37,7 @@ export class Inventory {
   /** Wie viele Items dieses Typs noch hineinpassen. */
   space(item: string): number {
     if (!this.accepts(item)) return 0;
-    const stack = ITEMS[item]?.stackSize ?? 1;
+    const stack = Math.min(ITEMS[item]?.stackSize ?? 1, this.maxPerSlot);
     let n = 0;
     for (const s of this.slots) {
       if (!s) n += stack;
@@ -47,7 +49,7 @@ export class Inventory {
   /** Fügt bis zu amount hinzu, gibt die tatsächlich eingefügte Menge zurück. */
   add(item: string, amount: number): number {
     if (amount <= 0 || !this.accepts(item)) return 0;
-    const stack = ITEMS[item]?.stackSize ?? 1;
+    const stack = Math.min(ITEMS[item]?.stackSize ?? 1, this.maxPerSlot);
     let left = amount;
     for (const s of this.slots) {
       if (left === 0) break;

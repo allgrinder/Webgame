@@ -7,10 +7,12 @@ import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './entit
 import { HALF_TURN, InserterEntity, InserterPhase } from './entities/inserter';
 import { FluidPumpEntity, LampEntity, PipeGroundEntity, PumpjackEntity, TankEntity } from './entities/fluidplus';
 import { SplitterEntity, UndergroundEntity } from './entities/logistics';
-import { AssemblerEntity, LabEntity } from './entities/production';
-import { BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity } from './entities/power';
+import { AssemblerEntity, BeaconEntity, LabEntity } from './entities/production';
+import { RoboportEntity } from './entities/robots';
+import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './entities/rocket';
+import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './entities/power';
 
-export { PumpjackEntity };
+export { AccumulatorEntity, BeaconEntity, CombinatorEntity, RailEntity, TrainStopEntity, PumpjackEntity, RadarEntity, RoboportEntity, RocketSiloEntity, SolarEntity };
 export { AssemblerEntity, FluidPumpEntity, LabEntity, LampEntity, PipeGroundEntity, SplitterEntity, TankEntity, UndergroundEntity };
 export { BeltEntity, BoilerEntity, ContainerEntity, DrillEntity, FurnaceEntity, GeneratorEntity, HALF_TURN, InserterEntity, InserterPhase, PipeEntity, PoleEntity, PumpEntity };
 export type { InsertMode };
@@ -18,7 +20,7 @@ export type { InsertMode };
 export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
-  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity;
+  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RocketSiloEntity | RadarEntity | CombinatorEntity | RailEntity | TrainStopEntity;
 
 export function itemIndex(id: string): number {
   const i = ITEM_IDS.indexOf(id);

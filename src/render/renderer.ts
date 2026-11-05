@@ -8,6 +8,7 @@ import { BeltSystem, Shape } from '../sim/belts';
 import { Status } from '../sim/entity';
 import { DX, DY, type Dir } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
+import { CircuitSystem } from '../sim/circuit';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
@@ -29,6 +30,14 @@ export interface Ghost {
 
 export interface RenderUi {
   ghost: Ghost | null;
+  /** Weitere Vorschau-Geister (Blaupause im Cursor). */
+  ghosts?: Ghost[];
+  /** Auswahlrechteck (Felder, x1/y1 exklusiv); cut = Ausschneiden (rot). */
+  selection?: { x0: number; y0: number; x1: number; y1: number; cut?: boolean } | null;
+  /** Bereiche der Roboterhangars zeigen (Hangar/Logistikkiste im Cursor oder unter der Maus). */
+  robotAreas?: boolean;
+  /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
+  wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
   /** Markierung unter dem Cursor (Feldrechteck). */
   hover: { x: number; y: number; w: number; h: number } | null;
@@ -180,7 +189,7 @@ export class GameRenderer {
     for (let y = 0; y < gp; y++) for (let x = 0; x < gp; x++) this.groundTex[x + gp * y] = s.frame(`ground.${x}.${y}`);
     while (s.has(`res.iron-ore.${this.resVariants}.0`)) this.resVariants++;
     // Bandstufen: Präfix der Sprites je Geschwindigkeit (fehlt eine Stufe, wird das gelbe Band genutzt)
-    for (const [speed, prefix] of [[BELT.speed, 'belt'], [BELT.speed * 2, 'fast-belt']] as const) {
+    for (const [speed, prefix] of [[BELT.speed, 'belt'], [BELT.speed * 2, 'fast-belt'], [BELT.speed * 3, 'express-belt']] as const) {
       const pre = s.has(`${prefix}.s.0`) ? prefix : 'belt';
       const tex: Texture[][] = [];
       for (let sh = 0; sh < 3; sh++) for (let d = 0; d < 4; d++) tex[sh * 4 + d] = s.frames(`${pre}.${SHAPE_KEY[sh]}.${d}`);
@@ -216,7 +225,7 @@ export class GameRenderer {
     this.drawBelts(world, view, alpha);
     this.drawItems(world, view, alpha);
     this.drawEntities(world, view, alpha, ui);
-    this.drawWires(world, view);
+    this.drawWires(world, view, ui);
     this.effects?.update(world, alpha, view);
     this.clouds?.update(world, alpha, view);
     if (this.night) {
@@ -586,7 +595,9 @@ export class GameRenderer {
       sp.position.set(px * TILE, py * TILE);
       sp.zIndex = py * TILE;
     }
-    this.drawGhost(ui);
+    this.drawRobots(world);
+    this.drawVehicles(world);
+    this.drawGhost(ui, world);
     this.shadows.end();
     this.ents.end();
     this.glow.end();
@@ -610,6 +621,29 @@ export class GameRenderer {
         const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / 4)));
         sp.position.set(cx, cy);
         sp.zIndex = z;
+        break;
+      }
+      case 'rail': {
+        const key = e.def.shape === 'straight' ? `rail.straight.${e.dir % 2}` : `rail.curve.${e.dir}`;
+        if (s.has(key)) {
+          const sp = this.ents.get(s.frame(key));
+          sp.position.set(cx, cy);
+          sp.zIndex = -1e7;
+        } else this.drawGeneric(e, cx, cy, -1e7);
+        break;
+      }
+      case 'rocket-silo': {
+        this.drawGeneric(e, cx, cy, z);
+        // Rakete: steht bereit (in der Öffnung) bzw. steigt beim Start auf
+        const t = e.launchAt >= 0 ? world.tick + alpha - e.launchAt : -1;
+        if (e.rocketReady || (t >= 0 && t < e.def.launchTicks)) {
+          const rise = t < 0 ? 0 : Math.max(0, t - 300) ** 2 * 0.004;
+          const sp = this.ents.get(s.frame(s.has('rocket') ? 'rocket' : 'item.rocket-part'));
+          sp.position.set(cx, cy - 1.6 * TILE - rise);
+          if (!s.has('rocket')) sp.scale.set(2.2, 4.5);
+          sp.zIndex = z + 1 + (t >= 0 ? 1e6 : 0);
+          sp.alpha = t >= 0 ? Math.max(0, 1 - Math.max(0, t - 900) / 500) : 1;
+        }
         break;
       }
       case 'furnace': {
@@ -704,7 +738,7 @@ export class GameRenderer {
   }
 
   /** Stromkabel zwischen Masten, leicht durchhängend. */
-  private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+  private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>, ui: RenderUi): void {
     const g = this.wires;
     g.clear();
     const liftOf = (name: string) => (this.sprites.info(name)?.meta?.wireLift ?? this.sprites.info('small-electric-pole')?.meta?.wireLift ?? 0.95) * TILE;
@@ -721,6 +755,28 @@ export class GameRenderer {
       const by = pb.cy * TILE - lb;
       const sag = Math.hypot(bx - ax, by - ay) * 0.08;
       g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.6, color: 0x5a3a22, alpha: 0.85 });
+    }
+    // Schaltungsdrähte (rot/grün), leicht versetzt
+    const lift = (e: Entity) => (e.kind === 'pole' ? liftOf(e.name) : 0.35 * TILE);
+    for (const wr of world.circuit.wires) {
+      const ea = world.entities.get(wr.a.id);
+      const eb = world.entities.get(wr.b.id);
+      if (!ea || !eb) continue;
+      const pa = CircuitSystem.pointPos(ea, wr.a.side);
+      const pb = CircuitSystem.pointPos(eb, wr.b.side);
+      if (Math.max(pa.x, pb.x) < v.x0 || Math.min(pa.x, pb.x) > v.x1 || Math.max(pa.y, pb.y) < v.y0 || Math.min(pa.y, pb.y) > v.y1) continue;
+      const off = wr.color === 'red' ? -2 : 2;
+      const ax = pa.x * TILE + off;
+      const ay = pa.y * TILE - lift(ea);
+      const bx = pb.x * TILE + off;
+      const by = pb.y * TILE - lift(eb);
+      const sag = Math.hypot(bx - ax, by - ay) * 0.1;
+      g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.5, color: wr.color === 'red' ? 0xd0342c : 0x3fae4a, alpha: 0.95 });
+    }
+    if (ui.wire?.from) {
+      const { from, to, color } = ui.wire;
+      g.moveTo(from.x * TILE, from.y * TILE - 0.35 * TILE).lineTo(to.x * TILE, to.y * TILE)
+        .stroke({ width: 1.5, color: color === 'red' ? 0xd0342c : 0x3fae4a, alpha: 0.6 });
     }
   }
 
@@ -750,19 +806,34 @@ export class GameRenderer {
     }
   }
 
-  private drawGhost(ui: RenderUi): void {
+  private drawGhost(ui: RenderUi, world: World): void {
     const gp = this.ghostSprites;
     gp.begin();
-    const g = ui.ghost;
-    if (g) {
+    // geplante Gebäude (Blaupausen) in Blau
+    const v = this.viewRect();
+    for (const g of world.ghosts.all.values()) {
+      if (g.x > v.x1 + 2 || g.x < v.x0 - 6 || g.y > v.y1 + 2 || g.y < v.y0 - 6) continue;
+      this.drawGhostSprite({ name: g.name, x: g.x, y: g.y, dir: g.dir, ok: true }, 0x8ab8ff, 0.55);
+    }
+    for (const g of ui.ghosts ?? []) this.drawGhostSprite(g, g.ok ? 0x7dff8a : 0xff6a5a, 0.8);
+    if (ui.ghost) this.drawGhostSprite(ui.ghost, ui.ghost.ok ? 0x7dff8a : 0xff6a5a, 1);
+    gp.end();
+  }
+
+  private drawGhostSprite(g: Ghost, tint: number, alpha: number): void {
+    const gp = this.ghostSprites;
+    {
       const def = entityDef(g.name);
       const [gw, gh] = sizeOf(def, g.dir);
       const cx = (g.x + gw / 2) * TILE;
       const cy = (g.y + gh / 2) * TILE;
-      const tint = g.ok ? 0x7dff8a : 0xff6a5a;
       let tex: Texture;
       switch (def.kind) {
-        case 'belt': tex = this.sprites.frame(def.speed > BELT.speed && this.sprites.has(`fast-belt.s.${g.dir}`) ? `fast-belt.s.${g.dir}` : `belt.s.${g.dir}`); break;
+        case 'belt': {
+          const pre = def.speed >= BELT.speed * 3 ? 'express-belt' : def.speed > BELT.speed ? 'fast-belt' : 'belt';
+          tex = this.sprites.frame(this.sprites.has(`${pre}.s.${g.dir}`) ? `${pre}.s.${g.dir}` : `belt.s.${g.dir}`);
+          break;
+        }
         case 'underground': {
           const b = this.sprites.has(`${g.name}.in.${g.dir}`) ? g.name : 'underground-belt';
           tex = this.sprites.frame(this.sprites.has(`${b}.in.${g.dir}`) ? `${b}.in.${g.dir}` : `item.${def.item}`);
@@ -771,6 +842,11 @@ export class GameRenderer {
         case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
+        case 'rail': {
+          const k = def.shape === 'straight' ? `rail.straight.${g.dir % 2}` : `rail.curve.${g.dir}`;
+          tex = this.sprites.frame(this.sprites.has(k) ? k : 'item.rail');
+          break;
+        }
         default: {
           const b = this.sprites.has(`${g.name}.${g.dir}`) ? `${g.name}.${g.dir}` : this.sprites.has(g.name) ? g.name : `item.${def.item}`;
           tex = this.sprites.frame(b);
@@ -779,15 +855,69 @@ export class GameRenderer {
       const sp = gp.get(tex);
       sp.position.set(cx, cy);
       sp.tint = tint;
+      sp.alpha = alpha;
       if (def.kind === 'inserter') {
         const angles = this.sprites.info('inserter.arm')?.meta?.angles ?? 0;
         const arm = gp.get(this.sprites.frame('inserter.arm', angles ? (g.dir * angles) / 4 : 0));
         arm.position.set(cx, cy);
         if (!angles) arm.rotation = (g.dir * Math.PI) / 2;
         arm.tint = tint;
+        arm.alpha = alpha;
       }
     }
-    gp.end();
+  }
+
+  /** Züge: Fahrzeuge in 16 Winkeln (sonst gedrehtes Item-Symbol). */
+  private drawVehicles(world: World): void {
+    const v = this.viewRect();
+    const s = this.sprites;
+    for (const t of world.trains.trains) {
+      for (const veh of t.vehicles) {
+        const p = veh.pose;
+        if (p.x < v.x0 - 5 || p.x > v.x1 + 5 || p.y < v.y0 - 5 || p.y > v.y1 + 6) continue;
+        const ang = Math.atan2(p.dx, -p.dy);
+        const k = ((Math.round(ang / (Math.PI / 8)) % 16) + 16) % 16;
+        const key = `${veh.kind}.${k}`;
+        if (s.has(`${key}.shadow`)) {
+          const sh = this.shadows.get(s.frame(`${key}.shadow`));
+          sh.position.set(p.x * TILE, p.y * TILE);
+          sh.scale.set(s.info(`${key}.shadow`)?.meta?.scale ?? 1);
+        }
+        const sp = this.ents.get(s.frame(s.has(key) ? key : `item.${veh.kind}`));
+        sp.position.set(p.x * TILE, p.y * TILE);
+        if (!s.has(key)) {
+          sp.rotation = ang;
+          sp.scale.set(2, 6);
+        }
+        sp.zIndex = p.y * TILE + 32;
+      }
+    }
+  }
+
+  /** Roboter im Flug: Sprite (sonst Item-Symbol) mit Flughöhe und Bodenschatten. */
+  private drawRobots(world: World): void {
+    const v = this.viewRect();
+    const s = this.sprites;
+    const lift = 1.1 * TILE;
+    for (const r of world.robots.robots) {
+      if (r.x < v.x0 - 2 || r.x > v.x1 + 2 || r.y < v.y0 - 2 || r.y > v.y1 + 3) continue;
+      const key = s.has(`robot.${r.kind}`) ? `robot.${r.kind}` : `item.${r.kind}`;
+      const bob = Math.sin((world.tick + r.id * 7) * 0.12) * 2;
+      if (!r.charging) {
+        const sh = this.shadows.get(s.frame(s.has(`robot.${r.kind}.shadow`) ? `robot.${r.kind}.shadow` : 'item.shadow'));
+        sh.position.set(r.x * TILE + 10, r.y * TILE + 6);
+      }
+      const sp = this.ents.get(s.frame(key));
+      sp.position.set(r.x * TILE, r.y * TILE - (r.charging ? 0.5 * TILE : lift) + bob);
+      if (!s.has(`robot.${r.kind}`)) sp.scale.set(0.55);
+      sp.zIndex = 1e7 + r.y * TILE;
+      for (const c of r.cargo.slice(0, 1)) {
+        const it = this.ents.get(s.frame(`item.${c.item}`));
+        it.position.set(r.x * TILE, r.y * TILE - lift + bob + 14);
+        it.scale.set(0.3);
+        it.zIndex = 1e7 + r.y * TILE + 1;
+      }
+    }
   }
 
   // ------------------------------------------------------------------ Overlay
@@ -796,6 +926,33 @@ export class GameRenderer {
     const g = this.overlay;
     g.clear();
     const z = this.camera.zoom;
+    if (ui.robotAreas) {
+      for (const net of world.robots.nets) {
+        for (const p of net.ports) {
+          const L = 25;
+          const C = 55;
+          g.rect((p.px - C) * TILE, (p.py - C) * TILE, 2 * C * TILE, 2 * C * TILE).fill({ color: 0x4fbf4f, alpha: 0.05 }).stroke({ width: 1 / z, color: 0x66ff66, alpha: 0.5 });
+          g.rect((p.px - L) * TILE, (p.py - L) * TILE, 2 * L * TILE, 2 * L * TILE).fill({ color: 0xf98a1d, alpha: 0.07 }).stroke({ width: 1.5 / z, color: 0xf98a1d, alpha: 0.7 });
+        }
+      }
+    }
+    // zum Abriss markiert: rotes Kreuz
+    for (const id of world.robots.marked) {
+      const e = world.entities.get(id);
+      if (!e) continue;
+      const x0 = e.x * TILE + 6;
+      const y0 = e.y * TILE + 6;
+      const x1 = (e.x + e.w) * TILE - 6;
+      const y1 = (e.y + e.h) * TILE - 6;
+      g.moveTo(x0, y0).lineTo(x1, y1).moveTo(x1, y0).lineTo(x0, y1).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
+    }
+    if (ui.selection) {
+      const r = ui.selection;
+      const col = r.cut ? 0xff6a5a : 0x8ac8ff;
+      g.rect(r.x0 * TILE, r.y0 * TILE, (r.x1 - r.x0) * TILE, (r.y1 - r.y0) * TILE)
+        .fill({ color: col, alpha: 0.12 })
+        .stroke({ width: 2 / z, color: col, alpha: 0.95 });
+    }
     if (ui.hover) {
       const hv = ui.hover;
       g.rect(hv.x * TILE, hv.y * TILE, hv.w * TILE, hv.h * TILE).stroke({ width: 2 / z, color: 0xffe08a, alpha: 0.9 });

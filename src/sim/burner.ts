@@ -7,6 +7,8 @@ export class Burner {
   readonly fuel: Inventory;
   /** Restenergie in Joule. */
   energy: number;
+  /** Meldung „Brennstoff verbraucht“ (Statistik), von der Welt gesetzt. */
+  onBurn: (item: string) => void = () => {};
 
   constructor(slots: number, initialEnergy = 0) {
     this.fuel = new Inventory(slots, isFuel);
@@ -19,6 +21,7 @@ export class Burner {
       const it = this.fuel.firstItem();
       if (!it) return false;
       this.fuel.remove(it, 1);
+      this.onBurn(it);
       this.energy += ITEMS[it]!.fuelValue!;
     }
     this.energy -= joules;

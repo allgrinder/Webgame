@@ -173,7 +173,7 @@ def frame_parts(shape, m, paint='#57482b'):
 
 
 # Bandstufen: Sprite-Präfix, Profilfarbe, Farbe der Umlenktrommel-Lagerböcke
-TIERS = (('belt', '#57482b', None), ('fast-belt', '#6a3324', '#7a3a28'))
+TIERS = (('belt', '#57482b', None), ('fast-belt', '#6a3324', '#7a3a28'), ('express-belt', '#2f4a66', '#3a5a7c'))
 
 
 def render(out):

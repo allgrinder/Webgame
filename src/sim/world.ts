@@ -10,6 +10,13 @@ import { FluidSystem } from './fluids';
 import { GameMap } from './map';
 import { PowerSystem } from './power';
 import { ResearchSystem } from './research';
+import { ProductionStats } from './stats';
+import { GhostSystem } from './blueprint';
+import { BeaconSystem } from './modules';
+import { RobotSystem } from './robots';
+import { CircuitSystem } from './circuit';
+import { TrainSystem } from './trains';
+import { Burner } from './burner';
 import type { Player } from './player';
 
 export interface PlaceCheck {
@@ -40,6 +47,17 @@ export class World {
   readonly fluids = new FluidSystem();
   readonly power = new PowerSystem();
   readonly research = new ResearchSystem();
+  readonly stats = new ProductionStats();
+  /** Geplante Gebäude (Blaupausen). */
+  readonly ghosts = new GhostSystem();
+  /** Leuchtfeuer → Maschinen. */
+  readonly beacons = new BeaconSystem();
+  /** Bau- und Logistikroboter. */
+  readonly robots = new RobotSystem();
+  /** Schaltungsnetz (rote und grüne Drähte). */
+  readonly circuit = new CircuitSystem();
+  /** Gleise und Züge. */
+  readonly trains = new TrainSystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
   /** Items auf dem Boden je Feld. */
@@ -53,9 +71,15 @@ export class World {
     this._player = p;
     if (p) {
       p.recipeUnlocked = (r) => this.research.recipeUnlocked(r);
-      p.onCrafted = (item, n) => this.research.onCrafted(item, n);
+      p.onCrafted = (item, n) => {
+        this.research.onCrafted(item, n);
+        this.stats.made(item, n);
+      };
+      p.onUsed = (item, n) => this.stats.used(item, n);
     }
   }
+  /** Gestartete Raketen (erste = Sieg). */
+  rocketsLaunched = 0;
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
 
@@ -94,6 +118,11 @@ export class World {
       case 2: return { front: [x, y + 1], back: [x, y] };
       default: return { front: [x, y], back: [x + 1, y] };
     }
+  }
+
+  /** Gebäude-ID auf einem Feld (Schlüssel tileKey). */
+  occupantAt(key: number): number | undefined {
+    return this.occupancy.get(key);
   }
 
   canPlace(name: string, x: number, y: number, dir: Dir): PlaceCheck {
@@ -154,7 +183,9 @@ export class World {
     const e = new ENTITY_CLASSES[def.kind](id, name, x, y, dir) as Entity;
     this.entities.set(id, e);
     for (const [tx, ty] of World.footprint(def, x, y, dir)) this.occupancy.set(tileKey(tx, ty), id);
+    for (const v of Object.values(e)) if (v instanceof Burner) v.onBurn = (item) => this.stats.used(item, 1);
     e.onCreated(this);
+    this.ghosts.onBuilt(e);
     if (id >= this.nextId) this.nextId = id + 1;
     this.structureVersion++;
     return e;
@@ -180,7 +211,7 @@ export class World {
     const e = this.entities.get(id);
     if (!e) return [];
     const def = entityDef(e.name);
-    const out: { item: string; count: number }[] = [{ item: def.item, count: 1 }];
+    const out: { item: string; count: number }[] = [{ item: def.item, count: def.itemCount ?? 1 }];
     if (e.kind === 'belt' || e.kind === 'underground') {
       for (const idx of this.belts.remove(id)) out.push({ item: itemId(idx), count: 1 });
     } else if (e.kind === 'splitter') {
@@ -207,11 +238,25 @@ export class World {
   step(): void {
     this.fluids.ensure(this);
     this.power.ensure(this);
-    this.power.update();
+    this.beacons.ensure(this);
+    this.power.update(1 - this.darkness);
     this.belts.update();
+    this.circuit.update(this);
+    this.trains.update(this);
     for (const e of this.entities.values()) e.update(this);
+    this.robots.update(this);
     this.player?.update(this);
     this.tick++;
+    if (this.tick % 60 === 0) {
+      this.stats.second(this.tick / 60);
+      this.power.second(this.tick / 60);
+    }
+  }
+
+  /** Herstellung melden: Statistik und Auslöser-Forschung. */
+  crafted(item: string, n: number): void {
+    this.stats.made(item, n);
+    this.research.onCrafted(item, n);
   }
 
   run(ticks: number): void {
@@ -224,8 +269,14 @@ export class World {
   deliverAt(px: number, py: number, item: string, mode: InsertMode, allowGround: boolean, from?: { dir: Dir }): boolean {
     const tx = Math.floor(px);
     const ty = Math.floor(py);
-    const target = this.entityAt(tx, ty);
-    if (!target) return allowGround ? this.dropGround(px, py, item) : false;
+    const target0 = this.entityAt(tx, ty);
+    const target = target0?.kind === 'rail' ? undefined : target0;
+    if (!target) {
+      // stehender Zug: Greifarm belädt Wagen bzw. betankt die Lokomotive
+      const veh = this.trains.vehicleAt(px, py);
+      if (veh) return veh.train.speed === 0 && veh.vehicle.inv.add(item, 1) === 1;
+      return allowGround ? this.dropGround(px, py, item) : false;
+    }
     const bt = this.belts.tileAt(tx, ty);
     if (bt) return this.belts.insertAtPoint(bt, px - tx, py - ty, itemIndex(item), from ? BeltSystem.inserterDropLane(bt, from.dir) : undefined);
     return target.insert(item, 1, mode) === 1;
@@ -233,8 +284,18 @@ export class World {
 
   /** Nimmt ein passendes Item vom Feld an einem Weltpunkt: Band, Gebäude oder Boden. */
   takeAt(px: number, py: number, accept: (item: string) => boolean, from?: { dir: Dir; targetKind?: string }): string | null {
-    const src = this.entityAt(px, py);
-    if (!src) return this.takeGround(Math.floor(px), Math.floor(py), accept);
+    const src0 = this.entityAt(px, py);
+    const src = src0?.kind === 'rail' ? undefined : src0;
+    if (!src) {
+      const veh = this.trains.vehicleAt(px, py);
+      if (veh) {
+        if (veh.train.speed !== 0 || veh.vehicle.kind !== 'cargo-wagon') return null;
+        const it = veh.vehicle.inv.firstItem(accept);
+        if (it) veh.vehicle.inv.remove(it, 1);
+        return it ?? null;
+      }
+      return this.takeGround(Math.floor(px), Math.floor(py), accept);
+    }
     const t = this.belts.tileAt(Math.floor(px), Math.floor(py));
     if (t) {
       const idx = this.belts.takeFromTile(t, (i) => accept(itemId(i)), from ? BeltSystem.inserterPickupLanes(t, from.dir) : undefined);

@@ -6,6 +6,8 @@ import type { SpriteLib } from '../render/assets';
 import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
+import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
+import { CircuitSystem } from '../sim/circuit';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import type { Tree } from '../sim/trees';
 import type { World } from '../sim/world';
@@ -29,6 +31,17 @@ export class Game {
   readonly input: Input;
   readonly hud: Hud;
   cursorItem: string | null = null;
+  /** Drahtwerkzeug (G): Farbe und erster gewählter Anschluss. */
+  wireTool: 'red' | 'green' | null = null;
+  /** Gleisform beim Bauen (R): 0/1 gerade senkrecht/waagerecht, 2–5 Bögen. */
+  railShape = 0;
+  wireFrom: { id: number; side: 0 | 1 } | null = null;
+  /** Blaupause im Cursor (Strg+V, Bibliothek); Klick legt Geister ab. */
+  cursorBlueprint: Blueprint | null = null;
+  /** Zuletzt kopierte Blaupause (Strg+C). */
+  clipboard: Blueprint | null = null;
+  /** Auswahlrechteck beim Kopieren (Strg+C, dann ziehen). */
+  private selecting: { x0: number; y0: number; x1: number; y1: number; active: boolean; cut: boolean } | null = null;
   buildDir: Dir = 0;
   alt = false;
   paused = false;
@@ -169,6 +182,12 @@ export class Game {
 
   private handleInput(): void {
     const inp = this.input;
+    if (this.cursorItem && (this.cursorBlueprint || this.selecting || this.wireTool)) {
+      this.cursorBlueprint = null;
+      this.selecting = null;
+      this.wireTool = null;
+      this.wireFrom = null;
+    }
     let pressedThisFrame = false;
     for (const ev of inp.takePressed()) {
       if (ev.type === 'key') this.onKey(ev.key, ev.ctrl, ev.shift);
@@ -189,6 +208,11 @@ export class Game {
     }
     // Ziehen mit gedrückter linker Taste
     if (!pressedThisFrame && inp.left && this.dragLast) this.onDrag(tx, ty);
+    if (this.selecting?.active) {
+      this.selecting.x1 = tx;
+      this.selecting.y1 = ty;
+      if (!inp.left) this.finishCopy();
+    }
     if (!inp.left) {
       this.dragLast = null;
       this.dragBelts = [];
@@ -197,6 +221,18 @@ export class Game {
     const p = this.world.player;
     if (inp.right) {
       const e = this.world.entityAt(tx, ty);
+      const veh = !e || e.kind === 'rail' ? this.world.trains.vehicleAt(m.x, m.y) : null;
+      if (veh && this.input.rightPressed) {
+        const items = this.world.trains.remove(veh.vehicle.id);
+        if (p && !this.creative) for (const it of items) p.inventory.add(it.item, it.count);
+        return;
+      }
+      if (veh) return;
+      const gh = e ? undefined : this.world.ghosts.at(tx, ty);
+      if (gh) {
+        this.world.ghosts.remove(gh.id);
+        return;
+      }
       if (this.creative && !p) {
         if (e) {
           this.pushHistory({ type: 'remove', name: e.name, x: e.x, y: e.y, dir: e.dir });
@@ -217,12 +253,49 @@ export class Game {
     if (ctrl && k === 's') { void this.hud.saveGame(); return; }
     if (ctrl && k === 'z') { this.undo(); return; }
     if (ctrl && k === 'l') { void this.hud.loadGame(); return; }
+    if (ctrl && (k === 'c' || k === 'x')) {
+      this.cursorItem = null;
+      this.cursorBlueprint = null;
+      this.selecting = { x0: 0, y0: 0, x1: 0, y1: 0, active: false, cut: k === 'x' };
+      this.world.player?.note(k === 'x' ? 'Ausschneiden: Bereich aufziehen (Bauroboter reißen ab)' : 'Kopieren: Bereich mit gedrückter Maustaste aufziehen');
+      return;
+    }
+    if (ctrl && k === 'v') {
+      if (this.clipboard) this.setBlueprint(this.clipboard);
+      return;
+    }
+    if (k === 'b') { this.hud.toggleBlueprints(); return; }
+    if (k === 'g') {
+      this.cursorItem = null;
+      this.cursorBlueprint = null;
+      this.wireTool = this.wireTool === null ? 'red' : this.wireTool === 'red' ? 'green' : null;
+      this.wireFrom = null;
+      this.world.player?.note(this.wireTool ? `${this.wireTool === 'red' ? 'Roter' : 'Grüner'} Draht: zwei Gebäude nacheinander anklicken (G wechselt)` : 'Draht weggelegt');
+      return;
+    }
+    if (k === 'escape' && this.wireTool) {
+      this.wireTool = null;
+      this.wireFrom = null;
+      return;
+    }
+    if (this.cursorBlueprint && k === 'r') { this.cursorBlueprint = bpRotate(this.cursorBlueprint); return; }
+    if (k === 'escape' && (this.cursorBlueprint || this.selecting)) {
+      this.cursorBlueprint = null;
+      this.selecting = null;
+      return;
+    }
+    if (k === 'q' && (this.cursorBlueprint || this.selecting)) {
+      this.cursorBlueprint = null;
+      this.selecting = null;
+      return;
+    }
     switch (k) {
       case 'r': {
         const m = this.mouseWorld();
         const e = this.world.entityAt(m.x, m.y);
         const rev = shift;
-        if (!this.cursorItem && e && entityDef(e.name).rotatable) {
+        if (this.cursorItem === 'rail') this.railShape = (this.railShape + (rev ? 5 : 1)) % 6;
+        else if (!this.cursorItem && e && entityDef(e.name).rotatable) {
           this.world.rotate(e.id, rotCW(e.dir, rev ? 3 : 1));
         } else this.buildDir = rotCW(this.buildDir, rev ? 3 : 1);
         break;
@@ -239,7 +312,8 @@ export class Game {
         break;
       case 'alt': this.alt = !this.alt; break;
       case 'f3': this.hud.toggleDebug(); break;
-      case 'p': if (this.debug) this.paused = !this.paused; break;
+      case 'p': this.hud.toggleStats(); break;
+      case 'f4': if (this.debug) this.paused = !this.paused; break;
       case 'h': this.hud.toggleHelp(); break;
       case 'z':
         // Z: ein Item ablegen (mit Spieler); im Sandkasten Debug-Erz
@@ -336,18 +410,28 @@ export class Game {
   private ghostAt(m: { x: number; y: number }): Ghost | null {
     const item = this.cursorItem;
     if (!item) return null;
-    const place = ITEMS[item]?.placeResult;
+    let place = ITEMS[item]?.placeResult;
     if (!place) return null;
-    if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < 1) return null;
+    let dir = this.buildDir;
+    if (item === 'rail') {
+      place = this.railShape < 2 ? 'straight-rail' : 'curved-rail';
+      dir = (this.railShape < 2 ? this.railShape : this.railShape - 2) as Dir;
+    }
     const def = entityDef(place);
-    const [w, h] = sizeOf(def, this.buildDir);
-    const x = Math.round(m.x - w / 2);
-    const y = Math.round(m.y - h / 2);
-    const chk = this.world.canPlace(place, x, y, this.buildDir);
+    if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < (def.itemCount ?? 1)) return null;
+    const [w, h] = sizeOf(def, dir);
+    let x = Math.round(m.x - w / 2);
+    let y = Math.round(m.y - h / 2);
+    // Gleise und Bahnhöfe liegen auf dem 2-Felder-Raster
+    if (def.kind === 'rail' || def.kind === 'train-stop') {
+      x = Math.round((m.x - w / 2) / 2) * 2;
+      y = Math.round((m.y - h / 2) / 2) * 2;
+    }
+    const chk = this.world.canPlace(place, x, y, dir);
     let ok = chk.ok;
     const p = this.world.player;
     if (p && !this.creative && p.distanceTo(x + w / 2, y + h / 2) > PLAYER.buildDistance) ok = false;
-    return { name: place, x, y, dir: this.buildDir, ok };
+    return { name: place, x, y, dir, ok };
   }
 
   private tryBuild(g: Ghost): Entity | null {
@@ -356,7 +440,7 @@ export class Game {
     const chk = this.world.canPlace(g.name, g.x, g.y, g.dir);
     const e = this.world.place(g.name, g.x, g.y, g.dir);
     if (e && chk.replace === undefined) {
-      if (!this.creative) this.world.player?.inventory.remove(item, 1);
+      if (!this.creative) this.world.player?.inventory.remove(item, entityDef(g.name).itemCount ?? 1);
       this.pushHistory({ type: 'build', id: e.id, name: g.name, x: g.x, y: g.y, dir: g.dir });
     }
     return e;
@@ -364,7 +448,97 @@ export class Game {
 
   private clickMods = { ctrl: false, shift: false };
 
+  /** Blaupause in den Cursor nehmen. */
+  setBlueprint(bp: Blueprint): void {
+    this.cursorItem = null;
+    this.selecting = null;
+    this.cursorBlueprint = bp;
+  }
+
+  /** Linke obere Ecke der Cursor-Blaupause (mittig unter der Maus). */
+  private blueprintOrigin(): { x: number; y: number } {
+    const bp = this.cursorBlueprint!;
+    const m = this.mouseWorld();
+    return { x: Math.round(m.x - bp.w / 2), y: Math.round(m.y - bp.h / 2) };
+  }
+
+  private finishCopy(): void {
+    const s = this.selecting!;
+    this.selecting = null;
+    const bp = bpCapture(this.world, s.x0, s.y0, s.x1, s.y1);
+    if (!bp) {
+      this.world.player?.note('Keine Gebäude im Bereich');
+      return;
+    }
+    this.clipboard = bp;
+    if (s.cut) {
+      // Ausschneiden: alle Gebäude im Bereich zum Abriss markieren (Bauroboter)
+      for (let y = Math.min(s.y0, s.y1); y <= Math.max(s.y0, s.y1); y++) {
+        for (let x = Math.min(s.x0, s.x1); x <= Math.max(s.x0, s.x1); x++) {
+          const e = this.world.entityAt(x, y);
+          if (e) this.world.robots.marked.add(e.id);
+        }
+      }
+    }
+    this.setBlueprint(bp);
+    this.hud.rememberClipboard(bp);
+  }
+
+  /** Geist von Hand bauen: passendes Item aus dem Inventar an Ort und Richtung des Geists. */
+  private buildGhost(tx: number, ty: number): boolean {
+    const gh = this.world.ghosts.at(tx, ty);
+    if (!gh) return false;
+    const item = entityDef(gh.name).item;
+    const p = this.world.player;
+    if (!this.creative && (!p || p.inventory.count(item) < 1)) {
+      p?.note(`${ITEMS[item]?.name ?? item} fehlt im Inventar`);
+      return true;
+    }
+    const g: Ghost = { name: gh.name, x: gh.x, y: gh.y, dir: gh.dir, ok: true };
+    g.ok = this.ghostOk(g);
+    if (!g.ok) {
+      const chk = this.world.canPlace(gh.name, gh.x, gh.y, gh.dir);
+      p?.note(chk.reason ?? 'Außer Reichweite');
+      return true;
+    }
+    this.tryBuild(g);
+    return true;
+  }
+
+  /** Anschluss unter der Maus: bei 1×2-Kombinatoren entscheidet das Feld (vorn = Ausgang). */
+  private wirePointAt(tx: number, ty: number): { id: number; side: 0 | 1 } | null {
+    const e = this.world.entityAt(tx, ty);
+    if (!e) return null;
+    if (e.kind === 'combinator' && e.def.height === 2) {
+      const front = CircuitSystem.pointPos(e, 1);
+      return { id: e.id, side: Math.floor(front.x) === tx && Math.floor(front.y) === ty ? 1 : 0 };
+    }
+    return { id: e.id, side: 0 };
+  }
+
   private onLeftPress(tx: number, ty: number, at: { x: number; y: number }): void {
+    if (this.wireTool) {
+      const pt = this.wirePointAt(tx, ty);
+      if (!pt) return;
+      if (!this.wireFrom) {
+        this.wireFrom = pt;
+        return;
+      }
+      const r = this.world.circuit.toggle(this.world, this.wireFrom, pt, this.wireTool);
+      if (r === 'far') this.world.player?.note('Zu weit für einen Draht');
+      this.wireFrom = r === 'far' || r === 'invalid' ? this.wireFrom : pt;
+      return;
+    }
+    if (this.selecting) {
+      this.selecting = { ...this.selecting, x0: tx, y0: ty, x1: tx, y1: ty, active: true };
+      return;
+    }
+    if (this.cursorBlueprint) {
+      const o = this.blueprintOrigin();
+      const n = this.world.ghosts.placeBlueprint(this.world, this.cursorBlueprint, o.x, o.y);
+      if (!n) this.world.player?.note('Kein Platz für die Blaupause');
+      return;
+    }
     const p = this.world.player;
     const target = this.world.entityAt(tx, ty);
     const item = this.cursorItem;
@@ -374,6 +548,21 @@ export class Game {
       this.placeLandfill(tx, ty);
       this.dragLast = { x: tx, y: ty };
       return;
+    }
+    if (item === 'locomotive' || item === 'cargo-wagon') {
+      if (!this.creative && (!p || p.inventory.count(item) < 1)) return;
+      const v = DIR_VEC[this.buildDir];
+      if (this.world.trains.place(this.world, item, at.x, at.y, v[0], v[1])) {
+        if (!this.creative) p?.inventory.remove(item, 1);
+      } else p?.note('Fahrzeuge nur auf ein Gleis stellen');
+      return;
+    }
+    if (!item) {
+      const veh = this.world.trains.vehicleAt(at.x, at.y);
+      if (veh && (!target || target.kind === 'rail')) {
+        this.hud.openTrain(veh.train.id, veh.vehicle.id);
+        return;
+      }
     }
     if (item && !placeable) {
       // Item in Gebäude legen (Brennstoff, Erz); Strg: ganzer Vorrat
@@ -386,6 +575,7 @@ export class Game {
       return;
     }
     if (!item) {
+      if (!target && this.buildGhost(tx, ty)) return;
       if (target && ctrl && p) this.takeAllFrom(target);
       else if (target && hasWindow(target)) this.hud.openEntity(target.id);
       return;
@@ -436,6 +626,13 @@ export class Game {
     const place = item ? ITEMS[item]?.placeResult : undefined;
     if (!place) return;
     const def = entityDef(place);
+    if (def.kind === 'rail' || def.kind === 'train-stop') {
+      // Gleise: an der Mausposition auf dem Raster bauen
+      const g = this.ghostAt(this.mouseWorld());
+      if (g?.ok) this.tryBuild(g);
+      this.dragLast = { x: tx, y: ty };
+      return;
+    }
     // Schrittweise entlang der Mausbewegung (4er-Nachbarschaft)
     let x = last.x;
     let y = last.y;
@@ -501,7 +698,28 @@ export class Game {
       const p = this.world.player;
       if (p && p.mineTarget && p.mineTotal > 0) mining = p.mineProgress / p.mineTotal;
     }
-    return { ghost, alt: this.alt, hover, mining };
+    const ghosts: Ghost[] = [];
+    if (this.cursorBlueprint && this.input.overCanvas) {
+      const o = this.blueprintOrigin();
+      for (const e of bpPlaced(this.cursorBlueprint, o.x, o.y)) {
+        ghosts.push({ name: e.name, x: e.x, y: e.y, dir: e.dir, ok: this.world.ghosts.canPlace(this.world, e.name, e.x, e.y, e.dir) });
+      }
+    }
+    const sel = this.selecting?.active ? this.selecting : null;
+    // Hangarbereiche: Hangar oder Logistikkiste im Cursor bzw. unter der Maus
+    const under = this.input.overCanvas ? this.world.entityAt(m.x, m.y) : undefined;
+    const showAreas = /roboport|provider-chest|storage-chest|requester-chest|buffer-chest/.test(this.cursorItem ?? '')
+      || under?.kind === 'roboport' || (under?.kind === 'container' && !!under.logistic);
+    let wire: RenderUi['wire'] = null;
+    if (this.wireTool) {
+      const from = this.wireFrom ? this.world.entities.get(this.wireFrom.id) : undefined;
+      const p = from ? CircuitSystem.pointPos(from, this.wireFrom!.side) : null;
+      wire = { color: this.wireTool, from: p, to: m };
+    }
+    return {
+      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire,
+      selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
+    };
   }
 
   private pushHistory(h: HistoryEntry): void {
@@ -554,6 +772,8 @@ const CREATIVE_QUICKBAR: (string | null)[] = [
 ];
 
 /** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
+const DIR_VEC: readonly [number, number][] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
 function hasWindow(e: Entity): boolean {
-  return e.guiSlots().length > 0 || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter';
+  return e.guiSlots().length > 0 || e.kind === 'train-stop' || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
 }

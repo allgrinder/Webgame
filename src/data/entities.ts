@@ -17,6 +17,10 @@ interface EntityBase {
   /** Spieler kann nicht hindurchlaufen. */
   readonly solid: boolean;
   readonly rotatable: boolean;
+  /** Modulplätze (Wiki-Infobox „Modules“); fehlt = keine. */
+  readonly moduleSlots?: number;
+  /** Items je Gebäude (Gleisbogen: 4 Schienen); fehlt = 1. */
+  readonly itemCount?: number;
 }
 
 export interface BeltDef extends EntityBase {
@@ -95,6 +99,52 @@ export interface InserterDef extends EntityBase {
 export interface ContainerDef extends EntityBase {
   readonly kind: 'container';
   readonly slots: number;
+  /** Logistikkiste (Roboternetz). */
+  readonly logistic?: 'passive-provider' | 'active-provider' | 'storage' | 'requester' | 'buffer';
+  /** Landeplatz für Raketenfracht (Weltraum-Wissenschaft). */
+  readonly cargoPad?: boolean;
+}
+
+/** Raketensilo 9×9: baut Raketenteile (Rezept fest), startet Raketen mit Satellit. Quelle: Wiki „Rocket silo“. */
+export interface RocketSiloDef extends EntityBase {
+  readonly kind: 'rocket-silo';
+  readonly craftingSpeed: number;
+  readonly energyUsage: number;
+  /** Teile je Rakete (Grundspiel 100). */
+  readonly partsPerRocket: number;
+  /** Ticks je Start (Wiki-Tabelle, normale Qualität: 1632). */
+  readonly launchTicks: number;
+  /** Ticks bis die Fracht am Landeplatz ankommt (Wiki: etwa 29 s). */
+  readonly deliveryTicks: number;
+}
+
+/** Kombinator: konstant (1×1, ohne Strom) oder rechnend/entscheidend (1×2, Eingang hinten, Ausgang vorn, 1 kW). */
+export interface CombinatorDef extends EntityBase {
+  readonly kind: 'combinator';
+  readonly mode: 'constant' | 'arithmetic' | 'decider';
+  readonly energyUsage: number;
+}
+
+/** Gleis: gerade 2×2 (dir 0 senkrecht, 1 waagerecht) oder Bogen 4×4 (dir 0–3). */
+export interface RailDef extends EntityBase {
+  readonly kind: 'rail';
+  readonly shape: 'straight' | 'curve';
+}
+
+/** Bahnhof 2×2 neben dem Gleis (rechts in Fahrtrichtung). */
+export interface TrainStopDef extends EntityBase {
+  readonly kind: 'train-stop';
+}
+
+/** Radar 3×3: verbraucht Strom (Karte ist hier ohnehin aufgedeckt). */
+export interface RadarDef extends EntityBase {
+  readonly kind: 'radar';
+  readonly energyUsage: number;
+}
+
+/** Roboterhangar (Roboport) 4×4; Werte in src/data/robots.ts. */
+export interface RoboportDef extends EntityBase {
+  readonly kind: 'roboport';
 }
 
 export interface PipeDef extends EntityBase {
@@ -193,8 +243,31 @@ export interface LampDef extends EntityBase {
   readonly energyUsage: number;
 }
 
+/** Leuchtfeuer: überträgt Geschwindigkeits- und Effizienzmodule auf Maschinen im 9×9-Bereich. Quelle: Wiki „Beacon“. */
+export interface BeaconDef extends EntityBase {
+  readonly kind: 'beacon';
+  readonly energyUsage: number;
+}
+
+/** Solarpanel: Leistung folgt dem Tageslicht (1 − Dunkelheit), Vorrang vor Dampf. Quelle: Wiki „Solar panel“. */
+export interface SolarDef extends EntityBase {
+  readonly kind: 'solar';
+  /** Höchstleistung bei vollem Tageslicht (W). */
+  readonly production: number;
+}
+
+/** Akkumulator: lädt aus Überschuss, entlädt bei Mangel. Quelle: Wiki „Accumulator“. */
+export interface AccumulatorDef extends EntityBase {
+  readonly kind: 'accumulator';
+  /** Speicher (J). */
+  readonly buffer: number;
+  /** Lade- bzw. Entladeleistung (W). */
+  readonly inputFlow: number;
+  readonly outputFlow: number;
+}
+
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
-  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef;
+  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef;
 
 const list: EntityDef[] = [
   {
@@ -241,7 +314,7 @@ const list: EntityDef[] = [
   {
     kind: 'drill', id: 'electric-mining-drill', name: 'Elektrischer Bohrer', width: 3, height: 3, health: 300,
     item: 'electric-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'electric',
-    miningSpeed: 0.5, energyUsage: 90_000, miningAreaSize: 5, outputVector: [0, -1.85], fuelSlots: 0,
+    miningSpeed: 0.5, energyUsage: 90_000, miningAreaSize: 5, outputVector: [0, -1.85], fuelSlots: 0, moduleSlots: 3,
   },
   {
     kind: 'inserter', id: 'inserter', name: 'Greifarm', width: 1, height: 1, health: 150,
@@ -288,8 +361,8 @@ const list: EntityDef[] = [
   },
   {
     kind: 'lab', id: 'lab', name: 'Labor', width: 3, height: 3, health: 150,
-    item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000,
-    inputs: ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack'],
+    item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000, moduleSlots: 2,
+    inputs: ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack', 'production-science-pack', 'utility-science-pack', 'space-science-pack'],
   },
   {
     kind: 'container', id: 'steel-chest', name: 'Stahlkiste', width: 1, height: 1, health: 350,
@@ -322,9 +395,19 @@ const list: EntityDef[] = [
   {
     kind: 'assembler', id: 'assembling-machine-2', name: 'Montagemaschine 2', width: 3, height: 3, health: 350,
     item: 'assembling-machine-2', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 0.75, energyUsage: 150_000, drain: 5_000,
-    categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'],
+    categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'], moduleSlots: 2,
     // Ein Flüssigkeitsbehälter mit Anschluss oben und unten in der Mitte (durchgängig)
     fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }],
+  },
+  {
+    kind: 'assembler', id: 'assembling-machine-3', name: 'Montagemaschine 3', width: 3, height: 3, health: 400,
+    item: 'assembling-machine-3', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 1.25, energyUsage: 375_000, drain: 12_500,
+    categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'], moduleSlots: 4,
+    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }],
+  },
+  {
+    kind: 'beacon', id: 'beacon', name: 'Leuchtfeuer', width: 3, height: 3, health: 200,
+    item: 'beacon', mineTime: 0.2, solid: true, rotatable: false, energyUsage: 480_000, moduleSlots: 2,
   },
   {
     kind: 'pipe-ground', id: 'pipe-to-ground', name: 'Rohr unterirdisch', width: 1, height: 1, health: 150,
@@ -340,12 +423,12 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pumpjack', id: 'pumpjack', name: 'Pumpjack', width: 3, height: 3, health: 200,
-    item: 'pumpjack', mineTime: 0.5, solid: true, rotatable: true, energyUsage: 90_000, miningSpeed: 1, capacity: 1000,
+    item: 'pumpjack', mineTime: 0.5, solid: true, rotatable: true, energyUsage: 90_000, miningSpeed: 1, capacity: 1000, moduleSlots: 2,
   },
   {
     kind: 'assembler', id: 'oil-refinery', name: 'Ölraffinerie', width: 5, height: 5, health: 350,
     item: 'oil-refinery', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 420_000, drain: 14_000,
-    categories: ['oil-processing'],
+    categories: ['oil-processing'], moduleSlots: 3,
     fluidBoxes: [
       { type: 'input', volume: 1000, ports: [[1, 4, 2]] },
       { type: 'input', volume: 1000, ports: [[3, 4, 2]] },
@@ -357,7 +440,7 @@ const list: EntityDef[] = [
   {
     kind: 'assembler', id: 'chemical-plant', name: 'Chemiefabrik', width: 3, height: 3, health: 300,
     item: 'chemical-plant', mineTime: 0.1, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 210_000, drain: 7_000,
-    categories: ['chemistry'],
+    categories: ['chemistry'], moduleSlots: 3,
     fluidBoxes: [
       { type: 'input', volume: 1000, ports: [[0, 2, 2]] },
       { type: 'input', volume: 1000, ports: [[2, 2, 2]] },
@@ -368,7 +451,7 @@ const list: EntityDef[] = [
   {
     kind: 'furnace', id: 'electric-furnace', name: 'Elektrischer Ofen', width: 3, height: 3, health: 350,
     item: 'electric-furnace', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 2, energyUsage: 180_000, fuelSlots: 0,
-    energy: 'electric', drain: 6_000,
+    energy: 'electric', drain: 6_000, moduleSlots: 2,
   },
   {
     kind: 'pole', id: 'substation', name: 'Umspannwerk', width: 2, height: 2, health: 200,
@@ -385,6 +468,64 @@ const list: EntityDef[] = [
   {
     kind: 'splitter', id: 'express-splitter', name: 'Express-Splitter', width: 2, height: 1, health: 190,
     item: 'express-splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 24,
+  },
+  {
+    kind: 'solar', id: 'solar-panel', name: 'Solarpanel', width: 3, height: 3, health: 200,
+    item: 'solar-panel', mineTime: 0.1, solid: true, rotatable: false, production: 60_000,
+  },
+  {
+    kind: 'accumulator', id: 'accumulator', name: 'Akkumulator', width: 2, height: 2, health: 150,
+    item: 'accumulator', mineTime: 0.1, solid: true, rotatable: false, buffer: 5_000_000, inputFlow: 300_000, outputFlow: 300_000,
+  },
+  {
+    kind: 'roboport', id: 'roboport', name: 'Roboterhangar', width: 4, height: 4, health: 500,
+    item: 'roboport', mineTime: 0.1, solid: true, rotatable: false,
+  },
+  ...([
+    ['passive-provider-chest', 'Passive Anbieterkiste', 'passive-provider'],
+    ['active-provider-chest', 'Aktive Anbieterkiste', 'active-provider'],
+    ['storage-chest', 'Lagerkiste', 'storage'],
+    ['requester-chest', 'Anforderungskiste', 'requester'],
+    ['buffer-chest', 'Pufferkiste', 'buffer'],
+  ] as const).map(([id, name, logistic]): ContainerDef => ({
+    kind: 'container', id, name, width: 1, height: 1, health: 350, item: id, mineTime: 0.1, solid: true, rotatable: false, slots: 48, logistic,
+  })),
+  {
+    kind: 'rocket-silo', id: 'rocket-silo', name: 'Raketensilo', width: 9, height: 9, health: 5000,
+    item: 'rocket-silo', mineTime: 1, solid: true, rotatable: false, craftingSpeed: 1, energyUsage: 4_000_000, moduleSlots: 4,
+    partsPerRocket: 100, launchTicks: 1632, deliveryTicks: 29 * 60,
+  },
+  {
+    kind: 'container', id: 'cargo-landing-pad', name: 'Fracht-Landeplatz', width: 8, height: 8, health: 1000,
+    item: 'cargo-landing-pad', mineTime: 1, solid: true, rotatable: false, slots: 80, logistic: 'passive-provider', cargoPad: true,
+  },
+  {
+    kind: 'radar', id: 'radar', name: 'Radar', width: 3, height: 3, health: 250,
+    item: 'radar', mineTime: 0.1, solid: true, rotatable: false, energyUsage: 300_000,
+  },
+  {
+    kind: 'combinator', id: 'constant-combinator', name: 'Konstanter Kombinator', width: 1, height: 1, health: 120,
+    item: 'constant-combinator', mineTime: 0.1, solid: true, rotatable: true, mode: 'constant', energyUsage: 0,
+  },
+  {
+    kind: 'combinator', id: 'arithmetic-combinator', name: 'Rechenkombinator', width: 1, height: 2, health: 150,
+    item: 'arithmetic-combinator', mineTime: 0.1, solid: true, rotatable: true, mode: 'arithmetic', energyUsage: 1_000,
+  },
+  {
+    kind: 'combinator', id: 'decider-combinator', name: 'Entscheidungskombinator', width: 1, height: 2, health: 150,
+    item: 'decider-combinator', mineTime: 0.1, solid: true, rotatable: true, mode: 'decider', energyUsage: 1_000,
+  },
+  {
+    kind: 'rail', id: 'straight-rail', name: 'Gleis', width: 2, height: 2, health: 200,
+    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'straight',
+  },
+  {
+    kind: 'rail', id: 'curved-rail', name: 'Gleisbogen', width: 4, height: 4, health: 200,
+    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'curve', itemCount: 4,
+  },
+  {
+    kind: 'train-stop', id: 'train-stop', name: 'Bahnhof', width: 2, height: 2, health: 250,
+    item: 'train-stop', mineTime: 0.2, solid: true, rotatable: true,
   },
   {
     kind: 'container', id: 'wooden-chest', name: 'Holzkiste', width: 1, height: 1, health: 100,

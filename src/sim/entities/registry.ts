@@ -5,8 +5,10 @@ import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './basic
 import { InserterEntity } from './inserter';
 import { FluidPumpEntity, LampEntity, PipeGroundEntity, PumpjackEntity, TankEntity } from './fluidplus';
 import { SplitterEntity, UndergroundEntity } from './logistics';
-import { AssemblerEntity, LabEntity } from './production';
-import { BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity } from './power';
+import { AssemblerEntity, BeaconEntity, LabEntity } from './production';
+import { RoboportEntity } from './robots';
+import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './rocket';
+import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './power';
 
 type Ctor = new (id: number, name: string, x: number, y: number, dir: Dir) => EntityBase;
 
@@ -31,4 +33,13 @@ export const ENTITY_CLASSES: Record<EntityDef['kind'], Ctor> = {
   tank: TankEntity,
   lamp: LampEntity,
   pumpjack: PumpjackEntity,
+  solar: SolarEntity,
+  accumulator: AccumulatorEntity,
+  beacon: BeaconEntity,
+  roboport: RoboportEntity,
+  'rocket-silo': RocketSiloEntity,
+  radar: RadarEntity,
+  combinator: CombinatorEntity,
+  rail: RailEntity,
+  'train-stop': TrainStopEntity,
 };

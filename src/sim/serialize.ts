@@ -1,4 +1,9 @@
+import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
+import type { ProductionStats } from './stats';
+import type { RobotSystem } from './robots';
+import type { CircuitSystem } from './circuit';
+import type { TrainSystem } from './trains';
 import type { Status } from './entity';
 import type { Dir } from './geom';
 import type { Inventory } from './inventory';
@@ -48,6 +53,12 @@ export interface SaveData {
   ground?: [number, [string, number, number][]][];
   player: PlayerData | null;
   research?: ResearchData;
+  ghosts?: ReturnType<GhostSystem['serialize']>;
+  stats?: ReturnType<ProductionStats['serialize']>;
+  robots?: ReturnType<RobotSystem['serialize']>;
+  rockets?: number;
+  circuit?: ReturnType<CircuitSystem['serialize']>;
+  trains?: ReturnType<TrainSystem['serialize']>;
 }
 
 interface PlayerData {
@@ -89,6 +100,12 @@ export function serializeWorld(w: World): SaveData {
     water: w.map.serializeWater(),
     trees: w.map.trees.serialize(),
     research: w.research.serialize(),
+    ghosts: w.ghosts.serialize(),
+    stats: w.stats.serialize(),
+    robots: w.robots.serialize(),
+    rockets: w.rocketsLaunched,
+    circuit: w.circuit.serialize(),
+    trains: w.trains.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
@@ -117,12 +134,18 @@ export function deserializeWorld(d: SaveData): World {
   if (d.water) w.map.loadWater(d.water);
   if (d.trees) w.map.trees.load(d.trees);
   if (d.research) w.research.load(d.research);
+  w.circuit.load(d.circuit);
   for (const ed of d.entities) {
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;
     e.load(ed as unknown as Record<string, unknown>);
   }
   for (const [k, list] of d.ground ?? []) w.ground.set(k, list.map(([item, x, y]) => ({ item, x, y })));
+  w.ghosts.load(w, d.ghosts);
+  w.stats.load(d.stats);
+  w.robots.load(w, d.robots);
+  w.rocketsLaunched = d.rockets ?? 0;
+  w.trains.load(d.trains);
   for (const [id, list] of d.beltItems) {
     w.belts.loadTileItems(id, list.map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
   }

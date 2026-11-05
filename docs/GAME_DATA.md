@@ -239,6 +239,27 @@ Das Wiki ist inzwischen erreichbar; diese Werte ersetzen frühere Angaben in den
 Abweichungen: Fässer (Flüssigkeitshandhabung) und Reparaturset fehlen noch (Reparatur erst mit Schaden/Gegnern).
 Die Lampe leuchtet, sobald sie Strom hat (noch kein Tag-Nacht-Wechsel).
 
+## Öl und Chemie (Quelle: Wiki-Infoboxen „Pumpjack“, „Oil refinery“, „Chemical plant“, „Oil processing“)
+
+| Gebäude | Größe | Werte | Rezept | Forschung |
+|---|---|---|---|---|
+| Pumpjack | 3×3, nur mittig auf einer Quelle | 90 kW, Fördergeschwindigkeit 1, 10 Rohöl/s je 100 % Ergiebigkeit | 5 Schaltkreise + 10 Zahnräder + 10 Rohre + 5 Stahl, 5 s | Ölgewinnung 100 × 30 s rot+grün |
+| Ölraffinerie | 5×5, 2 Eingänge Süd, 3 Ausgänge Nord | Geschwindigkeit 1, 420 kW, Grundlast 14 kW | 10 Schaltkreise + 10 Zahnräder + 10 Rohre + 15 Stahl + 10 Ziegel, 8 s | Ölverarbeitung (Auslöser: Rohöl fördern) |
+| Chemiefabrik | 3×3, 2 Eingänge Süd, 2 Ausgänge Nord | Geschwindigkeit 1, 210 kW, Grundlast 7 kW | 5 Schaltkreise + 5 Zahnräder + 5 Rohre + 5 Stahl, 5 s | Ölverarbeitung |
+| Elektrischer Ofen | 3×3 | Geschwindigkeit 2, 180 kW, Grundlast 6 kW | 5 fortgeschr. Schaltkreise + 10 Stahl + 10 Ziegel, 5 s | Fortgeschr. Materialverarbeitung 2 |
+| Umspannwerk | 2×2 | Kabel 18, Versorgung 18×18 | 5 fortgeschr. Schaltkreise + 6 Kabel + 10 Stahl, 0,5 s | Energieverteilung 2 |
+| Express-Band / -Untergrund / -Splitter | – | 45 Items/s (24 Positionen/Tick), Untergrund bis 9 Lücke | mit 20 / 40 / 80 Schmiermittel (Montage 2) | Logistik 3 (folgt mit Block 4) |
+
+Rohölquellen: Ergiebigkeit 60–200 % (+0,25 % je Feldabstand, `src/data/mapgen.ts`), 4–10 Quellen je Feld, nicht
+näher als 70 Felder am Start. Erschöpfung: alle 300 Förderzyklen −1 %, Untergrenze 20 % bzw. 20 % des Startwerts
+(Wiki „Crude oil“). Grundverarbeitung 100 Rohöl → 45 Erdgas, 5 s; fortgeschritten 100 Rohöl + 50 Wasser →
+25 Schweröl + 45 Leichtöl + 55 Erdgas, 5 s; Cracken 40 S + 30 W → 30 L bzw. 30 L + 30 W → 20 E, je 2 s.
+Chemie (je Wiki-Rezept): Kunststoff 1 Kohle + 20 Erdgas → 2 (1 s), Schwefel 30 E + 30 W → 2 (1 s),
+Schwefelsäure 1 Eisen + 5 Schwefel + 100 W → 50 (1 s), Batterie 1 Eisen + 1 Kupfer + 20 Säure (4 s),
+Schmiermittel 10 Schweröl → 10 (1 s), Festbrennstoff 10 L / 20 E / 20 S (1 s), Sprengstoff 1 Kohle + 1 Schwefel + 10 W → 2 (4 s).
+Fortgeschrittener Schaltkreis 4 Kabel + 2 Schaltkreise + 2 Kunststoff (6 s), Elektromotor 2 Schaltkreise + 1 Motor +
+15 Schmiermittel (10 s, Montage 2), Chemie-Wissenschaftspaket 3 fortgeschr. Schaltkreise + 2 Motoren + 1 Schwefel → 2 (24 s).
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf

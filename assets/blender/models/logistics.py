@@ -6,13 +6,14 @@ ALL = (0, 1, 2, 3)
 
 
 # Stufen: Name des Untergrundbands, des Splitters, Anstrich (None = Standard)
-TIERS = (('underground-belt', 'splitter', None), ('fast-underground-belt', 'fast-splitter', '#7a3a28'))
+TIERS = (('underground-belt', 'splitter', None), ('fast-underground-belt', 'fast-splitter', '#7a3a28'),
+         ('express-underground-belt', 'express-splitter', '#3a5a7c'))
 
 
 def mats(color):
     m = anlagen.Mats()
     if color:
-        m.paint = anlagen.paint(color, 'a_fastpaint')
+        m.paint = anlagen.paint(color, 'a_tier' + color[1:])
     return m
 
 

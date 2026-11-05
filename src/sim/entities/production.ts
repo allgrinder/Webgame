@@ -1,4 +1,5 @@
-import { type AssemblerDef, type LabDef, insertionLimitCrafts } from '../../data/entities';
+import { type AssemblerDef, type BeaconDef, type LabDef, insertionLimitCrafts } from '../../data/entities';
+import { BEACON, MODULES, PRODUCTIVITY_RECIPES, isModule } from '../../data/modules';
 import { ITEMS } from '../../data/items';
 import { RECIPES, type RecipeDef } from '../../data/recipes';
 import { TECH_BY_ID } from '../../data/tech';
@@ -14,6 +15,14 @@ import { type InvData, Inventory, type Stack } from '../inventory';
 import { ResearchSystem } from '../research';
 import type { World } from '../world';
 import { EntityBase, type GuiSlots, type InsertMode, invContents } from './base';
+import { type Effects, consumptionFactor, moduleInventory, productivityBonus, speedFactor } from '../modules';
+
+/** Modul passt in diese Maschine (Produktivität nur bei Zwischenprodukt-Rezepten). */
+export function moduleAllowed(item: string, recipe: string | null): boolean {
+  const m = MODULES[item];
+  if (!m) return false;
+  return m.category !== 'productivity' || recipe === null || PRODUCTIVITY_RECIPES.has(recipe);
+}
 
 
 function electric(usageW: number, drainW: number): ElectricSource {
@@ -39,12 +48,23 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
   progress = 0;
   /** Arbeitsticks (Animation). */
   workTicks = 0;
+  /** Modulplätze (null: keine). */
+  readonly modules: Inventory | null;
+  /** Produktivitätsbalken 0..1: bei 1 entsteht ein zusätzliches Ergebnis. */
+  bonus = 0;
+  readonly effects: Effects = { speed: 0, productivity: 0, consumption: 0 };
   private world: World | null = null;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
     this.energy = electric(this.def.energyUsage, this.def.drain);
     this.boxes = (this.def.fluidBoxes ?? []).map((b) => new FluidBox(b.volume * FLUID_UNIT, '__none'));
+    this.modules = moduleInventory(this.def.moduleSlots ?? 0, (it) => moduleAllowed(it, this.recipe?.id ?? null));
+  }
+
+  /** Herstellgeschwindigkeit mit Modulen und Leuchtfeuern. */
+  get speed(): number {
+    return this.def.craftingSpeed * speedFactor(this.effects);
   }
 
   override onCreated(w: World): void {
@@ -82,7 +102,16 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
 
   /** Rezept wählen. Gibt Zutaten, Ergebnis und laufende Zutaten zurück (für den Spieler). */
   setRecipe(id: string | null): Stack[] {
-    const out = this.contents();
+    const out = this.contents().filter((s) => !isModule(s.item));
+    // Produktivitätsmodule passen nicht zum neuen Rezept → zurück an den Spieler
+    if (this.modules && id && !PRODUCTIVITY_RECIPES.has(id)) {
+      this.modules.slots.forEach((st, i) => {
+        if (st && MODULES[st.item]?.category === 'productivity') {
+          out.push({ ...st });
+          this.modules!.slots[i] = null;
+        }
+      });
+    }
     let r = id ? RECIPES[id] ?? null : null;
     if (r && !this.canCraft(r)) r = null;
     if (r) {
@@ -104,6 +133,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     if (r) for (const g of [...r.ingredients, ...r.results]) if (isFluid(g.item)) this.boxFor(r, g.item)!.filter = g.item;
     this.crafting = false;
     this.progress = 0;
+    this.bonus = 0;
     if (this.world) this.world.structureVersion++;
     return out;
   }
@@ -126,6 +156,10 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
 
   override update(w: World): void {
     const r = this.recipe;
+    if (this.modules) {
+      w.beacons.effects(w, this, this.effects);
+      this.energy.setFactor(consumptionFactor(this.effects));
+    }
     if (!r) {
       this.status = Status.Idle;
       return;
@@ -156,9 +190,9 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
       for (const g of r.ingredients) {
         if (isFluid(g.item)) this.boxFor(r, g.item)!.net!.take(g.item, g.amount * FLUID_UNIT);
         else this.input.remove(g.item, g.amount);
+        w.stats.used(g.item, g.amount);
       }
       this.crafting = true;
-      this.progress = 0;
     }
     if (!this.energy.consume(this.energy.usagePerTick)) {
       this.status = Status.NoPower;
@@ -166,27 +200,43 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     }
     this.status = Status.Working;
     this.workTicks++;
-    if (++this.progress >= this.recipeTicks(r)) {
-      for (const res of r.results) {
-        if (isFluid(res.item)) this.boxFor(r, res.item)?.net?.add(res.item, res.amount * FLUID_UNIT);
-        else this.output.add(res.item, res.amount);
-        w.research.onCrafted(res.item, res.amount);
+    this.progress += this.modules ? speedFactor(this.effects) : 1;
+    const need = this.recipeTicks(r);
+    if (this.progress >= need) {
+      let times = 1;
+      if (this.modules && PRODUCTIVITY_RECIPES.has(r.id)) {
+        this.bonus += productivityBonus(this.effects);
+        if (this.bonus >= 1) {
+          this.bonus -= 1;
+          times = 2;
+        }
+      }
+      for (let k = 0; k < times; k++) {
+        for (const res of r.results) {
+          if (isFluid(res.item)) this.boxFor(r, res.item)?.net?.add(res.item, res.amount * FLUID_UNIT);
+          else this.output.add(res.item, res.amount);
+          w.crafted(res.item, res.amount);
+        }
       }
       this.crafting = false;
-      this.progress = 0;
+      this.progress = this.modules ? Math.max(0, this.progress - need) : 0;
     }
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {
+    if (this.modules && isModule(item) && !this.recipe?.ingredients.some((x) => x.item === item)) {
+      return mode === 'player' ? this.modules.space(item) : 0;
+    }
     const g = this.recipe?.ingredients.find((x) => x.item === item && !isFluid(x.item));
     if (!g) return 0;
     const have = this.input.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
     if (mode !== 'inserter') return Math.min(cap, this.input.space(item));
-    const limit = g.amount * insertionLimitCrafts(this.recipe!.time / this.def.craftingSpeed);
+    const limit = g.amount * insertionLimitCrafts(this.recipe!.time / this.speed);
     return Math.max(0, Math.min(cap, limit - have));
   }
   protected override doInsert(item: string, n: number): number {
+    if (this.modules && isModule(item) && !this.recipe?.ingredients.some((x) => x.item === item)) return this.modules.add(item, n);
     return this.input.add(item, n);
   }
   override take(_w: World, accept: (item: string) => boolean): string | null {
@@ -196,7 +246,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     return it;
   }
   override contents(): Stack[] {
-    const out = invContents(this.input, this.output);
+    const out = invContents(this.input, this.output, ...(this.modules ? [this.modules] : []));
     if (this.crafting && this.recipe) for (const g of this.itemIngredients(this.recipe)) out.push({ item: g.item, count: g.amount });
     return out;
   }
@@ -204,12 +254,14 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     return [
       { label: 'Zutaten', inv: this.input },
       { label: 'Ergebnis', inv: this.output },
+      ...(this.modules ? [{ label: 'Module', inv: this.modules }] : []),
     ];
   }
   override save() {
     return {
       ...this.energy.serialize(), recipe: this.recipe?.id ?? null, in: this.input.serialize(), out: this.output.serialize(),
       cr: this.crafting, progress: this.progress, work: this.workTicks, fb: this.boxes.map((b) => [b.amount, b.fluid]),
+      ...(this.modules ? { mod: this.modules.serialize(), bo: this.bonus } : {}),
     };
   }
   override load(d: Record<string, unknown>): void {
@@ -220,6 +272,8 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     this.crafting = !!d.cr;
     this.progress = (d.progress as number) ?? 0;
     this.workTicks = (d.work as number) ?? 0;
+    if (this.modules && d.mod) this.modules.load(d.mod as InvData);
+    this.bonus = (d.bo as number) ?? 0;
     const fb = (d.fb as [number, string | null][] | undefined) ?? [];
     fb.forEach(([a, f], i) => {
       if (this.boxes[i]) {
@@ -243,11 +297,14 @@ export class LabEntity extends EntityBase {
   remaining = 0;
   paidFor: string | null = null;
   workTicks = 0;
+  readonly modules: Inventory | null;
+  readonly effects: Effects = { speed: 0, productivity: 0, consumption: 0 };
   private research: ResearchSystem | null = null;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
     this.energy = electric(this.def.energyUsage, this.def.drain);
+    this.modules = moduleInventory(this.def.moduleSlots ?? 0);
     const inputs = this.def.inputs;
     this.packs = new Inventory(inputs.length, (it) => inputs.includes(it));
   }
@@ -263,6 +320,10 @@ export class LabEntity extends EntityBase {
   }
 
   override update(w: World): void {
+    if (this.modules) {
+      w.beacons.effects(w, this, this.effects);
+      this.energy.setFactor(consumptionFactor(this.effects));
+    }
     const t = w.research.currentTech;
     if (!t) {
       this.status = Status.NoTarget;
@@ -285,7 +346,10 @@ export class LabEntity extends EntityBase {
         this.status = Status.NoInput;
         return;
       }
-      for (const p of t.packs) this.packs.remove(p, 1);
+      for (const p of t.packs) {
+        this.packs.remove(p, 1);
+        w.stats.used(p, 1);
+      }
       this.remaining = ResearchSystem.unitTicks(t);
       this.paidFor = t.id;
     }
@@ -294,9 +358,10 @@ export class LabEntity extends EntityBase {
       return;
     }
     this.status = Status.Working;
-    this.remaining--;
+    const f = speedFactor(this.effects);
+    this.remaining -= f;
     this.workTicks++;
-    w.research.addWork(1);
+    w.research.addWork(f * (1 + productivityBonus(this.effects)));
     if (!w.research.current || w.research.current !== t.id) {
       this.remaining = 0;
       this.paidFor = null;
@@ -304,6 +369,7 @@ export class LabEntity extends EntityBase {
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {
+    if (this.modules && isModule(item)) return mode === 'player' ? this.modules.space(item) : 0;
     if (!this.def.inputs.includes(item)) return 0;
     const have = this.packs.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
@@ -319,23 +385,71 @@ export class LabEntity extends EntityBase {
     return it;
   }
   protected override doInsert(item: string, n: number): number {
+    if (this.modules && isModule(item)) return this.modules.add(item, n);
     return this.packs.add(item, n);
   }
   override contents(): Stack[] {
-    return invContents(this.packs);
+    return invContents(this.packs, ...(this.modules ? [this.modules] : []));
   }
   override guiSlots(): GuiSlots[] {
-    return [{ label: 'Wissenschaftspakete', inv: this.packs }];
+    return [{ label: 'Wissenschaftspakete', inv: this.packs }, ...(this.modules ? [{ label: 'Module', inv: this.modules }] : [])];
   }
   override save() {
-    return { ...this.energy.serialize(), packs: this.packs.serialize(), rem: this.remaining, paid: this.paidFor, work: this.workTicks };
+    return {
+      ...this.energy.serialize(), packs: this.packs.serialize(), rem: this.remaining, paid: this.paidFor, work: this.workTicks,
+      ...(this.modules ? { mod: this.modules.serialize() } : {}),
+    };
   }
   override load(d: Record<string, unknown>): void {
     this.energy.load(d as { eb: number });
+    if (this.modules && d.mod) this.modules.load(d.mod as InvData);
     this.packs.load(d.packs as InvData);
     this.remaining = (d.rem as number) ?? 0;
     this.paidFor = (d.paid as string | null) ?? null;
     this.workTicks = (d.work as number) ?? 0;
     if (this.paidFor && !TECH_BY_ID[this.paidFor]) this.paidFor = null;
+  }
+}
+
+/**
+ * Leuchtfeuer 3×3: zwei Modulplätze (nur Geschwindigkeit/Effizienz), verbraucht ständig 480 kW. Ohne Strom keine Wirkung.
+ */
+export class BeaconEntity extends EntityBase {
+  readonly kind = 'beacon' as const;
+  declare readonly def: BeaconDef;
+  readonly energy: ElectricSource;
+  readonly modules: Inventory | null;
+  powered = false;
+  workTicks = 0;
+  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
+    super(id, name, x, y, dir);
+    this.energy = electric(this.def.energyUsage, 0);
+    this.modules = moduleInventory(this.def.moduleSlots ?? 2, (it) => !!MODULES[it] && BEACON.allowed.includes(MODULES[it].category));
+  }
+  override update(): void {
+    this.powered = this.energy.consume(this.energy.usagePerTick);
+    const active = this.powered && !this.modules!.isEmpty();
+    this.status = !this.powered ? Status.NoPower : active ? Status.Working : Status.Idle;
+    if (active) this.workTicks++;
+  }
+  override acceptAmount(item: string, mode: InsertMode): number {
+    return mode === 'player' ? this.modules!.space(item) : 0;
+  }
+  protected override doInsert(item: string, n: number): number {
+    return this.modules!.add(item, n);
+  }
+  override contents(): Stack[] {
+    return invContents(this.modules!);
+  }
+  override guiSlots(): GuiSlots[] {
+    return [{ label: 'Module', inv: this.modules! }];
+  }
+  override save() {
+    return { ...this.energy.serialize(), mod: this.modules!.serialize(), pw: this.powered };
+  }
+  override load(d: Record<string, unknown>): void {
+    this.energy.load(d as { eb: number });
+    this.modules!.load(d.mod as InvData);
+    this.powered = !!d.pw;
   }
 }

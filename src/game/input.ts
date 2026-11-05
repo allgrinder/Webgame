@@ -41,7 +41,7 @@ export class Input {
       this.ctrl = e.ctrlKey || e.metaKey;
       this.shift = e.shiftKey;
       if (k === 'alt' || k === 'tab' || /^f\d+$/.test(k) && k !== 'f12' && k !== 'f5') e.preventDefault();
-      if (e.ctrlKey && (k === 's' || k === 'l')) e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && (k === 's' || k === 'l' || k === 'c' || k === 'v' || k === 'x')) e.preventDefault();
     });
     window.addEventListener('keyup', (e) => {
       this.down.delete(keyName(e));

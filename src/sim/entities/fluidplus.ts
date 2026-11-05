@@ -1,6 +1,6 @@
 import type { FluidPumpDef, LampDef, PipeGroundDef, TankDef } from '../../data/entities';
 import { FLUID_UNIT } from '../../data/fluids';
-import { wattsToJoulesPerTick } from '../../data/time';
+import { DAY, wattsToJoulesPerTick } from '../../data/time';
 import { ElectricSource } from '../energy';
 import { Status } from '../entity';
 import { DX, DY, type Dir, opposite, rotCW } from '../geom';
@@ -152,7 +152,12 @@ export class LampEntity extends EntityBase {
     const jpt = wattsToJoulesPerTick(this.def.energyUsage);
     this.energy = new ElectricSource(jpt, 0, jpt * 2);
   }
-  override update(): void {
+  /** Nachts eingeschaltet (verbraucht dann Strom). */
+  override update(w: World): void {
+    if (w.darkness < DAY.lampOn) {
+      this.status = Status.Idle;
+      return;
+    }
     this.status = this.energy.consume(this.energy.usagePerTick) ? Status.Working : Status.NoPower;
   }
   override save() {

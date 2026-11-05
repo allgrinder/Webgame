@@ -53,3 +53,15 @@ export const CLOUDS = {
   sizeMin: 0.9,
   sizeMax: 1.7,
 } as const;
+
+/** Nacht (nur Darstellung): Farbe und Deckkraft der Dunkelheit, Lichtradien in Feldern. */
+export const NIGHT = {
+  color: 0x0a1428,
+  /** Deckkraft bei voller Dunkelheit. */
+  alpha: 0.82,
+  /** Lampe: Wiki „Lamp“ – mittlerer Bereich (Radius 10 Felder). */
+  lampRadius: 10,
+  /** Leuchtende Gebäude (Ofen, Kessel) und Taschenlampe der Figur. */
+  fireRadius: 3,
+  playerRadius: 7,
+} as const;

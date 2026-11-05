@@ -99,4 +99,42 @@ def render(out):
     core  # noqa: B018
     eisen.camera(0.375, 0.375, target=(0, 0, 0.3))
     out.add('fx.spark', 'effects', [out.render_frame('fx.spark', 0)], (0.5, 0.5), meta={'blend': 'add'})
+    # Lichtkegel für die Nacht: weiche Kreisscheibe (Deckkraft fällt zum Rand ab), im Spiel radiert sie die Dunkelheit aus
+    eisen.reset(samples=16, ground=False)
+    me = bpy.data.meshes.new('light')
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1.0)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new('light', me)
+    eisen.link(ob)
+    mat = bpy.data.materials.new('light')
+    mat.use_nodes = True
+    nt = mat.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    outn = nt.nodes.new('ShaderNodeOutputMaterial')
+    em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = (1, 1, 1, 1)
+    tr = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    grad = nt.nodes.new('ShaderNodeTexGradient')
+    grad.gradient_type = 'SPHERICAL'
+    nt.links.new(tc.outputs['Object'], grad.inputs['Vector'])
+    pw = nt.nodes.new('ShaderNodeMath')
+    pw.operation = 'POWER'
+    pw.inputs[1].default_value = 1.6
+    nt.links.new(grad.outputs['Fac'], pw.inputs[0])
+    nt.links.new(pw.outputs[0], mix.inputs['Fac'])
+    nt.links.new(tr.outputs[0], mix.inputs[1])
+    nt.links.new(em.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], outn.inputs['Surface'])
+    me.materials.append(mat)
+    s = bpy.context.scene
+    s.view_settings.view_transform = 'Standard'
+    eisen.camera(2.0, 2.0, target=(0, 0, 0))
+    s.render.resolution_percentage = 50
+    out.add('fx.light', 'effects', [out.render_frame('fx.light', 0)], (0.5, 0.5))
+    s.render.resolution_percentage = 100
     math  # noqa: B018

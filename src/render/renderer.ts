@@ -13,6 +13,7 @@ import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
 import { CloudShadows } from './clouds';
+import { NightLayer } from './night';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
@@ -61,6 +62,7 @@ const INSERTER_PREFIX: Record<string, string> = {
   'burner-inserter': 'inserter',
   inserter: 'inserter-electric',
   'long-handed-inserter': 'inserter-long',
+  'fast-inserter': 'inserter-fast',
 };
 
 export class GameRenderer {
@@ -85,6 +87,7 @@ export class GameRenderer {
   private effects: Effects | null = null;
   private readonly cloudPool = new SpritePool();
   private clouds: CloudShadows | null = null;
+  private night: NightLayer | null = null;
   /** Blickrichtung der Figur (0..7, 0 = Norden, im Uhrzeigersinn). */
   private playerDir = 4;
   private readonly icons = new SpritePool();
@@ -148,6 +151,9 @@ export class GameRenderer {
     this.fxAddPool.container.blendMode = 'add';
     this.effects = new Effects(s, this.fxPool, this.fxAddPool, TILE);
     this.clouds = new CloudShadows(s, this.cloudPool, TILE);
+    this.night = new NightLayer(s, this.app.renderer, TILE);
+    // Dunkelheit über der Welt, aber unter Bauvorschau, Symbolen und Overlay
+    this.root.addChildAt(this.night.sprite, this.root.getChildIndex(this.ghostSprites.container));
     this.ents.container.sortableChildren = true;
     this.ghostSprites.container.alpha = 0.55;
     this.root.addChild(
@@ -215,6 +221,11 @@ export class GameRenderer {
     this.drawWires(world, view);
     this.effects?.update(world, alpha, view);
     this.clouds?.update(world, alpha, view);
+    if (this.night) {
+      this.night.update(world, c, w, h);
+      this.night.sprite.position.set(-this.root.x / c.zoom, -this.root.y / c.zoom);
+      this.night.sprite.scale.set(1 / c.zoom);
+    }
     this.drawOverlay(world, ui);
   }
 
@@ -602,15 +613,16 @@ export class GameRenderer {
         break;
       }
       case 'furnace': {
-        const sh = this.shadows.get(s.frame('furnace.shadow'));
+        const fp = e.name !== 'stone-furnace' && s.has(`${e.name}.off`) ? e.name : 'furnace';
+        const sh = this.shadows.get(s.frame(`${fp}.shadow`));
         sh.position.set(cx, cy);
         const on = e.status === Status.Working;
-        const sp = this.ents.get(s.frame(on ? 'furnace.on' : 'furnace.off'));
+        const sp = this.ents.get(s.frame(on ? `${fp}.on` : `${fp}.off`));
         sp.position.set(cx, cy);
         sp.zIndex = z;
         if (on) {
           const t = world.tick + alpha;
-          const g = this.glow.get(s.frame('furnace.glow', Math.floor(t / 6) + e.id * 3));
+          const g = this.glow.get(s.frame(`${fp}.glow`, Math.floor(t / 6) + e.id * 3));
           g.position.set(cx, cy);
           g.alpha = 0.8 + 0.2 * Math.sin(t * 0.37 + e.id) * Math.sin(t * 0.13 + e.id * 2);
         }
@@ -695,16 +707,18 @@ export class GameRenderer {
   private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const g = this.wires;
     g.clear();
-    const lift = (this.sprites.info('small-electric-pole')?.meta?.wireLift ?? 0.95) * TILE;
+    const liftOf = (name: string) => (this.sprites.info(name)?.meta?.wireLift ?? this.sprites.info('small-electric-pole')?.meta?.wireLift ?? 0.95) * TILE;
     for (const [a, b] of world.power.wires) {
       const pa = world.entities.get(a);
       const pb = world.entities.get(b);
       if (!pa || !pb) continue;
+      const la = liftOf(pa.name);
+      const lb = liftOf(pb.name);
       if (Math.max(pa.cx, pb.cx) < v.x0 || Math.min(pa.cx, pb.cx) > v.x1 || Math.max(pa.cy, pb.cy) < v.y0 || Math.min(pa.cy, pb.cy) > v.y1) continue;
       const ax = pa.cx * TILE;
-      const ay = pa.cy * TILE - lift;
+      const ay = pa.cy * TILE - la;
       const bx = pb.cx * TILE;
-      const by = pb.cy * TILE - lift;
+      const by = pb.cy * TILE - lb;
       const sag = Math.hypot(bx - ax, by - ay) * 0.08;
       g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.6, color: 0x5a3a22, alpha: 0.85 });
     }
@@ -755,7 +769,7 @@ export class GameRenderer {
           break;
         }
         case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
-        case 'furnace': tex = this.sprites.frame('furnace.off'); break;
+        case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
         default: {
           const b = this.sprites.has(`${g.name}.${g.dir}`) ? `${g.name}.${g.dir}` : this.sprites.has(g.name) ? g.name : `item.${def.item}`;

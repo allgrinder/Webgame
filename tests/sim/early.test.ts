@@ -120,3 +120,24 @@ describe('Frühe Phase (Wiki-Werte)', () => {
     expect(w.power.wires.length).toBe(2);
   });
 });
+
+describe('Tag und Nacht (Wiki „Time“)', () => {
+  it('Tag 25.200 Ticks, Dunkelheit nach Phasen, Lampen nur nachts', async () => {
+    const { darknessAt, DAY } = await import('../../src/data/time');
+    expect(DAY.ticks).toBe(25_200);
+    expect(darknessAt(0)).toBe(0);
+    expect(darknessAt(0.35)).toBeCloseTo(0.5, 5);
+    expect(darknessAt(0.5)).toBe(1);
+    expect(darknessAt(0.65)).toBeCloseTo(0.5, 5);
+    expect(darknessAt(0.8)).toBe(0);
+    const w = clearWorld();
+    const lamp = w.place('lamp', 0, 0, 0)!;
+    (lamp as unknown as { energy: ElectricSource }).energy.buffer = 1e9;
+    w.step();
+    expect(lamp.status).toBe(0); // Mittag: aus
+    w.tick = Math.round(DAY.ticks * 0.5);
+    (lamp as unknown as { energy: ElectricSource }).energy.buffer = 1e9;
+    w.step();
+    expect(lamp.status).toBe(1); // Nacht: an
+  });
+});

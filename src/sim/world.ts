@@ -1,4 +1,5 @@
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
+import { DAY, darknessAt } from '../data/time';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
 import { ENTITY_CLASSES } from './entities/registry';
@@ -185,6 +186,15 @@ export class World {
   }
 
   // ------------------------------------------------------------ Simulation
+
+  /** Tageszeit 0..1 (0 = Mittag). */
+  get daytime(): number {
+    return (this.tick % DAY.ticks) / DAY.ticks;
+  }
+  /** Dunkelheit 0 (Tag) … 1 (Nacht). */
+  get darkness(): number {
+    return darknessAt(this.daytime);
+  }
 
   step(): void {
     this.fluids.ensure(this);

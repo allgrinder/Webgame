@@ -269,6 +269,8 @@ def lab1(_m=None, phase=0.0):
     mod.object = cut
     mod.operation = 'DIFFERENCE'
     cut.hide_render = True
+    cut.parent = lid
+    cut.location = (0, 0, 0)
     o.append(lid)
     for k in range(2):
         bb = k * math.pi / 2 + 0.4

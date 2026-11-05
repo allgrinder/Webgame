@@ -36,6 +36,8 @@ def spoked_wheel(o, name, r, loc, angle, rim_mat, spoke_mat, hub_mat, spokes=6, 
     m.object = cut
     m.operation = 'DIFFERENCE'
     cut.hide_render = True
+    cut.parent = rim  # dreht mit (Richtungen 1–3)
+    cut.location = (0, 0, 0)
     o.append(rim)
     for k in range(spokes):
         b = angle + k / spokes * math.tau

@@ -93,6 +93,8 @@ def oil_refinery2(m, phase=0.0):
         mod.object = cut
         mod.operation = 'DIFFERENCE'
         cut.hide_render = True
+        cut.parent = plat  # dreht mit (Raffinerie in 4 Richtungen)
+        cut.location = (0, 0, 0)
         o.append(plat)
         kit.railing(o, _ring(x, y, r + 0.18, zb + 0.02, 18), 0.18, t.hazard, post_every=0.35, closed=True)
         kit.ladder(o, f'lad{k}', x, y - r - 0.06, 0.14, zb, t.metal)
@@ -168,6 +170,8 @@ def roboport3(m):
             mod.object = cut
             mod.operation = 'DIFFERENCE'
             cut.hide_render = True
+            cut.parent = ring
+            cut.location = (0, 0, 0)
             o.append(ring)
     return _attach(root, o)
 

@@ -166,9 +166,11 @@ Regeln und Zuordnung aller Gebäude: `docs/ART_STYLE.md`.
 2. Stufe 1 umstellen: Brennstoffbohrer, Steinofen, Kessel, Dampfmaschine, Uferpumpe, Labor – erledigt (`lib/stufe1.py`);
    offen: Kisten, Greifarm, Mast, Rohr, gelbes Band.
 2a. Licht und Farbe des ganzen Bildes (Farbabstimmung, Schatten, Bodenschattierung) – erledigt.
-3. Stufe 2 umstellen: E-Bohrer, Stahlofen, Öl/Chemie, Tank/Pumpe, Masten, Solar/Akku, Radar, Bahn.
-4. Stufe 3 umstellen: Elektroofen, Leuchtfeuer, Roboterhangar/Roboter, Logistikkisten, Silo, Landeplatz.
-5. Bänder/Splitter/Untergrund je Stufe angleichen, Symbole neu.
+3. Stufe 2: Bohrer neu (`lib/bohrer.py`), Stahlofen, Raffinerie, Chemiefabrik, Tank, Pumpjack, Umspannwerk mit Details
+   (`lib/stufe23.py`), Radar/Pumpe per Detail-Durchgang – erledigt.
+4. Stufe 3: Hangar, Leuchtfeuer, Logistikkisten (Leuchtstreifen), Elektroofen/Silo/Landeplatz per Detail-Durchgang – erledigt.
+5. Flachere Sonne (40°) mit längeren Schatten, ruhigere Materialien, Gesamtrender – erledigt.
+   Offen (klein): Kisten, Greifarme, Masten, Rohre, Bänder nur über Materialien/Sonne aufgefrischt, nicht neu modelliert.
 
 ## Phase H – Gegner und Spielgefühl (Wunsch 05.11.2026)
 

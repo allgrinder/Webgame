@@ -136,7 +136,7 @@
    ]
   },
   "drill": {
-   "hash": "339c56e4daf5bccc",
+   "hash": "616aff790d5582ea",
    "sprites": [
     "drill.0",
     "drill.0.shadow",
@@ -149,7 +149,7 @@
    ]
   },
   "edrill": {
-   "hash": "39efefaf9063b062",
+   "hash": "52296e1c2e451655",
    "sprites": [
     "electric-mining-drill.0",
     "electric-mining-drill.0.shadow",
@@ -372,6 +372,45 @@
     "furnace.on",
     "furnace.glow",
     "furnace.shadow"
+   ]
+  },
+  "gegner": {
+   "hash": "8a876b7ee549c693",
+   "sprites": [
+    "enemy.krabbler.0",
+    "enemy.krabbler.1",
+    "enemy.krabbler.2",
+    "enemy.krabbler.3",
+    "enemy.krabbler.4",
+    "enemy.krabbler.5",
+    "enemy.krabbler.6",
+    "enemy.krabbler.7",
+    "enemy.krabbler.8",
+    "enemy.krabbler.9",
+    "enemy.krabbler.10",
+    "enemy.krabbler.11",
+    "enemy.krabbler.12",
+    "enemy.krabbler.13",
+    "enemy.krabbler.14",
+    "enemy.krabbler.15",
+    "enemy.krabbler.dead",
+    "enemy.krabbler.shadow",
+    "enemy.nest.0",
+    "enemy.nest.1",
+    "enemy.nest.ruin",
+    "enemy.nest.shadow",
+    "gun-turret.base",
+    "gun-turret.base.shadow",
+    "gun-turret.head",
+    "stone-wall",
+    "stone-wall.shadow",
+    "item.firearm-magazine",
+    "item.piercing-rounds-magazine",
+    "item.pistol",
+    "item.submachine-gun",
+    "item.gun-turret",
+    "item.repair-pack",
+    "item.stone-wall"
    ]
   },
   "ground": {
@@ -1289,6 +1328,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-8.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-9.json"
   },
   {
    "group": "flora",
@@ -4869,6 +4912,337 @@
     "scale": 2
    }
   },
+  "enemy.krabbler.0": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.0#0",
+    "enemy.krabbler.0#1",
+    "enemy.krabbler.0#2",
+    "enemy.krabbler.0#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.1": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.1#0",
+    "enemy.krabbler.1#1",
+    "enemy.krabbler.1#2",
+    "enemy.krabbler.1#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.10": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.10#0",
+    "enemy.krabbler.10#1",
+    "enemy.krabbler.10#2",
+    "enemy.krabbler.10#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.11": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.11#0",
+    "enemy.krabbler.11#1",
+    "enemy.krabbler.11#2",
+    "enemy.krabbler.11#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.12": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.12#0",
+    "enemy.krabbler.12#1",
+    "enemy.krabbler.12#2",
+    "enemy.krabbler.12#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.13": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.13#0",
+    "enemy.krabbler.13#1",
+    "enemy.krabbler.13#2",
+    "enemy.krabbler.13#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.14": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.14#0",
+    "enemy.krabbler.14#1",
+    "enemy.krabbler.14#2",
+    "enemy.krabbler.14#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.15": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.15#0",
+    "enemy.krabbler.15#1",
+    "enemy.krabbler.15#2",
+    "enemy.krabbler.15#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.2": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.2#0",
+    "enemy.krabbler.2#1",
+    "enemy.krabbler.2#2",
+    "enemy.krabbler.2#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.3": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.3#0",
+    "enemy.krabbler.3#1",
+    "enemy.krabbler.3#2",
+    "enemy.krabbler.3#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.4": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.4#0",
+    "enemy.krabbler.4#1",
+    "enemy.krabbler.4#2",
+    "enemy.krabbler.4#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.5": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.5#0",
+    "enemy.krabbler.5#1",
+    "enemy.krabbler.5#2",
+    "enemy.krabbler.5#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.6": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.6#0",
+    "enemy.krabbler.6#1",
+    "enemy.krabbler.6#2",
+    "enemy.krabbler.6#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.7": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.7#0",
+    "enemy.krabbler.7#1",
+    "enemy.krabbler.7#2",
+    "enemy.krabbler.7#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.8": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.8#0",
+    "enemy.krabbler.8#1",
+    "enemy.krabbler.8#2",
+    "enemy.krabbler.8#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.9": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.9#0",
+    "enemy.krabbler.9#1",
+    "enemy.krabbler.9#2",
+    "enemy.krabbler.9#3"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ],
+   "fps": 12
+  },
+  "enemy.krabbler.dead": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.dead#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "enemy.krabbler.shadow": {
+   "group": "entities",
+   "frames": [
+    "enemy.krabbler.shadow#0"
+   ],
+   "w": 160,
+   "h": 160,
+   "anchor": [
+    0.27,
+    0.27
+   ]
+  },
+  "enemy.nest.0": {
+   "group": "entities",
+   "frames": [
+    "enemy.nest.0#0"
+   ],
+   "w": 416,
+   "h": 448,
+   "anchor": [
+    0.5,
+    0.5571428571428572
+   ]
+  },
+  "enemy.nest.1": {
+   "group": "entities",
+   "frames": [
+    "enemy.nest.1#0"
+   ],
+   "w": 416,
+   "h": 448,
+   "anchor": [
+    0.5,
+    0.5571428571428572
+   ]
+  },
+  "enemy.nest.ruin": {
+   "group": "entities",
+   "frames": [
+    "enemy.nest.ruin#0"
+   ],
+   "w": 416,
+   "h": 448,
+   "anchor": [
+    0.5,
+    0.5571428571428572
+   ]
+  },
+  "enemy.nest.shadow": {
+   "group": "entities",
+   "frames": [
+    "enemy.nest.shadow#0"
+   ],
+   "w": 336,
+   "h": 336,
+   "anchor": [
+    0.2857142857142857,
+    0.2857142857142857
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "express-splitter.0": {
    "group": "entities",
    "frames": [
@@ -5311,6 +5685,60 @@
     0.22727272727272727,
     0.22727272727272727
    ]
+  },
+  "gun-turret.base": {
+   "group": "entities",
+   "frames": [
+    "gun-turret.base#0"
+   ],
+   "w": 160,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "gun-turret.base.shadow": {
+   "group": "entities",
+   "frames": [
+    "gun-turret.base.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
+   ]
+  },
+  "gun-turret.head": {
+   "group": "entities",
+   "frames": [
+    "gun-turret.head#0",
+    "gun-turret.head#1",
+    "gun-turret.head#2",
+    "gun-turret.head#3",
+    "gun-turret.head#4",
+    "gun-turret.head#5",
+    "gun-turret.head#6",
+    "gun-turret.head#7",
+    "gun-turret.head#8",
+    "gun-turret.head#9",
+    "gun-turret.head#10",
+    "gun-turret.head#11",
+    "gun-turret.head#12",
+    "gun-turret.head#13",
+    "gun-turret.head#14",
+    "gun-turret.head#15"
+   ],
+   "w": 208,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.5428571428571428
+   ],
+   "meta": {
+    "angles": 16
+   }
   },
   "inserter-electric.arm": {
    "group": "entities",
@@ -8092,6 +8520,30 @@
     0.22727272727272727
    ]
   },
+  "stone-wall": {
+   "group": "entities",
+   "frames": [
+    "stone-wall#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "stone-wall.shadow": {
+   "group": "entities",
+   "frames": [
+    "stone-wall.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.16666666666666666,
+    0.16666666666666666
+   ]
+  },
   "storage-chest": {
    "group": "entities",
    "frames": [
@@ -9835,10 +10287,34 @@
     0.5
    ]
   },
+  "item.firearm-magazine": {
+   "group": "items",
+   "frames": [
+    "item.firearm-magazine#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.flying-robot-frame": {
    "group": "items",
    "frames": [
     "item.flying-robot-frame#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.gun-turret": {
+   "group": "items",
+   "frames": [
+    "item.gun-turret#0"
    ],
    "w": 64,
    "h": 64,
@@ -10111,6 +10587,18 @@
     0.5
    ]
   },
+  "item.piercing-rounds-magazine": {
+   "group": "items",
+   "frames": [
+    "item.piercing-rounds-magazine#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.pipe": {
    "group": "items",
    "frames": [
@@ -10127,6 +10615,18 @@
    "group": "items",
    "frames": [
     "item.pipe-to-ground#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.pistol": {
+   "group": "items",
+   "frames": [
+    "item.pistol#0"
    ],
    "w": 64,
    "h": 64,
@@ -10247,6 +10747,18 @@
    "group": "items",
    "frames": [
     "item.rail#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.repair-pack": {
+   "group": "items",
+   "frames": [
+    "item.repair-pack#0"
    ],
    "w": 64,
    "h": 64,
@@ -10531,6 +11043,18 @@
     0.5
    ]
   },
+  "item.stone-wall": {
+   "group": "items",
+   "frames": [
+    "item.stone-wall#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.storage-chest": {
    "group": "items",
    "frames": [
@@ -10547,6 +11071,18 @@
    "group": "items",
    "frames": [
     "item.storage-tank#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.submachine-gun": {
+   "group": "items",
+   "frames": [
+    "item.submachine-gun#0"
    ],
    "w": 64,
    "h": 64,

@@ -67,3 +67,12 @@ Farbabstimmung im Spiel (`src/data/look.ts`, Filter in `src/render/look.ts`, abs
 - **Schlagschatten** kräftiger (Deckkraft 0,74 statt 0,5).
 - **Großflächige Bodenschattierung**: Flecken von ~22 und ~7 Feldern Größe, ±13 % bzw. ±6 % Helligkeit
   (`LOOK.macro`, `src/render/biome.ts`), damit die Wiese aus der Entfernung nicht gleichförmig wirkt.
+
+## Stand nach dem Gesamtrender
+
+Sonne 40° (`eisen.SUN_ELEVATION`), Schattenleinwände wachsen nach Südosten (`eisen.SHADOW_GROW`), automatischer
+Detail-Durchgang für Stufe 2/3 (`kit.detail_pass`, `anlagen.building(..., tier=)`), Bohrer `lib/bohrer.py`,
+Gegner `lib/kampf.py`.
+
+![Gesamtbild](img/gesamt-neu.png)
+![Gegner](img/gegner.png)

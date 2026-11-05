@@ -13,8 +13,8 @@ export class FluidBox {
   constructor(
     /** Fassungsvermögen (Tausendstel Einheiten). */
     readonly capacity: number,
-    /** Nur diese Flüssigkeit (null = beliebig). */
-    readonly filter: string | null,
+    /** Nur diese Flüssigkeit (null = beliebig); Maschinen setzen ihn je Rezept. */
+    public filter: string | null,
   ) {}
 }
 

@@ -15,6 +15,7 @@ export class Chunk {
   /** Ursprüngliches Wasser und Erz (vor Abbau/Aufschüttung) – Grundlage für Bäume (Determinismus). */
   readonly water0 = new Uint8Array(CS * CS);
   readonly resource0 = new Uint8Array(CS * CS);
+  readonly amount0 = new Uint32Array(CS * CS);
   hasWater = false;
   /** Wird erhöht, wenn sich die sichtbare Darstellung ändert (Renderer-Cache). */
   version = 0;
@@ -395,11 +396,12 @@ export class GameMap {
         c.hasWater = true;
       }
     }
+    this.placeOil(c, x0, y0);
     const patches = this.patchesNear(x0, y0, x0 + CS, y0 + CS);
     if (patches.length === 0) return c;
     const fringe = MAPGEN.patchFringe;
     for (let i = 0; i < CS * CS; i++) {
-      if (c.water[i]) continue;
+      if (c.water[i] || c.resource[i]) continue;
       const x = x0 + (i % CS);
       const y = y0 + Math.floor(i / CS);
       if (x * x + y * y < MAPGEN.spawnFree * MAPGEN.spawnFree) continue;
@@ -424,7 +426,51 @@ export class GameMap {
       c.resource[i] = bestP.res;
       c.resource0[i] = bestP.res;
       c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich));
+      c.amount0[i] = c.amount[i];
     }
     return c;
+  }
+
+  /** Ölquellen eines Chunks (deterministisch je Feldzelle, unabhängig von der Erzeugungsreihenfolge). */
+  private placeOil(c: Chunk, x0: number, y0: number): void {
+    const O = MAPGEN.oil;
+    const res = resourceById('crude-oil').index;
+    const reach = O.radius + 1;
+    for (let gy = Math.floor((y0 - reach) / O.cell); gy <= Math.floor((y0 + CS + reach) / O.cell); gy++) {
+      for (let gx = Math.floor((x0 - reach) / O.cell); gx <= Math.floor((x0 + CS + reach) / O.cell); gx++) {
+        if (hash01(this.seed, gx, gy, 501) >= O.chance) continue;
+        const cx = (gx + 0.2 + 0.6 * hash01(this.seed, gx, gy, 502)) * O.cell;
+        const cy = (gy + 0.2 + 0.6 * hash01(this.seed, gx, gy, 503)) * O.cell;
+        const dist = Math.hypot(cx, cy);
+        if (dist < O.minDistance) continue;
+        const n = O.wellsMin + Math.floor(hash01(this.seed, gx, gy, 504) * (O.wellsMax - O.wellsMin + 1));
+        const wells: [number, number][] = [];
+        for (let k = 0; k < n * 6 && wells.length < n; k++) {
+          const a = hash01(this.seed, gx, gy, 600 + k) * Math.PI * 2;
+          const r = O.radius * Math.sqrt(hash01(this.seed, gx, gy, 700 + k));
+          const wx = Math.floor(cx + Math.cos(a) * r);
+          const wy = Math.floor(cy + Math.sin(a) * r);
+          if (wells.some(([px, py]) => Math.max(Math.abs(px - wx), Math.abs(py - wy)) < O.spacing)) continue;
+          wells.push([wx, wy]);
+        }
+        wells.forEach(([wx, wy], k) => {
+          if (wx < x0 || wx >= x0 + CS || wy < y0 || wy >= y0 + CS) return;
+          const i = (wy - y0) * CS + (wx - x0);
+          if (c.water[i]) return;
+          const y = O.yieldMin + (O.yieldMax - O.yieldMin) * hash01(this.seed, gx, gy, 800 + k) + dist * O.yieldPerTile;
+          c.resource[i] = res;
+          c.resource0[i] = res;
+          c.amount[i] = Math.round(y * 1000);
+          c.amount0[i] = c.amount[i];
+        });
+      }
+    }
+  }
+
+  /** Ursprüngliche Menge (vor Abbau) – Ergiebigkeitsuntergrenze der Ölquellen. */
+  originalAmount(x: number, y: number): number {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    return this.getChunk(cx, cy).amount0[(Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS)];
   }
 }

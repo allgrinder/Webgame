@@ -46,6 +46,11 @@ export const MAPGEN = {
    * wo sie unter fordBelow fällt, entsteht eine Furt (Land), damit die Karte begehbar bleibt.
    */
   rivers: { scale: 380, warp: 60, warpScale: 90, width: 0.009, widthScale: 45, fordBelow: 0.38 },
+  /**
+   * Ölfelder: Gruppen einzelner Quellen (Wiki: Pumpjack fördert 10 × Ergiebigkeit/s). Ergiebigkeit in Prozent,
+   * steigt mit der Entfernung; Mindestabstand zum Start.
+   */
+  oil: { cell: 110, chance: 0.55, minDistance: 70, wellsMin: 4, wellsMax: 10, radius: 7, spacing: 3, yieldMin: 60, yieldMax: 200, yieldPerTile: 0.25 },
   /** Startsee in Sichtweite (verzerrte Ellipse) in einer Richtung ohne Startfeld. */
   startLake: { distance: 34, radiusMin: 8, radiusMax: 11 },
   /** Kleine Teiche (verzerrte Ellipsen). */

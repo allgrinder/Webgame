@@ -456,7 +456,7 @@ export class Hud {
     el('div', 'sub-head', body).textContent = e.recipe ? 'Rezept (Klick zum Wechseln)' : 'Rezept wählen';
     const grid = el('div', 'grid recipes', body);
     for (const r of RECIPE_LIST) {
-      if (r.category === 'smelting' || !g.world.research.recipeUnlocked(r.id)) continue;
+      if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id)) continue;
       const s = el('div', `slot recipe${e.recipe?.id === r.id ? ' active' : ''}`, grid);
       s.appendChild(this.icon(`item.${r.results[0].item}`));
       this.tip.attach(s, () => this.tip.recipe(r, e.def.craftingSpeed));

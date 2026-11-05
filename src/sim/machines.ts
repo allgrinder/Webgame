@@ -5,11 +5,12 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import type { InsertMode } from './entities/base';
 import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './entities/basic';
 import { HALF_TURN, InserterEntity, InserterPhase } from './entities/inserter';
-import { FluidPumpEntity, LampEntity, PipeGroundEntity, TankEntity } from './entities/fluidplus';
+import { FluidPumpEntity, LampEntity, PipeGroundEntity, PumpjackEntity, TankEntity } from './entities/fluidplus';
 import { SplitterEntity, UndergroundEntity } from './entities/logistics';
 import { AssemblerEntity, LabEntity } from './entities/production';
 import { BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity } from './entities/power';
 
+export { PumpjackEntity };
 export { AssemblerEntity, FluidPumpEntity, LabEntity, LampEntity, PipeGroundEntity, SplitterEntity, TankEntity, UndergroundEntity };
 export { BeltEntity, BoilerEntity, ContainerEntity, DrillEntity, FurnaceEntity, GeneratorEntity, HALF_TURN, InserterEntity, InserterPhase, PipeEntity, PoleEntity, PumpEntity };
 export type { InsertMode };
@@ -17,7 +18,7 @@ export type { InsertMode };
 export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
-  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity;
+  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity;
 
 export function itemIndex(id: string): number {
   const i = ITEM_IDS.indexOf(id);

@@ -206,7 +206,7 @@ export class Game {
         const tree = e ? undefined : this.treeNear(m.x, m.y);
         if (e) p.setMineTarget({ kind: 'entity', id: e.id });
         else if (tree) p.setMineTarget({ kind: 'tree', cx: tree.cx, cy: tree.cy, i: tree.i, x: tree.x, y: tree.y });
-        else if (this.world.map.resourceAt(tx, ty).amount > 0) p.setMineTarget({ kind: 'resource', x: tx, y: ty });
+        else if (this.world.map.resourceAt(tx, ty).amount > 0 && !RESOURCE_BY_INDEX[this.world.map.resourceAt(tx, ty).res]?.fluid) p.setMineTarget({ kind: 'resource', x: tx, y: ty });
         else p.setMineTarget(null);
       }
     } else if (p && p.mineTarget) p.setMineTarget(null);
@@ -541,7 +541,10 @@ export class Game {
       return `${k.id === 'dead' ? 'Abgestorbener Baum' : 'Baum'} – ${k.wood} Holz (Rechtsklick halten)`;
     }
     const r = this.world.map.resourceAt(Math.floor(m.x), Math.floor(m.y));
-    if (r.amount > 0) return `${RESOURCE_BY_INDEX[r.res]!.name}: ${r.amount}`;
+    if (r.amount > 0) {
+      const def = RESOURCE_BY_INDEX[r.res]!;
+      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}`;
+    }
     return '';
   }
 }

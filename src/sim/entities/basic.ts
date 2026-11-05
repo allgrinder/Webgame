@@ -89,7 +89,8 @@ export class DrillEntity extends EntityBase {
     let idx = -1;
     for (let k = 0; k < area.length; k++) {
       const c = (this.cursor + k) % area.length;
-      if (w.map.resourceAt(area[c][0], area[c][1]).amount > 0) {
+      const r = w.map.resourceAt(area[c][0], area[c][1]);
+      if (r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid) {
         idx = c;
         break;
       }
@@ -156,6 +157,8 @@ export class FurnaceEntity extends EntityBase {
   readonly kind = 'furnace' as const;
   declare readonly def: FurnaceDef;
   private readonly fuelSource: Burner;
+  /** Elektrischer Ofen: Strom statt Brennstoff. */
+  readonly energy: Burner | ElectricSource;
   readonly source: Inventory;
   readonly result = new Inventory(1);
   recipe: RecipeDef | null = null;
@@ -165,6 +168,7 @@ export class FurnaceEntity extends EntityBase {
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
     this.fuelSource = new Burner(this.def.fuelSlots);
+    this.energy = this.def.energy === 'electric' ? new ElectricSource(this.joulesPerTick, wattsToJoulesPerTick(this.def.drain ?? 0), this.joulesPerTick * 2) : this.fuelSource;
     this.source = new Inventory(1, (i) => !!smeltingRecipeFor(i));
   }
   private unlocked: (recipe: string) => boolean = () => true;
@@ -176,8 +180,8 @@ export class FurnaceEntity extends EntityBase {
     const r = smeltingRecipeFor(item);
     return r && this.unlocked(r.id) ? r : undefined;
   }
-  override get burner(): Burner {
-    return this.fuelSource;
+  override get burner(): Burner | null {
+    return this.energy instanceof Burner ? this.fuelSource : null;
   }
   get joulesPerTick(): number {
     return wattsToJoulesPerTick(this.def.energyUsage);
@@ -203,8 +207,8 @@ export class FurnaceEntity extends EntityBase {
         this.status = Status.OutputBlocked;
         return;
       }
-      if (!this.fuelSource.canSupply(this.joulesPerTick)) {
-        this.status = Status.NoFuel;
+      if (!this.energy.canSupply(this.joulesPerTick)) {
+        this.status = this.energy instanceof Burner ? Status.NoFuel : Status.NoPower;
         return;
       }
       if (this.source.count(ing) < r.ingredients[0].amount) {
@@ -215,8 +219,8 @@ export class FurnaceEntity extends EntityBase {
       this.recipe = r;
       this.progress = 0;
     }
-    if (!this.fuelSource.consume(this.joulesPerTick)) {
-      this.status = Status.NoFuel;
+    if (!this.energy.consume(this.joulesPerTick)) {
+      this.status = this.energy instanceof Burner ? Status.NoFuel : Status.NoPower;
       return;
     }
     this.status = Status.Working;
@@ -242,7 +246,7 @@ export class FurnaceEntity extends EntityBase {
       if (mode !== 'inserter') return space;
       return Math.max(0, Math.min(space, insertionLimitCrafts(r.time / this.def.craftingSpeed) * r.ingredients[0].amount - this.source.count(item)));
     }
-    return fuelAccept(this.fuelSource, item, mode);
+    return this.energy instanceof Burner ? fuelAccept(this.fuelSource, item, mode) : 0;
   }
   protected override doInsert(item: string, n: number): number {
     return smeltingRecipeFor(item) ? this.source.add(item, n) : this.fuelSource.fuel.add(item, n);
@@ -261,18 +265,19 @@ export class FurnaceEntity extends EntityBase {
   override guiSlots(): GuiSlots[] {
     return [
       { label: 'Zutat', inv: this.source },
-      { label: 'Brennstoff', inv: this.fuelSource.fuel },
+      ...(this.energy instanceof Burner ? [{ label: 'Brennstoff', inv: this.fuelSource.fuel }] : []),
       { label: 'Ergebnis', inv: this.result },
     ];
   }
   override save() {
     return {
-      b: this.fuelSource.serialize(), src: this.source.serialize(), res: this.result.serialize(),
+      b: this.fuelSource.serialize(), ...(this.energy instanceof ElectricSource ? this.energy.serialize() : {}), src: this.source.serialize(), res: this.result.serialize(),
       recipe: this.recipe?.id ?? null, progress: this.progress, work: this.workTicks,
     };
   }
   override load(d: Record<string, unknown>): void {
     this.fuelSource.load(d.b as BurnerData);
+    if (this.energy instanceof ElectricSource) this.energy.load(d as { eb: number });
     this.source.load(d.src as InvData);
     this.result.load(d.res as InvData);
     this.recipe = d.recipe ? RECIPES[d.recipe as string] : null;

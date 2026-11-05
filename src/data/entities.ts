@@ -58,6 +58,17 @@ export interface FurnaceDef extends EntityBase {
   readonly craftingSpeed: number;
   readonly energyUsage: number;
   readonly fuelSlots: number;
+  /** Standard: Brennstoff. */
+  readonly energy?: EnergyKind;
+  readonly drain?: number;
+}
+
+/** Pumpjack: fördert Rohöl aus dem Feld unter seiner Mitte (Wiki: 10 × Ergiebigkeit pro s). */
+export interface PumpjackDef extends EntityBase {
+  readonly kind: 'pumpjack';
+  readonly energyUsage: number;
+  readonly miningSpeed: number;
+  readonly capacity: number;
 }
 
 export interface InserterDef extends EntityBase {
@@ -131,11 +142,21 @@ export interface PoleDef extends EntityBase {
   readonly supplyRadius: number;
 }
 
+/** Flüssigkeitsbehälter einer Maschine: Anschlüsse (lokales Feld, Richtung) bei Richtung Nord. */
+export interface MachineFluidBox {
+  readonly type: 'input' | 'output';
+  readonly volume: number;
+  readonly ports: readonly (readonly [number, number, 0 | 1 | 2 | 3])[];
+}
+
 export interface AssemblerDef extends EntityBase {
   readonly kind: 'assembler';
   readonly craftingSpeed: number;
   readonly energyUsage: number;
   readonly drain: number;
+  /** Rezeptkategorien, die die Maschine herstellen kann. */
+  readonly categories: readonly string[];
+  readonly fluidBoxes?: readonly MachineFluidBox[];
 }
 
 export interface LabDef extends EntityBase {
@@ -173,7 +194,7 @@ export interface LampDef extends EntityBase {
 }
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
-  | PipeGroundDef | FluidPumpDef | TankDef | LampDef;
+  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef;
 
 const list: EntityDef[] = [
   {
@@ -263,11 +284,12 @@ const list: EntityDef[] = [
   {
     kind: 'assembler', id: 'assembling-machine-1', name: 'Montagemaschine', width: 3, height: 3, health: 300,
     item: 'assembling-machine-1', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 0.5, energyUsage: 75_000, drain: 2_500,
+    categories: ['crafting', 'advanced-crafting'],
   },
   {
     kind: 'lab', id: 'lab', name: 'Labor', width: 3, height: 3, health: 150,
     item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000,
-    inputs: ['automation-science-pack', 'logistic-science-pack'],
+    inputs: ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack'],
   },
   {
     kind: 'container', id: 'steel-chest', name: 'Stahlkiste', width: 1, height: 1, health: 350,
@@ -299,7 +321,10 @@ const list: EntityDef[] = [
   },
   {
     kind: 'assembler', id: 'assembling-machine-2', name: 'Montagemaschine 2', width: 3, height: 3, health: 350,
-    item: 'assembling-machine-2', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 0.75, energyUsage: 150_000, drain: 5_000,
+    item: 'assembling-machine-2', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 0.75, energyUsage: 150_000, drain: 5_000,
+    categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'],
+    // Ein Flüssigkeitsbehälter mit Anschluss oben und unten in der Mitte (durchgängig)
+    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }],
   },
   {
     kind: 'pipe-ground', id: 'pipe-to-ground', name: 'Rohr unterirdisch', width: 1, height: 1, health: 150,
@@ -312,6 +337,54 @@ const list: EntityDef[] = [
   {
     kind: 'tank', id: 'storage-tank', name: 'Lagertank', width: 3, height: 3, health: 500,
     item: 'storage-tank', mineTime: 0.5, solid: true, rotatable: true, capacity: 25_000,
+  },
+  {
+    kind: 'pumpjack', id: 'pumpjack', name: 'Pumpjack', width: 3, height: 3, health: 200,
+    item: 'pumpjack', mineTime: 0.5, solid: true, rotatable: true, energyUsage: 90_000, miningSpeed: 1, capacity: 1000,
+  },
+  {
+    kind: 'assembler', id: 'oil-refinery', name: 'Ölraffinerie', width: 5, height: 5, health: 350,
+    item: 'oil-refinery', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 420_000, drain: 14_000,
+    categories: ['oil-processing'],
+    fluidBoxes: [
+      { type: 'input', volume: 1000, ports: [[1, 4, 2]] },
+      { type: 'input', volume: 1000, ports: [[3, 4, 2]] },
+      { type: 'output', volume: 1000, ports: [[0, 0, 0]] },
+      { type: 'output', volume: 1000, ports: [[2, 0, 0]] },
+      { type: 'output', volume: 1000, ports: [[4, 0, 0]] },
+    ],
+  },
+  {
+    kind: 'assembler', id: 'chemical-plant', name: 'Chemiefabrik', width: 3, height: 3, health: 300,
+    item: 'chemical-plant', mineTime: 0.1, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 210_000, drain: 7_000,
+    categories: ['chemistry'],
+    fluidBoxes: [
+      { type: 'input', volume: 1000, ports: [[0, 2, 2]] },
+      { type: 'input', volume: 1000, ports: [[2, 2, 2]] },
+      { type: 'output', volume: 1000, ports: [[0, 0, 0]] },
+      { type: 'output', volume: 1000, ports: [[2, 0, 0]] },
+    ],
+  },
+  {
+    kind: 'furnace', id: 'electric-furnace', name: 'Elektrischer Ofen', width: 3, height: 3, health: 350,
+    item: 'electric-furnace', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 2, energyUsage: 180_000, fuelSlots: 0,
+    energy: 'electric', drain: 6_000,
+  },
+  {
+    kind: 'pole', id: 'substation', name: 'Umspannwerk', width: 2, height: 2, health: 200,
+    item: 'substation', mineTime: 0.1, solid: true, rotatable: false, wireReach: 18, supplyRadius: 9,
+  },
+  {
+    kind: 'belt', id: 'express-transport-belt', name: 'Express-Förderband', width: 1, height: 1, health: 170,
+    item: 'express-transport-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 24,
+  },
+  {
+    kind: 'underground', id: 'express-underground-belt', name: 'Express-Untergrundband', width: 1, height: 1, health: 170,
+    item: 'express-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 24, maxDistance: 9,
+  },
+  {
+    kind: 'splitter', id: 'express-splitter', name: 'Express-Splitter', width: 2, height: 1, health: 190,
+    item: 'express-splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 24,
   },
   {
     kind: 'container', id: 'wooden-chest', name: 'Holzkiste', width: 1, height: 1, health: 100,

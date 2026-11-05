@@ -3,8 +3,12 @@
  *  - 'crafting': Handwerk (später Montagemaschinen)
  *  - 'smelting': Öfen (Rezept wird über die Zutat gewählt)
  */
-/** advanced-crafting: nur in Montagemaschinen (z. B. Motor), nicht per Hand. */
-export type RecipeCategory = 'crafting' | 'advanced-crafting' | 'smelting';
+/**
+ * advanced-crafting: nur in Montagemaschinen (z. B. Motor), nicht per Hand.
+ * crafting-with-fluid: Montagemaschine 2/3 mit Flüssigkeit (z. B. Schmiermittel), oil-processing: Raffinerie,
+ * chemistry: Chemiefabrik. Flüssigkeiten in Zutaten/Ergebnissen erkennt man an FLUIDS (src/data/fluids.ts).
+ */
+export type RecipeCategory = 'crafting' | 'advanced-crafting' | 'crafting-with-fluid' | 'oil-processing' | 'chemistry' | 'smelting';
 
 export interface ItemAmount {
   readonly item: string;
@@ -120,6 +124,92 @@ const list: RecipeDef[] = [
   {
     id: 'pipe-to-ground', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'iron-plate', amount: 5 }, { item: 'pipe', amount: 10 }], results: [{ item: 'pipe-to-ground', amount: 2 }],
+  },
+  { id: 'basic-oil-processing', category: 'oil-processing', time: 5, ingredients: [{ item: 'crude-oil', amount: 100 }], results: [{ item: 'petroleum-gas', amount: 45 }] },
+  {
+    id: 'advanced-oil-processing', category: 'oil-processing', time: 5,
+    ingredients: [{ item: 'crude-oil', amount: 100 }, { item: 'water', amount: 50 }],
+    results: [{ item: 'heavy-oil', amount: 25 }, { item: 'light-oil', amount: 45 }, { item: 'petroleum-gas', amount: 55 }],
+  },
+  { id: 'heavy-oil-cracking', category: 'chemistry', time: 2, ingredients: [{ item: 'heavy-oil', amount: 40 }, { item: 'water', amount: 30 }], results: [{ item: 'light-oil', amount: 30 }] },
+  { id: 'light-oil-cracking', category: 'chemistry', time: 2, ingredients: [{ item: 'light-oil', amount: 30 }, { item: 'water', amount: 30 }], results: [{ item: 'petroleum-gas', amount: 20 }] },
+  { id: 'plastic-bar', category: 'chemistry', time: 1, ingredients: [{ item: 'coal', amount: 1 }, { item: 'petroleum-gas', amount: 20 }], results: [{ item: 'plastic-bar', amount: 2 }] },
+  { id: 'sulfur', category: 'chemistry', time: 1, ingredients: [{ item: 'petroleum-gas', amount: 30 }, { item: 'water', amount: 30 }], results: [{ item: 'sulfur', amount: 2 }] },
+  {
+    id: 'sulfuric-acid', category: 'chemistry', time: 1,
+    ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'sulfur', amount: 5 }, { item: 'water', amount: 100 }], results: [{ item: 'sulfuric-acid', amount: 50 }],
+  },
+  {
+    id: 'battery', category: 'chemistry', time: 4,
+    ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'copper-plate', amount: 1 }, { item: 'sulfuric-acid', amount: 20 }], results: [{ item: 'battery', amount: 1 }],
+  },
+  { id: 'lubricant', category: 'chemistry', time: 1, ingredients: [{ item: 'heavy-oil', amount: 10 }], results: [{ item: 'lubricant', amount: 10 }] },
+  { id: 'solid-fuel-from-light-oil', category: 'chemistry', time: 1, ingredients: [{ item: 'light-oil', amount: 10 }], results: [{ item: 'solid-fuel', amount: 1 }] },
+  { id: 'solid-fuel-from-petroleum-gas', category: 'chemistry', time: 1, ingredients: [{ item: 'petroleum-gas', amount: 20 }], results: [{ item: 'solid-fuel', amount: 1 }] },
+  { id: 'solid-fuel-from-heavy-oil', category: 'chemistry', time: 1, ingredients: [{ item: 'heavy-oil', amount: 20 }], results: [{ item: 'solid-fuel', amount: 1 }] },
+  {
+    id: 'explosives', category: 'chemistry', time: 4,
+    ingredients: [{ item: 'coal', amount: 1 }, { item: 'sulfur', amount: 1 }, { item: 'water', amount: 10 }], results: [{ item: 'explosives', amount: 2 }],
+  },
+  {
+    id: 'advanced-circuit', category: 'crafting', time: 6,
+    ingredients: [{ item: 'copper-cable', amount: 4 }, { item: 'electronic-circuit', amount: 2 }, { item: 'plastic-bar', amount: 2 }],
+    results: [{ item: 'advanced-circuit', amount: 1 }],
+  },
+  {
+    id: 'electric-engine-unit', category: 'crafting-with-fluid', time: 10,
+    ingredients: [{ item: 'electronic-circuit', amount: 2 }, { item: 'engine-unit', amount: 1 }, { item: 'lubricant', amount: 15 }],
+    results: [{ item: 'electric-engine-unit', amount: 1 }],
+  },
+  {
+    id: 'chemical-science-pack', category: 'crafting', time: 24,
+    ingredients: [{ item: 'advanced-circuit', amount: 3 }, { item: 'engine-unit', amount: 2 }, { item: 'sulfur', amount: 1 }],
+    results: [{ item: 'chemical-science-pack', amount: 2 }],
+  },
+  {
+    id: 'pumpjack', category: 'crafting', time: 5,
+    ingredients: [{ item: 'electronic-circuit', amount: 5 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'pipe', amount: 10 }, { item: 'steel-plate', amount: 5 }],
+    results: [{ item: 'pumpjack', amount: 1 }],
+  },
+  {
+    id: 'oil-refinery', category: 'crafting', time: 8,
+    ingredients: [
+      { item: 'electronic-circuit', amount: 10 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'pipe', amount: 10 },
+      { item: 'steel-plate', amount: 15 }, { item: 'stone-brick', amount: 10 },
+    ],
+    results: [{ item: 'oil-refinery', amount: 1 }],
+  },
+  {
+    id: 'chemical-plant', category: 'crafting', time: 5,
+    ingredients: [{ item: 'electronic-circuit', amount: 5 }, { item: 'iron-gear-wheel', amount: 5 }, { item: 'pipe', amount: 5 }, { item: 'steel-plate', amount: 5 }],
+    results: [{ item: 'chemical-plant', amount: 1 }],
+  },
+  {
+    id: 'electric-furnace', category: 'crafting', time: 5,
+    ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'steel-plate', amount: 10 }, { item: 'stone-brick', amount: 10 }],
+    results: [{ item: 'electric-furnace', amount: 1 }],
+  },
+  {
+    id: 'substation', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'advanced-circuit', amount: 5 }, { item: 'copper-cable', amount: 6 }, { item: 'steel-plate', amount: 10 }],
+    results: [{ item: 'substation', amount: 1 }],
+  },
+  {
+    id: 'express-transport-belt', category: 'crafting-with-fluid', time: 0.5,
+    ingredients: [{ item: 'fast-transport-belt', amount: 1 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'lubricant', amount: 20 }],
+    results: [{ item: 'express-transport-belt', amount: 1 }],
+  },
+  {
+    id: 'express-underground-belt', category: 'crafting-with-fluid', time: 2,
+    ingredients: [{ item: 'fast-underground-belt', amount: 2 }, { item: 'iron-gear-wheel', amount: 80 }, { item: 'lubricant', amount: 40 }],
+    results: [{ item: 'express-underground-belt', amount: 2 }],
+  },
+  {
+    id: 'express-splitter', category: 'crafting-with-fluid', time: 2,
+    ingredients: [
+      { item: 'advanced-circuit', amount: 10 }, { item: 'fast-splitter', amount: 1 }, { item: 'iron-gear-wheel', amount: 10 }, { item: 'lubricant', amount: 80 },
+    ],
+    results: [{ item: 'express-splitter', amount: 1 }],
   },
   { id: 'wooden-chest', category: 'crafting', time: 0.5, ingredients: [{ item: 'wood', amount: 2 }], results: [{ item: 'wooden-chest', amount: 1 }] },
   { id: 'electronic-circuit', category: 'crafting', time: 0.5, ingredients: [{ item: 'iron-plate', amount: 1 }, { item: 'copper-cable', amount: 3 }], results: [{ item: 'electronic-circuit', amount: 1 }] },

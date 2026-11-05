@@ -1,4 +1,5 @@
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
+import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
@@ -116,9 +117,16 @@ export class World {
     if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {
       return { ok: false, reason: 'Spieler im Weg' };
     }
+    if (def.kind === 'pumpjack') {
+      const r = this.map.resourceAt(x + 1, y + 1);
+      if (!(r.amount > 0 && RESOURCE_BY_INDEX[r.res]?.fluid)) return { ok: false, reason: 'Muss mittig auf einer Ölquelle stehen' };
+    }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
-      if (!tmp.areaTiles().some(([tx, ty]) => this.map.resourceAt(tx, ty).amount > 0)) {
+      if (!tmp.areaTiles().some(([tx, ty]) => {
+        const r = this.map.resourceAt(tx, ty);
+        return r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
+      })) {
         return { ok: false, reason: 'Keine Ressourcen' };
       }
     }

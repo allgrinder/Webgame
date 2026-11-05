@@ -3,7 +3,11 @@ import { ITEMS } from '../../data/items';
 import { RECIPES, type RecipeDef } from '../../data/recipes';
 import { TECH_BY_ID } from '../../data/tech';
 import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
+import { FLUID_UNIT, isFluid } from '../../data/fluids';
 import { ElectricSource } from '../energy';
+import { FluidBox, type FluidHolder, type FluidPort } from '../fluids';
+import { rotCW } from '../geom';
+import { rotateLocal } from './power';
 import { Status } from '../entity';
 import type { Dir } from '../geom';
 import { type InvData, Inventory, type Stack } from '../inventory';
@@ -21,38 +25,102 @@ function electric(usageW: number, drainW: number): ElectricSource {
  * Montagemaschine: stellt ein gewähltes Handwerksrezept her. Zutaten kommen per Greifarm oder vom Spieler,
  * das Ergebnis holt ein Greifarm ab. Elektrisch; bei Strommangel anteilig langsamer.
  */
-export class AssemblerEntity extends EntityBase {
+export class AssemblerEntity extends EntityBase implements FluidHolder {
   readonly kind = 'assembler' as const;
   declare readonly def: AssemblerDef;
   readonly energy: ElectricSource;
   recipe: RecipeDef | null = null;
   input = new Inventory(0);
-  readonly output = new Inventory(1);
+  output = new Inventory(1);
+  /** Flüssigkeitsbehälter laut Gebäudedaten (Filter je Rezept). */
+  readonly boxes: FluidBox[];
   /** Läuft gerade ein Herstellvorgang (Zutaten bereits entnommen)? */
   crafting = false;
   progress = 0;
   /** Arbeitsticks (Animation). */
   workTicks = 0;
+  private world: World | null = null;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
     this.energy = electric(this.def.energyUsage, this.def.drain);
+    this.boxes = (this.def.fluidBoxes ?? []).map((b) => new FluidBox(b.volume * FLUID_UNIT, '__none'));
+  }
+
+  override onCreated(w: World): void {
+    this.world = w;
+  }
+
+  /** Kann diese Maschine das Rezept herstellen (Kategorie)? */
+  canCraft(r: RecipeDef): boolean {
+    return this.def.categories.includes(r.category);
   }
 
   recipeTicks(r: RecipeDef): number {
     return Math.max(1, secondsToTicks(r.time / this.def.craftingSpeed));
   }
 
+  private itemIngredients(r: RecipeDef) {
+    return r.ingredients.filter((g) => !isFluid(g.item));
+  }
+  private itemResults(r: RecipeDef) {
+    return r.results.filter((g) => !isFluid(g.item));
+  }
+  /** Behälter für die Flüssigkeit eines Rezepts (nach Reihenfolge der Eingänge bzw. Ausgänge). */
+  private boxFor(r: RecipeDef, fluid: string): FluidBox | undefined {
+    const ins = r.ingredients.filter((g) => isFluid(g.item)).map((g) => g.item);
+    const outs = r.results.filter((g) => isFluid(g.item)).map((g) => g.item);
+    const defs = this.def.fluidBoxes ?? [];
+    const pick = (list: string[], type: 'input' | 'output') => {
+      const k = list.indexOf(fluid);
+      if (k < 0) return undefined;
+      const idx = defs.map((d, i) => (d.type === type ? i : -1)).filter((i) => i >= 0)[k];
+      return idx === undefined ? undefined : this.boxes[idx];
+    };
+    return pick(ins, 'input') ?? pick(outs, 'output');
+  }
+
   /** Rezept wählen. Gibt Zutaten, Ergebnis und laufende Zutaten zurück (für den Spieler). */
   setRecipe(id: string | null): Stack[] {
     const out = this.contents();
-    this.recipe = id ? RECIPES[id] ?? null : null;
-    if (this.recipe && this.recipe.category === 'smelting') this.recipe = null;
-    const r = this.recipe;
-    this.input = r ? new Inventory(r.ingredients.length, (it) => r.ingredients.some((g) => g.item === it)) : new Inventory(0);
-    this.output.slots.fill(null);
+    let r = id ? RECIPES[id] ?? null : null;
+    if (r && !this.canCraft(r)) r = null;
+    if (r) {
+      // genug passende Behälter für alle Flüssigkeiten?
+      const fin = r.ingredients.filter((g) => isFluid(g.item)).length;
+      const fout = r.results.filter((g) => isFluid(g.item)).length;
+      const defs = this.def.fluidBoxes ?? [];
+      if (fin > defs.filter((d) => d.type === 'input').length || fout > defs.filter((d) => d.type === 'output').length) r = null;
+    }
+    this.recipe = r;
+    const ing = r ? this.itemIngredients(r) : [];
+    this.input = new Inventory(ing.length, (it) => ing.some((g) => g.item === it));
+    this.output = new Inventory(Math.max(1, r ? this.itemResults(r).length : 1));
+    for (const b of this.boxes) {
+      b.filter = '__none';
+      b.amount = 0;
+      b.fluid = null;
+    }
+    if (r) for (const g of [...r.ingredients, ...r.results]) if (isFluid(g.item)) this.boxFor(r, g.item)!.filter = g.item;
     this.crafting = false;
     this.progress = 0;
+    if (this.world) this.world.structureVersion++;
+    return out;
+  }
+
+  fluidBoxes(): FluidBox[] {
+    return this.boxes;
+  }
+  fluidPorts(): FluidPort[] {
+    const defs = this.def.fluidBoxes ?? [];
+    const out: FluidPort[] = [];
+    defs.forEach((d, i) => {
+      if (this.boxes[i].filter === '__none') return; // unbenutzte Behälter sind nicht angeschlossen
+      for (const [lx, ly, pd] of d.ports) {
+        const [rx, ry] = rotateLocal(lx, ly, this.def.width, this.def.height, this.dir);
+        out.push({ box: this.boxes[i], tx: this.x + rx, ty: this.y + ry, dir: rotCW(pd, this.dir) });
+      }
+    });
     return out;
   }
 
@@ -64,17 +132,31 @@ export class AssemblerEntity extends EntityBase {
     }
     if (!this.crafting) {
       for (const res of r.results) {
-        // nicht weiterarbeiten, solange mehr als ein Ergebnis wartet
-        if (this.output.space(res.item) < res.amount || this.output.count(res.item) >= res.amount * 2) {
+        if (isFluid(res.item)) {
+          const net = this.boxFor(r, res.item)?.net;
+          if (!net || net.space(res.item) < res.amount * FLUID_UNIT) {
+            this.status = Status.OutputBlocked;
+            return;
+          }
+        } else if (this.output.space(res.item) < res.amount || this.output.count(res.item) >= res.amount * 2) {
+          // nicht weiterarbeiten, solange mehr als ein Ergebnis wartet
           this.status = Status.OutputBlocked;
           return;
         }
       }
-      if (!r.ingredients.every((g) => this.input.count(g.item) >= g.amount)) {
-        this.status = Status.NoInput;
-        return;
+      for (const g of r.ingredients) {
+        const ok = isFluid(g.item)
+          ? (this.boxFor(r, g.item)?.net?.fluid === g.item && this.boxFor(r, g.item)!.net!.amount >= g.amount * FLUID_UNIT)
+          : this.input.count(g.item) >= g.amount;
+        if (!ok) {
+          this.status = Status.NoInput;
+          return;
+        }
       }
-      for (const g of r.ingredients) this.input.remove(g.item, g.amount);
+      for (const g of r.ingredients) {
+        if (isFluid(g.item)) this.boxFor(r, g.item)!.net!.take(g.item, g.amount * FLUID_UNIT);
+        else this.input.remove(g.item, g.amount);
+      }
       this.crafting = true;
       this.progress = 0;
     }
@@ -86,7 +168,8 @@ export class AssemblerEntity extends EntityBase {
     this.workTicks++;
     if (++this.progress >= this.recipeTicks(r)) {
       for (const res of r.results) {
-        this.output.add(res.item, res.amount);
+        if (isFluid(res.item)) this.boxFor(r, res.item)?.net?.add(res.item, res.amount * FLUID_UNIT);
+        else this.output.add(res.item, res.amount);
         w.research.onCrafted(res.item, res.amount);
       }
       this.crafting = false;
@@ -95,7 +178,7 @@ export class AssemblerEntity extends EntityBase {
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {
-    const g = this.recipe?.ingredients.find((x) => x.item === item);
+    const g = this.recipe?.ingredients.find((x) => x.item === item && !isFluid(x.item));
     if (!g) return 0;
     const have = this.input.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
@@ -114,7 +197,7 @@ export class AssemblerEntity extends EntityBase {
   }
   override contents(): Stack[] {
     const out = invContents(this.input, this.output);
-    if (this.crafting && this.recipe) for (const g of this.recipe.ingredients) out.push({ item: g.item, count: g.amount });
+    if (this.crafting && this.recipe) for (const g of this.itemIngredients(this.recipe)) out.push({ item: g.item, count: g.amount });
     return out;
   }
   override guiSlots(): GuiSlots[] {
@@ -126,7 +209,7 @@ export class AssemblerEntity extends EntityBase {
   override save() {
     return {
       ...this.energy.serialize(), recipe: this.recipe?.id ?? null, in: this.input.serialize(), out: this.output.serialize(),
-      cr: this.crafting, progress: this.progress, work: this.workTicks,
+      cr: this.crafting, progress: this.progress, work: this.workTicks, fb: this.boxes.map((b) => [b.amount, b.fluid]),
     };
   }
   override load(d: Record<string, unknown>): void {
@@ -137,6 +220,13 @@ export class AssemblerEntity extends EntityBase {
     this.crafting = !!d.cr;
     this.progress = (d.progress as number) ?? 0;
     this.workTicks = (d.work as number) ?? 0;
+    const fb = (d.fb as [number, string | null][] | undefined) ?? [];
+    fb.forEach(([a, f], i) => {
+      if (this.boxes[i]) {
+        this.boxes[i].amount = a;
+        this.boxes[i].fluid = f;
+      }
+    });
   }
 }
 

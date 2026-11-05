@@ -93,7 +93,7 @@ describe('Steinofen', () => {
     const f = w.place('stone-furnace', 0, 0, 0) as FurnaceEntity;
     insertInto(f, 'iron-ore', 50, 'player');
     insertInto(f, 'coal', 5, 'player');
-    const fuelJ = () => f.burner.energy + f.burner.fuel.count('coal') * 4_000_000;
+    const fuelJ = () => f.burner!.energy + f.burner!.fuel.count('coal') * 4_000_000;
     const before = fuelJ();
     w.run(192 * 10);
     expect(f.result.count('iron-plate')).toBe(10);
@@ -106,7 +106,7 @@ describe('Steinofen', () => {
     const f = w.place('stone-furnace', 0, 0, 0) as FurnaceEntity;
     insertInto(f, 'coal', 50, 'player');
     w.run(600);
-    expect(f.burner.fuel.count('coal')).toBe(50);
+    expect(f.burner!.fuel.count('coal')).toBe(50);
     f.result.add('iron-plate', 100);
     insertInto(f, 'iron-ore', 5, 'player');
     w.run(600);
@@ -158,7 +158,7 @@ describe('Brennstoff-Greifarm', () => {
     expect(ins.status).not.toBe(2);
     // Füllgrenzen: nur kleiner Vorrat im Ofen
     expect(f.source.count('iron-ore')).toBeLessThanOrEqual(2);
-    expect(f.burner.fuel.count('coal')).toBeLessThanOrEqual(5);
+    expect(f.burner!.fuel.count('coal')).toBeLessThanOrEqual(5);
   });
 
   it('nimmt nur Items vom Feld direkt hinter sich', () => {

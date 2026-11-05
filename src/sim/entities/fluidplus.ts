@@ -1,4 +1,4 @@
-import type { FluidPumpDef, LampDef, PipeGroundDef, TankDef } from '../../data/entities';
+import type { FluidPumpDef, LampDef, PipeGroundDef, PumpjackDef, TankDef } from '../../data/entities';
 import { FLUID_UNIT } from '../../data/fluids';
 import { DAY, wattsToJoulesPerTick } from '../../data/time';
 import { ElectricSource } from '../energy';
@@ -165,5 +165,84 @@ export class LampEntity extends EntityBase {
   }
   override load(d: Record<string, unknown>): void {
     this.energy.load(d as { eb: number });
+  }
+}
+
+// ------------------------------------------------------------------------- Pumpjack
+
+/**
+ * Pumpjack 3×3 auf einer Ölquelle (Mitte): fördert je Zyklus (1 s bei Geschwindigkeit 1) 10 × Ergiebigkeit
+ * Einheiten; je 300 Zyklen sinkt die Ergiebigkeit um 1 %, bis höchstens 20 % des Anfangswerts bzw. 20 %.
+ * Quelle: Wiki „Pumpjack“.
+ */
+export class PumpjackEntity extends EntityBase implements FluidHolder {
+  readonly kind = 'pumpjack' as const;
+  declare readonly def: PumpjackDef;
+  readonly box: FluidBox;
+  readonly energy: ElectricSource;
+  /** Ticks im aktuellen Zyklus, Zykluszähler, Rest der Ausgabe (Tausendstel). */
+  progress = 0;
+  cycles = 0;
+  private acc = 0;
+  workTicks = 0;
+  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
+    super(id, name, x, y, dir);
+    this.box = new FluidBox(this.def.capacity * FLUID_UNIT, 'crude-oil');
+    const jpt = wattsToJoulesPerTick(this.def.energyUsage);
+    this.energy = new ElectricSource(jpt, 0, jpt * 2);
+  }
+  fluidBoxes(): FluidBox[] {
+    return [this.box];
+  }
+  fluidPorts(): FluidPort[] {
+    const [rx, ry] = rotateLocal(2, 0, 3, 3, this.dir);
+    return [{ box: this.box, tx: this.x + rx, ty: this.y + ry, dir: rotCW(0, this.dir) }];
+  }
+  override update(w: World): void {
+    const tx = this.x + 1;
+    const ty = this.y + 1;
+    const r = w.map.resourceAt(tx, ty);
+    if (r.amount <= 0) {
+      this.status = Status.Depleted;
+      return;
+    }
+    const net = this.box.net;
+    // Ausgabe je Tick: Ergiebigkeit (Tausendstel %) × 10 Einheiten / 100 % / 60 Ticks, in Tausendstel Einheiten
+    const perTickNum = r.amount * this.def.miningSpeed; // Zähler, Nenner 600
+    if (!net || net.space('crude-oil') < Math.ceil(perTickNum / 600) + 1) {
+      this.status = Status.OutputBlocked;
+      return;
+    }
+    if (!this.energy.consume(this.energy.usagePerTick)) {
+      this.status = Status.NoPower;
+      return;
+    }
+    this.acc += perTickNum;
+    const n = Math.floor(this.acc / 600);
+    this.acc -= n * 600;
+    net.add('crude-oil', n);
+    this.status = Status.Working;
+    this.workTicks++;
+    if (++this.progress >= 60) {
+      this.progress = 0;
+      this.cycles++;
+      w.research.onCrafted('crude-oil', 1);
+      // Erschöpfung: 1 % je 300 Zyklen = 1000/300 Tausendstel-% je Zyklus (3,333…)
+      const dec = this.cycles % 3 === 0 ? 4 : 3;
+      const min = Math.max(20_000, Math.floor(w.map.originalAmount(tx, ty) * 0.2));
+      const next = Math.max(min, r.amount - dec);
+      if (next !== r.amount) w.map.setResource(tx, ty, r.res, next);
+    }
+  }
+  override save() {
+    return { ...this.energy.serialize(), fb: boxData(this.box), pr: this.progress, cy: this.cycles, acc: this.acc, work: this.workTicks };
+  }
+  override load(d: Record<string, unknown>): void {
+    this.energy.load(d as { eb: number });
+    loadBox(this.box, d.fb);
+    this.progress = (d.pr as number) ?? 0;
+    this.cycles = (d.cy as number) ?? 0;
+    this.acc = (d.acc as number) ?? 0;
+    this.workTicks = (d.work as number) ?? 0;
   }
 }

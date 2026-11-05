@@ -5,7 +5,8 @@
  * Quelle: Wiki, Infoboxen „… (research)“ (cost, cost-multiplier, required-technologies, effects, technology-trigger).
  */
 export interface TechTrigger {
-  readonly type: 'craft-item';
+  /** craft-item: herstellen; mine-entity: abbauen/fördern (z. B. Rohöl). */
+  readonly type: 'craft-item' | 'mine-entity';
   readonly item: string;
   readonly count: number;
 }
@@ -24,6 +25,7 @@ export interface TechDef {
 
 const RED = ['automation-science-pack'];
 const RED_GREEN = ['automation-science-pack', 'logistic-science-pack'];
+const RGB = ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack'];
 
 export const TECHS: readonly TechDef[] = [
   {
@@ -65,6 +67,35 @@ export const TECHS: readonly TechDef[] = [
   {
     id: 'fluid-handling', name: 'Flüssigkeitshandhabung', count: 50, time: 15, packs: RED_GREEN,
     prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank'],
+  },
+  { id: 'oil-gathering', name: 'Ölförderung', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['fluid-handling'], unlocks: ['pumpjack'] },
+  {
+    id: 'oil-processing', name: 'Ölverarbeitung', count: 0, time: 0, packs: [], prerequisites: ['oil-gathering'],
+    unlocks: ['basic-oil-processing', 'chemical-plant', 'oil-refinery', 'solid-fuel-from-petroleum-gas'],
+    trigger: { type: 'mine-entity', item: 'crude-oil', count: 1 },
+  },
+  { id: 'plastics', name: 'Kunststoffe', count: 200, time: 30, packs: RED_GREEN, prerequisites: ['oil-processing'], unlocks: ['plastic-bar'] },
+  { id: 'advanced-circuit', name: 'Fortgeschrittene Schaltkreise', count: 200, time: 15, packs: RED_GREEN, prerequisites: ['plastics'], unlocks: ['advanced-circuit'] },
+  { id: 'sulfur-processing', name: 'Schwefelverarbeitung', count: 150, time: 30, packs: RED_GREEN, prerequisites: ['oil-processing'], unlocks: ['sulfur', 'sulfuric-acid'] },
+  { id: 'battery', name: 'Batterie', count: 150, time: 30, packs: RED_GREEN, prerequisites: ['sulfur-processing'], unlocks: ['battery'] },
+  { id: 'explosives', name: 'Sprengstoff', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['sulfur-processing'], unlocks: ['explosives'] },
+  {
+    id: 'chemical-science-pack', name: 'Chemie-Wissenschaft', count: 75, time: 10, packs: RED_GREEN,
+    prerequisites: ['advanced-circuit', 'sulfur-processing'], unlocks: ['chemical-science-pack'],
+  },
+  {
+    id: 'advanced-oil-processing', name: 'Fortgeschrittene Ölverarbeitung', count: 75, time: 30, packs: RGB, prerequisites: ['chemical-science-pack'],
+    unlocks: ['advanced-oil-processing', 'heavy-oil-cracking', 'light-oil-cracking', 'solid-fuel-from-heavy-oil', 'solid-fuel-from-light-oil'],
+  },
+  { id: 'lubricant', name: 'Schmiermittel', count: 50, time: 30, packs: RGB, prerequisites: ['advanced-oil-processing'], unlocks: ['lubricant'] },
+  { id: 'electric-engine', name: 'Elektromotor', count: 50, time: 30, packs: RGB, prerequisites: ['lubricant'], unlocks: ['electric-engine-unit'] },
+  {
+    id: 'advanced-material-processing-2', name: 'Fortgeschrittene Materialverarbeitung 2', count: 250, time: 30, packs: RGB,
+    prerequisites: ['advanced-material-processing', 'chemical-science-pack'], unlocks: ['electric-furnace'],
+  },
+  {
+    id: 'electric-energy-distribution-2', name: 'Elektrische Energieverteilung 2', count: 100, time: 45, packs: RGB,
+    prerequisites: ['chemical-science-pack', 'electric-energy-distribution-1'], unlocks: ['substation'],
   },
   {
     id: 'logistics-2', name: 'Logistik 2', count: 200, time: 30, packs: RED_GREEN,

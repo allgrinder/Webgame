@@ -501,5 +501,5 @@ const CREATIVE_QUICKBAR: (string | null)[] = [
 
 /** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
 function hasWindow(e: Entity): boolean {
-  return e.guiSlots().length > 0 || e.kind === 'assembler' || e.kind === 'lab';
+  return e.guiSlots().length > 0 || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter';
 }

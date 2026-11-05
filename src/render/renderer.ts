@@ -646,7 +646,8 @@ export class GameRenderer {
       case 'belt':
         break;
       case 'underground': {
-        const key = `underground-belt.${e.output ? 'out' : 'in'}.${e.dir}`;
+        const base = s.has(`${e.name}.in.0`) ? e.name : 'underground-belt';
+        const key = `${base}.${e.output ? 'out' : 'in'}.${e.dir}`;
         if (s.has(key)) {
           const sp = this.ents.get(s.frame(key));
           sp.position.set(cx, cy);
@@ -717,7 +718,11 @@ export class GameRenderer {
       let tex: Texture;
       switch (def.kind) {
         case 'belt': tex = this.sprites.frame(def.speed > BELT.speed && this.sprites.has(`fast-belt.s.${g.dir}`) ? `fast-belt.s.${g.dir}` : `belt.s.${g.dir}`); break;
-        case 'underground': tex = this.sprites.frame(this.sprites.has(`underground-belt.in.${g.dir}`) ? `underground-belt.in.${g.dir}` : `item.${def.item}`); break;
+        case 'underground': {
+          const b = this.sprites.has(`${g.name}.in.${g.dir}`) ? g.name : 'underground-belt';
+          tex = this.sprites.frame(this.sprites.has(`${b}.in.${g.dir}`) ? `${b}.in.${g.dir}` : `item.${def.item}`);
+          break;
+        }
         case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame('furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;

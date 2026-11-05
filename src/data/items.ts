@@ -31,6 +31,8 @@ const list: ItemDef[] = [
   { id: 'fast-transport-belt', name: 'Schnelles Förderband', stackSize: 100, placeResult: 'fast-transport-belt', order: 35 },
   { id: 'underground-belt', name: 'Untergrundband', stackSize: 50, placeResult: 'underground-belt', order: 36 },
   { id: 'splitter', name: 'Splitter', stackSize: 50, placeResult: 'splitter', order: 37 },
+  { id: 'fast-underground-belt', name: 'Schnelles Untergrundband', stackSize: 50, placeResult: 'fast-underground-belt', order: 38 },
+  { id: 'fast-splitter', name: 'Schneller Splitter', stackSize: 50, placeResult: 'fast-splitter', order: 39 },
   { id: 'burner-inserter', name: 'Brennstoff-Greifarm', stackSize: 50, placeResult: 'burner-inserter', order: 31 },
   { id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', stackSize: 50, placeResult: 'burner-mining-drill', order: 32 },
   { id: 'stone-furnace', name: 'Steinofen', stackSize: 50, placeResult: 'stone-furnace', order: 33 },

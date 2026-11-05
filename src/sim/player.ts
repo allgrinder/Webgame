@@ -49,6 +49,8 @@ export class Player {
   pickingUp = false;
   /** Von der Welt gesetzt: Rezept freigeschaltet (Forschung). */
   recipeUnlocked: (recipe: string) => boolean = () => true;
+  /** Von der Welt gesetzt: Herstellung melden (Auslöser-Forschung). */
+  onCrafted: (item: string, n: number) => void = () => {};
   /** Vom Spieler abgebaute Gebäude (für Rückgängig; vom Spiel geleert). */
   readonly minedLog: { name: string; x: number; y: number; dir: number }[] = [];
 
@@ -321,6 +323,7 @@ export class Player {
     if (!job) return;
     if (--job.ticks > 0) return;
     this.craftQueue.shift();
+    for (const res of RECIPES[job.recipe].results) this.onCrafted(res.item, res.amount);
     if (!job.toInventory) return; // Zwischenprodukt wird vom folgenden Auftrag verbraucht
     for (const res of RECIPES[job.recipe].results) {
       const added = this.inventory.add(res.item, res.amount);

@@ -28,9 +28,11 @@ export class InserterEntity extends EntityBase {
   declare readonly def: InserterDef;
   readonly energy: EnergySource;
   phase = InserterPhase.WaitPickup;
-  /** Drehfortschritt der aktuellen Halbdrehung in Tausendstel-Umdrehungen. */
+  /** Fortschritt der aktuellen Halbdrehung in Ticks. */
   progress = 0;
   held: string | null = null;
+  /** Art des Ablageziels (für das Weiterreichen zwischen Laboren). */
+  targetKind: string | undefined;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir, energy?: EnergySource) {
     super(id, name, x, y, dir);
@@ -43,18 +45,24 @@ export class InserterEntity extends EntityBase {
   override get burner(): Burner | null {
     return this.energy instanceof Burner ? this.energy : null;
   }
+  /** Ticks je Halbdrehung (ganzzahlig wie im Original). */
+  get halfTurnTicks(): number {
+    return this.def.halfTurnTicks;
+  }
+  /** Für die Darstellung: Fortschritt je Tick in Tausendstel-Umdrehungen. */
   get turnPerTick(): number {
-    return Math.round(this.def.rotationSpeed * 1000);
+    return HALF_TURN / this.def.halfTurnTicks;
   }
   get halfSwingEnergy(): number {
     return Math.round(this.def.energyPerTransfer / 2);
   }
   armT(): number {
+    const n = this.def.halfTurnTicks;
     switch (this.phase) {
       case InserterPhase.WaitPickup: return 0;
-      case InserterPhase.ToDrop: return this.progress / HALF_TURN;
+      case InserterPhase.ToDrop: return this.progress / n;
       case InserterPhase.WaitDrop: return 1;
-      case InserterPhase.ToPickup: return 1 - this.progress / HALF_TURN;
+      case InserterPhase.ToPickup: return 1 - this.progress / n;
     }
   }
   points(): { pickup: [number, number]; drop: [number, number] } {
@@ -63,75 +71,77 @@ export class InserterEntity extends EntityBase {
     return { pickup: [this.cx + px, this.cy + py], drop: [this.cx + dx, this.cy + dy] };
   }
 
+  /**
+   * Ablauf je Tick: drehen (1 Schritt je Tick) bis zur Halbdrehung, dann im nächsten Tick aufnehmen bzw. ablegen
+   * und im selben Tick den ersten Schritt zurück. Ergibt 2 × halfTurnTicks Ticks je Zyklus (Wiki: 76/70/48).
+   */
   override update(w: World): void {
     const { pickup, drop } = this.points();
     const dst = w.entityAt(drop[0], drop[1]);
     // Ziel: Gebäude (außer Greifarm) oder freier Boden
     const groundTarget = !dst && !w.map.isWater(Math.floor(drop[0]), Math.floor(drop[1]));
+    this.targetKind = dst?.kind;
     const half = this.halfSwingEnergy;
     const burner = this.burner;
-    let budget = this.turnPerTick;
-    for (let guard = 0; guard < 6; guard++) {
-      switch (this.phase) {
-        case InserterPhase.WaitPickup: {
-          if ((!dst && !groundTarget) || dst?.kind === 'inserter') {
-            this.status = Status.NoTarget;
-            return;
-          }
-          // Selbstversorgung: leerer Brennstoffslot -> eigenen Brennstoff greifen
-          if (burner && burner.fuel.isEmpty()) {
-            const fuel = w.takeAt(pickup[0], pickup[1], (it) => isFuel(it));
-            if (fuel) {
-              burner.fuel.add(fuel, 1);
-              this.status = Status.Working;
-              return;
-            }
-          }
-          if (!this.energy.canSupply(half)) {
-            this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
-            return;
-          }
-          const onBelt = !!w.belts.tileAt(Math.floor(drop[0]), Math.floor(drop[1]));
-          const accept = dst && !onBelt ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
-          const item = w.takeAt(pickup[0], pickup[1], accept);
-          if (!item) {
-            this.status = Status.NoInput;
-            return;
-          }
-          this.energy.consume(half);
-          this.held = item;
-          this.phase = InserterPhase.ToDrop;
-          this.progress = 0;
-          this.status = Status.Working;
-          continue;
+    const n = this.def.halfTurnTicks;
+    switch (this.phase) {
+      case InserterPhase.WaitPickup: {
+        if ((!dst && !groundTarget) || dst?.kind === 'inserter') {
+          this.status = Status.NoTarget;
+          return;
         }
-        case InserterPhase.ToDrop:
-        case InserterPhase.ToPickup: {
-          const step = Math.min(budget, HALF_TURN - this.progress);
-          this.progress += step;
-          budget -= step;
-          if (this.progress < HALF_TURN) return;
+        // Selbstversorgung: leerer Brennstoffslot -> eigenen Brennstoff greifen
+        if (burner && burner.fuel.isEmpty()) {
+          const fuel = w.takeAt(pickup[0], pickup[1], (it) => isFuel(it), this);
+          if (fuel) {
+            burner.fuel.add(fuel, 1);
+            this.status = Status.Working;
+            return;
+          }
+        }
+        if (!this.energy.canSupply(half)) {
+          this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
+          return;
+        }
+        const onBelt = !!w.belts.tileAt(Math.floor(drop[0]), Math.floor(drop[1]));
+        const accept = dst && !onBelt ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
+        const item = w.takeAt(pickup[0], pickup[1], accept, this);
+        if (!item) {
+          this.status = Status.NoInput;
+          return;
+        }
+        this.energy.consume(half);
+        this.held = item;
+        this.phase = InserterPhase.ToDrop;
+        this.progress = 1;
+        this.status = Status.Working;
+        return;
+      }
+      case InserterPhase.ToDrop:
+      case InserterPhase.ToPickup: {
+        this.progress++;
+        if (this.progress >= n) {
           this.progress = 0;
           this.phase = this.phase === InserterPhase.ToDrop ? InserterPhase.WaitDrop : InserterPhase.WaitPickup;
-          continue;
         }
-        case InserterPhase.WaitDrop: {
-          if (this.held) {
-            if ((!dst && !groundTarget) || !w.deliverAt(drop[0], drop[1], this.held, 'inserter', true)) {
-              this.status = dst || groundTarget ? Status.OutputBlocked : Status.NoTarget;
-              return;
-            }
-            this.held = null;
-          }
-          if (!this.energy.consume(half)) {
-            this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
+        return;
+      }
+      case InserterPhase.WaitDrop: {
+        if (this.held) {
+          if ((!dst && !groundTarget) || !w.deliverAt(drop[0], drop[1], this.held, 'inserter', true, this)) {
+            this.status = dst || groundTarget ? Status.OutputBlocked : Status.NoTarget;
             return;
           }
-          this.status = Status.Working;
-          this.phase = InserterPhase.ToPickup;
-          this.progress = 0;
-          continue;
+          this.held = null;
         }
+        if (!this.energy.consume(half)) {
+          this.status = this.energy.type === 'electric' ? Status.NoPower : Status.NoFuel;
+          return;
+        }
+        this.status = Status.Working;
+        this.phase = InserterPhase.ToPickup;
+        this.progress = 1;
+        return;
       }
     }
   }

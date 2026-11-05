@@ -15,7 +15,7 @@ function powerWorld(): World {
   w.map.setWater(0, 0, true);
   const iron = resourceById('iron-ore').index;
   for (let y = 0; y < 5; y++) for (let x = 4; x < 9; x++) w.map.setResource(x, y, iron, 5000);
-  expect(w.place('offshore-pump', 0, 1, 2)).toBeTruthy();
+  expect(w.place('offshore-pump', 0, 0, 2)).toBeTruthy();
   w.place('pipe', 0, 2, 0);
   w.place('pipe', 0, 3, 0);
   const boiler = w.place('boiler', 1, 2, 0) as BoilerEntity;
@@ -33,8 +33,10 @@ describe('Flüssigkeiten und Strom', () => {
     const w = new World(1);
     for (let y = -3; y < 3; y++) for (let x = -3; x < 3; x++) w.map.setWater(x, y, false);
     w.map.setWater(0, 0, true);
-    expect(w.canPlace('offshore-pump', 0, 1, 0).ok).toBe(false);
-    expect(w.canPlace('offshore-pump', 0, 1, 2).ok).toBe(true);
+    expect(w.canPlace('offshore-pump', 0, 1, 0).ok).toBe(false); // hinteres Feld (0,2) an Land
+    expect(w.canPlace('offshore-pump', 0, 1, 2).ok).toBe(false); // hinteres Feld (0,1) an Land
+    expect(w.canPlace('offshore-pump', 0, 0, 2).ok).toBe(true); // hinten (0,0) Wasser, vorn (0,1) Land
+    expect(w.canPlace('offshore-pump', 0, -1, 0).ok).toBe(true); // hinten (0,0) Wasser, vorn (0,-1) Land
   });
 
   it('Kessel und Dampfmaschine versorgen einen elektrischen Bohrer (0,5 Erz/s)', () => {

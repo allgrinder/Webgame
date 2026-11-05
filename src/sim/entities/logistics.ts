@@ -1,4 +1,5 @@
 import { type SplitterDef, type UndergroundDef, entityDef } from '../../data/entities';
+import { ITEM_IDS } from '../../data/items';
 import { type BeltSystem, SplitterState } from '../belts';
 import { DX, DY, type Dir, opposite } from '../geom';
 import type { World } from '../world';
@@ -87,10 +88,15 @@ export class SplitterEntity extends EntityBase {
   }
 
   override save() {
-    return { tg: [...this.state.toggle] };
+    const st = this.state;
+    return { tg: [...st.toggle], ip: st.inputPriority, op: st.outputPriority, fi: st.filter >= 0 ? ITEM_IDS[st.filter] : null };
   }
   override load(d: Record<string, unknown>): void {
+    const st = this.state;
     const tg = d.tg as [number, number] | undefined;
-    if (tg) this.state.toggle = [tg[0], tg[1]];
+    if (tg) st.toggle = [tg[0], tg[1]];
+    st.inputPriority = (d.ip as number) ?? -1;
+    st.outputPriority = (d.op as number) ?? -1;
+    st.filter = d.fi ? ITEM_IDS.indexOf(d.fi as string) : -1;
   }
 }

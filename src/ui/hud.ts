@@ -7,7 +7,7 @@ import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { deserializeWorld, serializeWorld } from '../sim/serialize';
 import type { SpriteLib } from '../render/assets';
 import { Status } from '../sim/entity';
-import { type Entity, acceptAmount, insertInto } from '../sim/machines';
+import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
 import { Minimap } from './minimap';
 import { Tooltip } from './tooltip';
@@ -390,6 +390,7 @@ export class Hud {
       el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
     };
     if (e.kind === 'assembler') this.recipePicker(e, body);
+    if (e.kind === 'splitter') this.splitterControls(e, body);
     for (const g of e.guiSlots()) row(g.label, g.inv);
     if (e.kind === 'assembler') bar('Fortschritt', e.recipe && e.crafting ? e.progress / e.recipeTicks(e.recipe) : 0);
     if (e.kind === 'lab') {
@@ -408,7 +409,7 @@ export class Hud {
   private entityKey(e: Entity): string {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots)).join('|');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
-    const extra = e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '';
+    const extra = e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '';
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
     const power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
     return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
@@ -473,6 +474,37 @@ export class Hud {
     }
   }
 
+  private splitterControls(e: Extract<Entity, { kind: 'splitter' }>, body: HTMLElement): void {
+    const st = e.state;
+    const choice = (label: string, value: number, set: (v: number) => void) => {
+      const r = el('div', 'slot-row', body);
+      el('span', 'label', r).textContent = label;
+      for (const [v, name] of [[0, 'Links'], [-1, 'Keiner'], [1, 'Rechts']] as const) {
+        const b = el('button', `small-btn${value === v ? ' active' : ''}`, r);
+        b.textContent = name;
+        b.onclick = () => {
+          set(v);
+          this.entWin.dataset.key = '';
+          this.buildEntity();
+        };
+      }
+    };
+    choice('Eingang', st.inputPriority, (v) => (st.inputPriority = v));
+    choice(st.filter >= 0 ? 'Filter-Seite' : 'Ausgang', st.outputPriority, (v) => (st.outputPriority = v));
+    const r = el('div', 'slot-row', body);
+    el('span', 'label', r).textContent = 'Filter';
+    const slot = el('div', 'slot', r);
+    if (st.filter >= 0) slot.appendChild(this.icon(`item.${itemId(st.filter)}`));
+    slot.title = 'Mit Item im Cursor klicken: Filter setzen · ohne: Filter löschen';
+    slot.addEventListener('click', () => {
+      const ci = this.game.cursorItem;
+      st.filter = ci ? itemIndex(ci) : -1;
+      if (st.filter >= 0 && st.outputPriority < 0) st.outputPriority = 0;
+      this.entWin.dataset.key = '';
+      this.buildEntity();
+    });
+  }
+
   toggleResearch(): void {
     const hidden = this.techWin.classList.toggle('hidden');
     if (!hidden) this.buildResearch();
@@ -516,8 +548,14 @@ export class Hud {
       el('b', '', top).textContent = t.name;
       el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : avail ? '' : 'gesperrt';
       const cost = el('div', 'tech-cost', card);
-      for (const pk of t.packs) cost.appendChild(this.icon(`item.${pk}`));
-      el('span', '', cost).textContent = ` × ${t.count} · ${t.time} s je Einheit`;
+      if (t.trigger) {
+        cost.appendChild(this.icon(`item.${t.trigger.item}`));
+        const made = Math.min(t.trigger.count, r.made.get(t.trigger.item) ?? 0);
+        el('span', '', cost).textContent = ` Auslöser: ${t.trigger.count} × ${ITEMS[t.trigger.item]?.name ?? t.trigger.item} herstellen (${done ? t.trigger.count : made}/${t.trigger.count})`;
+      } else {
+        for (const pk of t.packs) cost.appendChild(this.icon(`item.${pk}`));
+        el('span', '', cost).textContent = ` × ${t.count} · ${t.time} s je Einheit`;
+      }
       const un = el('div', 'tech-unlocks', card);
       for (const u of t.unlocks) {
         const ic = this.icon(`item.${u}`);
@@ -530,7 +568,7 @@ export class Hud {
         const b = el('div', 'progress', card);
         el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
       }
-      if (avail) {
+      if (avail && !t.trigger) {
         card.addEventListener('click', () => {
           r.start(r.current === t.id ? null : t.id);
           this.researchKey = '';
@@ -538,7 +576,7 @@ export class Hud {
         });
       }
     }
-    el('div', 'hint', body).textContent = `Klick: Forschung starten/anhalten · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte)`;
+    el('div', 'hint', body).textContent = 'Klick: Forschung starten/anhalten · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte) · Auslöser-Forschungen schließen sich von selbst ab';
   }
 
   toggleHelp(): void {

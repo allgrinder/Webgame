@@ -1,4 +1,4 @@
-import type { BeltDef, ContainerDef, DrillDef, FurnaceDef, InserterDef } from '../../data/entities';
+import { type BeltDef, type ContainerDef, type DrillDef, type FurnaceDef, type InserterDef, insertionLimitCrafts } from '../../data/entities';
 import { entityDef } from '../../data/entities';
 import { isFuel } from '../../data/items';
 import { type RecipeDef, RECIPES, smeltingRecipeFor } from '../../data/recipes';
@@ -177,7 +177,7 @@ export class FurnaceEntity extends EntityBase {
     return secondsToTicks(r.time / this.def.craftingSpeed);
   }
 
-  override update(): void {
+  override update(w: World): void {
     if (!this.recipe) {
       const ing = this.source.firstItem();
       if (!ing) {
@@ -210,7 +210,10 @@ export class FurnaceEntity extends EntityBase {
     this.progress++;
     this.workTicks++;
     if (this.progress >= this.recipeTicks(this.recipe)) {
-      for (const r of this.recipe.results) this.result.add(r.item, r.amount);
+      for (const r of this.recipe.results) {
+        this.result.add(r.item, r.amount);
+        w.research.onCrafted(r.item, r.amount);
+      }
       this.recipe = null;
       this.progress = 0;
     }
@@ -224,8 +227,7 @@ export class FurnaceEntity extends EntityBase {
       if (cur && cur !== item) return 0;
       const space = this.source.space(item);
       if (mode !== 'inserter') return space;
-      const ins = entityDef('burner-inserter') as InserterDef;
-      return Math.max(0, Math.min(space, ins.ingredientLimitCrafts * r.ingredients[0].amount - this.source.count(item)));
+      return Math.max(0, Math.min(space, insertionLimitCrafts(r.time / this.def.craftingSpeed) * r.ingredients[0].amount - this.source.count(item)));
     }
     return fuelAccept(this.fuelSource, item, mode);
   }

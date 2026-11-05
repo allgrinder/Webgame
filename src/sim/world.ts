@@ -49,7 +49,10 @@ export class World {
   }
   set player(p: Player | null) {
     this._player = p;
-    if (p) p.recipeUnlocked = (r) => this.research.recipeUnlocked(r);
+    if (p) {
+      p.recipeUnlocked = (r) => this.research.recipeUnlocked(r);
+      p.onCrafted = (item, n) => this.research.onCrafted(item, n);
+    }
   }
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
@@ -72,24 +75,35 @@ export class World {
     return out;
   }
 
+  /** Felder der Uferpumpe: vorn (Ausgang, an Land) und hinten (im Wasser), abhängig von der Richtung. */
+  static pumpTiles(x: number, y: number, dir: Dir): { front: [number, number]; back: [number, number] } {
+    switch (dir) {
+      case 0: return { front: [x, y], back: [x, y + 1] };
+      case 1: return { front: [x + 1, y], back: [x, y] };
+      case 2: return { front: [x, y + 1], back: [x, y] };
+      default: return { front: [x, y], back: [x + 1, y] };
+    }
+  }
+
   canPlace(name: string, x: number, y: number, dir: Dir): PlaceCheck {
     const def = entityDef(name);
     if (def.kind === 'belt') {
       const e = this.entityAt(x, y);
       if (e && e.kind === 'belt' && e.name === name) return e.dir === dir ? { ok: false, reason: 'Gleiches Band' } : { ok: true, replace: e.id };
     }
+    // Uferpumpe (1×2): vorderes Feld an Land, hinteres im Wasser
+    const pumpTiles = def.kind === 'offshore-pump' ? World.pumpTiles(x, y, dir) : null;
     for (const [tx, ty] of World.footprint(def, x, y, dir)) {
       if (this.occupancy.has(tileKey(tx, ty))) return { ok: false, reason: 'Belegt' };
+      if (pumpTiles && tx === pumpTiles.back[0] && ty === pumpTiles.back[1]) {
+        if (!this.map.isWater(tx, ty)) return { ok: false, reason: 'Hinteres Feld muss im Wasser liegen' };
+        continue;
+      }
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
     }
     const [w, h] = sizeOf(def, dir);
     if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {
       return { ok: false, reason: 'Spieler im Weg' };
-    }
-    if (def.kind === 'offshore-pump') {
-      const DXs = [0, 1, 0, -1];
-      const DYs = [-1, 0, 1, 0];
-      if (!this.map.isWater(x - DXs[dir], y - DYs[dir])) return { ok: false, reason: 'Muss mit dem Rücken zum Wasser stehen' };
     }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
@@ -179,26 +193,26 @@ export class World {
   /**
    * Item an einen Weltpunkt abgeben: Band (an der Stelle), Gebäude oder – wenn erlaubt – freier Boden.
    */
-  deliverAt(px: number, py: number, item: string, mode: InsertMode, allowGround: boolean): boolean {
+  deliverAt(px: number, py: number, item: string, mode: InsertMode, allowGround: boolean, from?: { dir: Dir }): boolean {
     const tx = Math.floor(px);
     const ty = Math.floor(py);
     const target = this.entityAt(tx, ty);
     if (!target) return allowGround ? this.dropGround(px, py, item) : false;
     const bt = this.belts.tileAt(tx, ty);
-    if (bt) return this.belts.insertAtPoint(bt, px - tx, py - ty, itemIndex(item));
+    if (bt) return this.belts.insertAtPoint(bt, px - tx, py - ty, itemIndex(item), from ? BeltSystem.inserterDropLane(bt, from.dir) : undefined);
     return target.insert(item, 1, mode) === 1;
   }
 
   /** Nimmt ein passendes Item vom Feld an einem Weltpunkt: Band, Gebäude oder Boden. */
-  takeAt(px: number, py: number, accept: (item: string) => boolean): string | null {
+  takeAt(px: number, py: number, accept: (item: string) => boolean, from?: { dir: Dir; targetKind?: string }): string | null {
     const src = this.entityAt(px, py);
     if (!src) return this.takeGround(Math.floor(px), Math.floor(py), accept);
     const t = this.belts.tileAt(Math.floor(px), Math.floor(py));
     if (t) {
-      const idx = this.belts.takeFromTile(t, (i) => accept(itemId(i)));
+      const idx = this.belts.takeFromTile(t, (i) => accept(itemId(i)), from ? BeltSystem.inserterPickupLanes(t, from.dir) : undefined);
       return idx < 0 ? null : itemId(idx);
     }
-    return src.take(this, accept);
+    return src.take(this, accept, from);
   }
 
   /** Für Renderer und Tests. */

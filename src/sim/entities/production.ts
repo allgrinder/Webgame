@@ -1,4 +1,4 @@
-import { type AssemblerDef, type InserterDef, type LabDef, entityDef } from '../../data/entities';
+import { type AssemblerDef, type LabDef, insertionLimitCrafts } from '../../data/entities';
 import { ITEMS } from '../../data/items';
 import { RECIPES, type RecipeDef } from '../../data/recipes';
 import { TECH_BY_ID } from '../../data/tech';
@@ -11,10 +11,6 @@ import { ResearchSystem } from '../research';
 import type { World } from '../world';
 import { EntityBase, type GuiSlots, type InsertMode, invContents } from './base';
 
-/** Füllgrenze für Greifarme: so viele Herstellvorgänge im Voraus (wie beim Ofen). */
-function inserterLimitCrafts(): number {
-  return (entityDef('burner-inserter') as InserterDef).ingredientLimitCrafts;
-}
 
 function electric(usageW: number, drainW: number): ElectricSource {
   const jpt = wattsToJoulesPerTick(usageW);
@@ -60,7 +56,7 @@ export class AssemblerEntity extends EntityBase {
     return out;
   }
 
-  override update(): void {
+  override update(w: World): void {
     const r = this.recipe;
     if (!r) {
       this.status = Status.Idle;
@@ -89,7 +85,10 @@ export class AssemblerEntity extends EntityBase {
     this.status = Status.Working;
     this.workTicks++;
     if (++this.progress >= this.recipeTicks(r)) {
-      for (const res of r.results) this.output.add(res.item, res.amount);
+      for (const res of r.results) {
+        this.output.add(res.item, res.amount);
+        w.research.onCrafted(res.item, res.amount);
+      }
       this.crafting = false;
       this.progress = 0;
     }
@@ -101,7 +100,7 @@ export class AssemblerEntity extends EntityBase {
     const have = this.input.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
     if (mode !== 'inserter') return Math.min(cap, this.input.space(item));
-    const limit = Math.max(g.amount * inserterLimitCrafts(), g.amount + 1);
+    const limit = g.amount * insertionLimitCrafts(this.recipe!.time / this.def.craftingSpeed);
     return Math.max(0, Math.min(cap, limit - have));
   }
   protected override doInsert(item: string, n: number): number {
@@ -154,12 +153,23 @@ export class LabEntity extends EntityBase {
   remaining = 0;
   paidFor: string | null = null;
   workTicks = 0;
+  private research: ResearchSystem | null = null;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
     this.energy = electric(this.def.energyUsage, this.def.drain);
     const inputs = this.def.inputs;
     this.packs = new Inventory(inputs.length, (it) => inputs.includes(it));
+  }
+
+  override onCreated(w: World): void {
+    this.research = w.research;
+  }
+
+  /** Dauer einer Forschungseinheit der aktuellen Technologie (s), 30 s ohne Forschung. */
+  private unitSeconds(): number {
+    const t = this.research?.currentTech;
+    return t ? t.time / this.def.researchSpeed : 30;
   }
 
   override update(w: World): void {
@@ -177,6 +187,10 @@ export class LabEntity extends EntityBase {
       this.paidFor = null;
     }
     if (this.remaining <= 0) {
+      if (!this.energy.canSupply(this.energy.usagePerTick)) {
+        this.status = Status.NoPower;
+        return;
+      }
       if (!t.packs.every((p) => this.packs.count(p) > 0)) {
         this.status = Status.NoInput;
         return;
@@ -204,7 +218,15 @@ export class LabEntity extends EntityBase {
     const have = this.packs.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
     if (mode !== 'inserter') return Math.min(cap, this.packs.space(item));
-    return Math.max(0, Math.min(cap, inserterLimitCrafts() - have));
+    return Math.max(0, Math.min(cap, insertionLimitCrafts(this.unitSeconds()) - have));
+  }
+  /** Greifarme reichen Pakete an ein weiteres Labor weiter (nur Labor → Labor). */
+  override take(_w: World, accept: (item: string) => boolean, by?: { targetKind?: string }): string | null {
+    if (by?.targetKind !== 'lab') return null;
+    const it = this.packs.firstItem(accept);
+    if (!it) return null;
+    this.packs.remove(it, 1);
+    return it;
   }
   protected override doInsert(item: string, n: number): number {
     return this.packs.add(item, n);

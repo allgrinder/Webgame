@@ -65,8 +65,10 @@ export interface InserterDef extends EntityBase {
   readonly energy: EnergyKind;
   /** Grundlast im Netz (W), nur elektrisch. */
   readonly drain: number;
-  /** Drehgeschwindigkeit in Umdrehungen pro Tick. */
+  /** Drehgeschwindigkeit in Umdrehungen pro Tick (Prototyp). */
   readonly rotationSpeed: number;
+  /** Ticks je Halbdrehung, wie im Spiel gemessen (ganzzahlig, abgerundet; Wiki: Ticks je Zyklus / 2). */
+  readonly halfTurnTicks: number;
   /** Energie pro vollständigem Transfer (hin und zurück) in Joule. */
   readonly energyPerTransfer: number;
   /** Startenergie im Brennstoffpuffer in Joule. */
@@ -75,8 +77,6 @@ export interface InserterDef extends EntityBase {
   readonly pickupVector: readonly [number, number];
   readonly dropVector: readonly [number, number];
   readonly fuelSlots: number;
-  /** Greifarm füllt Zutaten in Maschinen nur bis zu so vielen Herstellvorgängen. */
-  readonly ingredientLimitCrafts: number;
   /** Greifarm füllt Brennstoff in fremde Brennstoffslots nur bis zu dieser Anzahl. */
   readonly fuelInsertLimit: number;
 }
@@ -108,6 +108,8 @@ export interface BoilerDef extends EntityBase {
   readonly outputFluid: string;
   /** Zieltemperatur des Dampfes (°C) – bestimmt die Energie je Einheit. */
   readonly targetTemperature: number;
+  /** Einheiten Dampf je Einheit Wasser. */
+  readonly steamPerWater: number;
   readonly capacity: number;
 }
 
@@ -164,6 +166,14 @@ const list: EntityDef[] = [
     item: 'splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 8,
   },
   {
+    kind: 'underground', id: 'fast-underground-belt', name: 'Schnelles Untergrundband', width: 1, height: 1, health: 160,
+    item: 'fast-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 16, maxDistance: 7,
+  },
+  {
+    kind: 'splitter', id: 'fast-splitter', name: 'Schneller Splitter', width: 2, height: 1, health: 180,
+    item: 'fast-splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 16,
+  },
+  {
     kind: 'drill', id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', width: 2, height: 2, health: 150,
     item: 'burner-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'burner',
     miningSpeed: 0.25, energyUsage: 150_000, miningAreaSize: 2, outputVector: [-0.35, -1.3], fuelSlots: 1,
@@ -176,9 +186,9 @@ const list: EntityDef[] = [
   {
     kind: 'inserter', id: 'burner-inserter', name: 'Brennstoff-Greifarm', width: 1, height: 1, health: 100,
     item: 'burner-inserter', mineTime: 0.1, solid: true, rotatable: true, energy: 'burner', drain: 0,
-    rotationSpeed: 0.013, energyPerTransfer: 69.4 * KJ, initialEnergy: 500 * KJ,
+    rotationSpeed: 0.013, halfTurnTicks: 38, energyPerTransfer: 66.9 * KJ, initialEnergy: 500 * KJ,
     pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 1,
-    ingredientLimitCrafts: 2, fuelInsertLimit: 5,
+    fuelInsertLimit: 5,
   },
   {
     kind: 'drill', id: 'electric-mining-drill', name: 'Elektrischer Bohrer', width: 3, height: 3, health: 300,
@@ -188,31 +198,31 @@ const list: EntityDef[] = [
   {
     kind: 'inserter', id: 'inserter', name: 'Greifarm', width: 1, height: 1, health: 150,
     item: 'inserter', mineTime: 0.1, solid: true, rotatable: true, energy: 'electric', drain: 400,
-    // 13,2 kW × Zyklus (1000/14 Ticks = 1,19 s) ≈ 15,7 kJ je Transfer
-    rotationSpeed: 0.014, energyPerTransfer: 15.7 * KJ, initialEnergy: 0,
+    // Wiki „Inserters“, Energie je Zyklus 6,65 kJ, 70 Ticks je Zyklus
+    rotationSpeed: 0.014, halfTurnTicks: 35, energyPerTransfer: 6.65 * KJ, initialEnergy: 0,
     pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 0,
-    ingredientLimitCrafts: 2, fuelInsertLimit: 5,
+    fuelInsertLimit: 5,
   },
   {
     kind: 'inserter', id: 'long-handed-inserter', name: 'Langer Greifarm', width: 1, height: 1, health: 160,
     item: 'long-handed-inserter', mineTime: 0.1, solid: true, rotatable: true, energy: 'electric', drain: 400,
-    // 20 kW × Zyklus (1000/20 Ticks = 0,83 s) ≈ 16,7 kJ je Transfer
-    rotationSpeed: 0.02, energyPerTransfer: 16.7 * KJ, initialEnergy: 0,
+    // Wiki „Inserters“, Energie je Zyklus 7 kJ, 48 Ticks je Zyklus
+    rotationSpeed: 0.02, halfTurnTicks: 24, energyPerTransfer: 7 * KJ, initialEnergy: 0,
     pickupVector: [0, 2], dropVector: [0, -2.2], fuelSlots: 0,
-    ingredientLimitCrafts: 2, fuelInsertLimit: 5,
+    fuelInsertLimit: 5,
   },
   {
     kind: 'pipe', id: 'pipe', name: 'Rohr', width: 1, height: 1, health: 100,
     item: 'pipe', mineTime: 0.1, solid: true, rotatable: false, capacity: 100,
   },
   {
-    kind: 'offshore-pump', id: 'offshore-pump', name: 'Uferpumpe', width: 1, height: 1, health: 150,
+    kind: 'offshore-pump', id: 'offshore-pump', name: 'Uferpumpe', width: 1, height: 2, health: 150,
     item: 'offshore-pump', mineTime: 0.1, solid: true, rotatable: true, pumpingSpeed: 20, capacity: 100, fluid: 'water',
   },
   {
     kind: 'boiler', id: 'boiler', name: 'Kessel', width: 3, height: 2, health: 200,
     item: 'boiler', mineTime: 0.2, solid: true, rotatable: true, energyUsage: 1_800_000, fuelSlots: 1,
-    inputFluid: 'water', outputFluid: 'steam', targetTemperature: 165, capacity: 200,
+    inputFluid: 'water', outputFluid: 'steam', targetTemperature: 165, steamPerWater: 10, capacity: 200,
   },
   {
     kind: 'generator', id: 'steam-engine', name: 'Dampfmaschine', width: 3, height: 5, health: 400,
@@ -249,4 +259,17 @@ export function entityDef(id: string): EntityDef {
 /** Grundfläche (Breite, Höhe) in Feldern für eine Richtung; bei Ost/West getauscht. */
 export function sizeOf(def: EntityDef, dir: number): [number, number] {
   return dir % 2 === 1 ? [def.height, def.width] : [def.width, def.height];
+}
+
+/**
+ * Füllgrenze für Greifarme (Wiki „Inserters“, Insertion limits): Zutaten für 1 Vorgang plus die Vorgänge,
+ * die während einer Greifarm-Drehung (1,166 s) fertig werden (aufgerundet), mindestens 2, höchstens 100.
+ * Gilt für Montagemaschinen, Öfen und (mit Forschungseinheiten) Labore.
+ */
+export const INSERTION_LIMIT = { swingSeconds: 1.166, minCrafts: 2, maxCrafts: 100 } as const;
+
+/** Anzahl Vorgänge, bis zu der Greifarme Zutaten nachfüllen (Vorgangsdauer in Sekunden). */
+export function insertionLimitCrafts(craftSeconds: number): number {
+  const L = INSERTION_LIMIT;
+  return Math.max(L.minCrafts, Math.min(L.maxCrafts, 1 + Math.ceil(L.swingSeconds / craftSeconds - 1e-9)));
 }

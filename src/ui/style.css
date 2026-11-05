@@ -123,3 +123,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .tt-total .icon { width: 20px; height: 20px; }
 .tooltip { max-width: 340px; }
 .menu-btn.primary { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.small-btn.active { border-color: var(--accent); color: var(--accent); }

@@ -13,7 +13,7 @@ function factory(): { w: World; asm: AssemblerEntity; lab: LabEntity } {
     w.map.setWater(x, y, false);
   }
   w.map.setWater(0, 0, true);
-  expect(w.place('offshore-pump', 0, 1, 2)).toBeTruthy();
+  expect(w.place('offshore-pump', 0, 0, 2)).toBeTruthy();
   w.place('pipe', 0, 2, 0);
   w.place('pipe', 0, 3, 0);
   const boiler = w.place('boiler', 1, 2, 0) as BoilerEntity;
@@ -24,6 +24,10 @@ function factory(): { w: World; asm: AssemblerEntity; lab: LabEntity } {
   const lab = w.place('lab', 5, -3, 0) as LabEntity;
   expect(asm).toBeTruthy();
   expect(lab).toBeTruthy();
+  // Auslöser-Forschung (Dampfkraft, Elektronik, Automatisierungs-Wissenschaft) als erledigt
+  w.research.complete('automation-science-pack');
+  w.research.complete('steam-power');
+  w.research.complete('electronics');
   return { w, asm, lab };
 }
 

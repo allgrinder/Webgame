@@ -3,7 +3,7 @@ import { FLUID_UNIT, steamEnergyPerUnit } from '../../data/fluids';
 import { wattsToJoulesPerTick } from '../../data/time';
 import { Burner } from '../burner';
 import { Status } from '../entity';
-import { DX, DY, type Dir, rotCW } from '../geom';
+import { type Dir, rotCW } from '../geom';
 import type { Stack } from '../inventory';
 import { FluidBox, type FluidHolder, type FluidPort } from '../fluids';
 import type { Generator } from '../power';
@@ -68,12 +68,24 @@ export class PumpEntity extends EntityBase implements FluidHolder {
   fluidBoxes(): FluidBox[] {
     return [this.box];
   }
-  fluidPorts(): FluidPort[] {
-    return [{ box: this.box, tx: this.x, ty: this.y, dir: this.dir }];
+  /** Vorderes Feld (an Land, Ausgang) und hinteres Feld (im Wasser, Ansaugung). */
+  private tiles() {
+    const x = this.x;
+    const y = this.y;
+    switch (this.dir) {
+      case 0: return { front: [x, y], back: [x, y + 1] };
+      case 1: return { front: [x + 1, y], back: [x, y] };
+      case 2: return { front: [x, y + 1], back: [x, y] };
+      default: return { front: [x, y], back: [x + 1, y] };
+    }
   }
-  /** Feld, aus dem gepumpt wird (hinter der Pumpe). */
+  fluidPorts(): FluidPort[] {
+    const [tx, ty] = this.tiles().front;
+    return [{ box: this.box, tx, ty, dir: this.dir }];
+  }
+  /** Feld, aus dem gepumpt wird (hinteres Feld im Wasser). */
   waterTile(): [number, number] {
-    return [this.x - DX[this.dir], this.y - DY[this.dir]];
+    return this.tiles().back as [number, number];
   }
   override update(w: World): void {
     const net = this.box.net;
@@ -136,7 +148,8 @@ export class BoilerEntity extends EntityBase implements FluidHolder {
     const wn = this.water.net;
     const sn = this.steam.net;
     const amt = this.steamPerTick;
-    if (!wn || wn.fluid !== this.def.inputFluid || wn.amount < amt) {
+    const water = Math.ceil(amt / this.def.steamPerWater);
+    if (!wn || wn.fluid !== this.def.inputFluid || wn.amount < water) {
       this.status = Status.NoInput;
       return;
     }
@@ -148,7 +161,7 @@ export class BoilerEntity extends EntityBase implements FluidHolder {
       this.status = Status.NoFuel;
       return;
     }
-    wn.take(this.def.inputFluid, amt);
+    wn.take(this.def.inputFluid, water);
     sn.add(this.def.outputFluid, amt);
     this.status = Status.Working;
     this.workTicks++;

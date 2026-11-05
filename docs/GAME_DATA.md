@@ -186,6 +186,26 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 | Rezepte | schnelles Band 5 Zahnräder + 1 Band; Untergrundband 10 Platten + 5 Bänder → 2 (1 s); Splitter 5 Schaltkreise + 5 Platten + 4 Bänder (1 s) | P `recipe.lua` |
 | Seitliches Einspeisen in Untergrund/Splitter | nicht möglich | Abweichung, E |
 
+## Korrekturen nach Wiki-Abgleich (05.11.2026, Quelle 1 = Wiki, siehe `docs/WIKI_ABGLEICH.md`)
+
+Das Wiki ist inzwischen erreichbar; diese Werte ersetzen frühere Angaben in den Tabellen oben.
+
+| Wert | Projekt | Quelle |
+|---|---|---|
+| Kessel | 1 Wasser → 10 Dampf (`steamPerWater`) | Wiki „Boiler“ |
+| Greifarm-Takt | ganze Ticks je Halbdrehung: 38 / 35 / 24 (Zyklus 76 / 70 / 48 Ticks) | Wiki „Inserters“, Inserter speed |
+| Greifarm-Energie je Zyklus | 66,9 kJ / 6,65 kJ / 7 kJ (Brennstoff / Greifarm / lang); Grundlast 0,4 kW | Wiki „Inserters“, Energy costs |
+| Füllgrenze Maschinen und Labore | Zutaten für 1 Vorgang + Vorgänge in 1,166 s (aufgerundet), mind. 2, höchstens 100 | Wiki „Inserters“, Insertion limits (erledigt **Messvorschlag 2**) |
+| Brennstoff-Füllgrenze | 5 | Wiki „Inserters“ (erledigt **Messvorschlag 3**) |
+| Ablage/Aufnahme auf Bändern | quer: ferne Spur / zuerst nahe Spur; längs: rechte Spur / zuerst linke Spur | Wiki „Inserters“ |
+| Labor | Greifarme reichen Pakete an ein Labor weiter; Labor bezahlt eine Einheit erst mit Strom | Wiki „Inserters“, Cheatsheet |
+| Splitter | Eingangs- und Ausgangsvorrang, Filter (Filterseite = Vorrangseite) | Wiki „Belt transport system“ |
+| Untergrundband | seitliches Einspeisen nur auf der Bandhälfte (Eingang früh 188, Ausgang spät 68) | Wiki „Belt transport system“, „Transport belts/Physics“ |
+| Uferpumpe | 1×2 Felder, hinteres Feld im Wasser | Wiki Infobox (2×1) |
+| Auslöser-Forschung | Dampfkraft: 50 Eisenplatten; Elektronik: 10 Kupferplatten; Automatisierungs-Wissenschaft: 1 Labor (nach Dampfkraft + Elektronik); Elektrischer Bohrer 25 × 10 s rot | Wiki Infoboxen (technology-trigger, cost) |
+| Schnelles Untergrundband | Lücke 6 (maxDistance 7), 2 s: 40 Zahnräder + 2 Untergrundbänder → 2 | Wiki, Cheatsheet |
+| Schneller Splitter | 2 s: 10 Schaltkreise + 10 Zahnräder + 1 Splitter | Wiki |
+
 ## Messvorschläge (Quelle 3)
 
 1. **Seitliches Einspeisen, Spurzuordnung:** Hauptband 5 Felder nach Osten. Von Süden ein Band auf
@@ -199,7 +219,6 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
    Nach 60 s die Kohlemenge im Brennstoffslot des Ofens ablesen (Projekt: 5).
 4. **Greifarm-Durchsatz:** Kiste mit 100 Platten → Brennstoff-Greifarm → Kiste. Zeit für 50 Items
    stoppen (Erwartung ≈ 64 s bei 0,78 Items/s).
-5. **Strom des Greifarms:** Ein elektrischer Greifarm zwischen zwei Kisten an einem einzelnen Mast; im
-   Stromnetzfenster Verbrauch im Betrieb und im Leerlauf ablesen (Projekt: ≈ 13,2 kW / 0,4 kW).
+5. ~~Strom des Greifarms~~ – erledigt durch Wiki (6,65 kJ je Zyklus, Grundlast 0,4 kW).
 6. **Ausgabestau der Montagemaschine:** Montagemaschine mit Zahnrad-Rezept, Zutaten von Hand, kein
    Ausgabe-Greifarm. Nach 30 s die Ergebnismenge ablesen (Projekt: 2).

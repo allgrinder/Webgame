@@ -49,6 +49,11 @@ export class SplitterState {
   readonly halves: BeltTile[] = [];
   /** Nächster Ausgang je Spur (0/1). */
   toggle: [number, number] = [0, 0];
+  /** Vorrang (−1 keiner, 0 links, 1 rechts in Laufrichtung) für Eingang und Ausgang (Wiki „Belt transport system“). */
+  inputPriority = -1;
+  outputPriority = -1;
+  /** Filter (Item-Index, −1 = keiner): dieses Item nur auf die Vorrangseite, alle anderen auf die andere. */
+  filter = -1;
   /** Ausgänge (Linienanfang vor der Hälfte), vom Umbau gesetzt. */
   outs: [LaneTarget | null, LaneTarget | null] = [null, null];
 }
@@ -400,7 +405,18 @@ export class BeltSystem {
         for (let l = 0; l < 2; l++) line.lanes[l].out = { line: b.line, lane: l, d: b.line.lanes[l].tileEnd[b.idx] + b.lens[l] };
         continue;
       }
-      if (b.ug || b.splitter) continue; // kein seitliches Einspeisen in Untergrund/Splitter
+      if (b.splitter) continue; // Splitter nehmen nicht seitlich auf
+      if (b.ug) {
+        // Untergrundband: nur die Hälfte mit Band nimmt seitlich auf, die Tunnelhälfte blockiert (Wiki)
+        if (b.dir === end.dir || b.dir === rotCW(end.dir, 2)) continue;
+        const fl = end.dir === rotCW(b.dir, 1);
+        const nearLane = fl ? 0 : 1;
+        const base = b.line.lanes[nearLane].tileEnd[b.idx];
+        const lateLane = fl ? 0 : 1;
+        if (!b.ug.output) line.lanes[1 - lateLane].out = { line: b.line, lane: nearLane, d: base + b.lens[nearLane] - (P - BELT.sideloadEarly) };
+        else line.lanes[lateLane].out = { line: b.line, lane: nearLane, d: base + BELT.sideloadLate };
+        continue;
+      }
       if (b.dir === end.dir || b.dir === rotCW(end.dir, 2)) continue; // frontal oder (unmöglich) gerade
       const fromLeft = end.dir === rotCW(b.dir, 1);
       const near = fromLeft ? 0 : 1;
@@ -451,9 +467,22 @@ export class BeltSystem {
 
   update(): void {
     this.ensure();
+    // Splitter mit Eingangsvorrang: die nachrangige Seite rückt nach den übrigen Linien vor
+    let deferred = false;
     for (const line of this.lines) {
+      if (this.lowPriority(line)) {
+        deferred = true;
+        continue;
+      }
       this.stepLane(line.lanes[0], line.speed);
       this.stepLane(line.lanes[1], line.speed);
+    }
+    if (deferred) {
+      for (const line of this.lines) {
+        if (!this.lowPriority(line)) continue;
+        this.stepLane(line.lanes[0], line.speed);
+        this.stepLane(line.lanes[1], line.speed);
+      }
     }
   }
 
@@ -544,16 +573,33 @@ export class BeltSystem {
     if (deferred >= 0) this.insertAt(lane, deferredD, deferred);
   }
 
-  /** Splitter: abwechselnd auf beide Ausgänge (gleiche Spur); ist einer blockiert, geht alles zum anderen. */
+  private lowPriority(line: TransportLine): boolean {
+    const end = line.tiles[line.tiles.length - 1];
+    const st = end.splitter;
+    return !!st && st.inputPriority >= 0 && st.halves.indexOf(end) !== st.inputPriority;
+  }
+
+  /**
+   * Splitter (gleiche Spur): Filter → passendes Item nur zur Vorrangseite, andere nur zur anderen; Ausgangsvorrang →
+   * zuerst die Vorrangseite; sonst abwechselnd. Ist ein Ausgang blockiert, geht alles zum anderen (außer bei Filter).
+   */
   private splitInsert(st: SplitterState, laneIdx: number, over: number, item: number): boolean {
+    const tryOut = (side: number): boolean => {
+      const o = st.outs[side];
+      if (!o) return false;
+      const tl = o.line.lanes[laneIdx];
+      const d = Math.max(0, Math.min(tl.len - 1, o.d[laneIdx] - over));
+      return this.insertAt(tl, d, item);
+    };
+    if (st.filter >= 0) {
+      const prio = st.outputPriority >= 0 ? st.outputPriority : 0;
+      return tryOut(item === st.filter ? prio : 1 - prio);
+    }
+    if (st.outputPriority >= 0) return tryOut(st.outputPriority) || tryOut(1 - st.outputPriority);
     const first = st.toggle[laneIdx];
     for (let k = 0; k < 2; k++) {
       const side = k === 0 ? first : 1 - first;
-      const o = st.outs[side];
-      if (!o) continue;
-      const tl = o.line.lanes[laneIdx];
-      const d = Math.max(0, Math.min(tl.len - 1, o.d[laneIdx] - over));
-      if (this.insertAt(tl, d, item)) {
+      if (tryOut(side)) {
         st.toggle[laneIdx] = 1 - side;
         return true;
       }
@@ -655,6 +701,27 @@ export class BeltSystem {
     out.y = ry + 0.5;
   }
 
+  /**
+   * Ablagespur eines Greifarms (Wiki „Inserters“): quer zum Band die ferne Spur, bei gleicher oder
+   * entgegengesetzter Richtung die rechte Spur; in Kurven die ferne Seite (über den Ablagepunkt).
+   */
+  static inserterDropLane(t: BeltTile, inserterDir: Dir): number | undefined {
+    if (t.shape !== Shape.Straight) return undefined;
+    if (t.dir === inserterDir || t.dir === opposite(inserterDir)) return 1;
+    // Greifarm legt in Richtung inserterDir ab: zeigt sie zur linken Seite des Bandes, ist links die ferne Spur
+    return inserterDir === rotCW(t.dir, 3) ? 0 : 1;
+  }
+
+  /**
+   * Bevorzugte Aufnahmespuren (Wiki): quer zum Band zuerst die nahe Spur, sonst (gleiche/entgegengesetzte
+   * Richtung oder Kurve) zuerst die linke Spur.
+   */
+  static inserterPickupLanes(t: BeltTile, inserterDir: Dir): [number, number] {
+    if (t.shape !== Shape.Straight || t.dir === inserterDir || t.dir === opposite(inserterDir)) return [0, 1];
+    // Der Greifarm steht in Richtung inserterDir vom Band aus: liegt dort die linke Seite, ist links nah
+    return inserterDir === rotCW(t.dir, 3) ? [0, 1] : [1, 0];
+  }
+
   /** Item an einem Punkt auf ein Band legen (Bohrer, Greifarm, Debug). */
   insertAtPoint(t: BeltTile, fx: number, fy: number, item: number, forceLane?: number): boolean {
     this.ensure();
@@ -702,13 +769,15 @@ export class BeltSystem {
    * Nimmt ein Item vom Feld, das accept() erfüllt. Bevorzugt das vorderste Item
    * (kleinster Abstand zum Feldende) über beide Spuren.
    */
-  takeFromTile(t: BeltTile, accept: (item: number) => boolean): number {
+  takeFromTile(t: BeltTile, accept: (item: number) => boolean, laneOrder?: [number, number]): number {
     this.ensure();
     if (!t.line) return -1;
     let bestLane = -1;
     let bestIdx = -1;
     let bestOff = Infinity;
-    for (let l = 0; l < 2; l++) {
+    for (const l of laneOrder ?? [0, 1]) {
+      // mit Spurvorrang: erste Spur mit passendem Item gewinnt
+      if (laneOrder && bestLane >= 0) break;
       const lane = t.line.lanes[l];
       const [lo, hi] = this.tileRange(t, l);
       let pos = 0;

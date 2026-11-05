@@ -121,7 +121,7 @@ function buildDemoPower(world: World, P: (name: string, x: number, y: number, d:
     world.map.setWater(x, y, false);
   }
   for (let y = 18; y <= 24; y++) for (let x = -12; x <= -8; x++) world.map.setWater(x, y, !((x === -12 || x === -8) && (y === 18 || y === 24)));
-  P('offshore-pump', -7, 21, 1);
+  P('offshore-pump', -8, 21, 1);
   P('pipe', -6, 21, 0);
   P('pipe', -5, 21, 0);
   P('boiler', -4, 20, 0);
@@ -150,5 +150,6 @@ function buildDemoPower(world: World, P: (name: string, x: number, y: number, d:
   }
   const lab = P('lab', 9, 12, 0) as LabEntity;
   insertInto(lab, 'automation-science-pack', 10, 'player');
+  for (const t of ['steam-power', 'electronics', 'automation-science-pack']) world.research.complete(t);
   world.research.start('automation');
 }

@@ -67,7 +67,7 @@ export abstract class EntityBase {
   }
 
   /** Gibt ein Item ab, das accept() erfüllt (für Greifarme). */
-  take(_w: World, _accept: (item: string) => boolean): string | null {
+  take(_w: World, _accept: (item: string) => boolean, _by?: { targetKind?: string }): string | null {
     return null;
   }
 

@@ -8,6 +8,7 @@ import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serialize';
 import { isGzip, pack, unpack } from '../game/packing';
+import { PRESETS } from '../data/blueprints';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
 import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
 import { bloomEnabled, setBloomEnabled } from '../render/look';
@@ -706,6 +707,31 @@ export class Hud {
       this.saveLibrary(lib);
       this.buildBlueprints();
     };
+    el('div', 'bp-sub', body).textContent = 'Vorlagen';
+    const pre = el('div', 'bp-list', body);
+    for (const p of PRESETS) {
+      const it = el('div', 'bp-item', pre);
+      it.title = p.hint;
+      const icons = el('span', 'bp-icons', it);
+      for (const n of [...new Set(p.bp.entities.map((e) => e.name))].slice(0, 4)) icons.appendChild(this.icon(`item.${entityDef(n).item}`, 'icon small'));
+      el('span', '', it).textContent = p.name;
+      const use = el('button', '', it);
+      use.textContent = 'Nehmen';
+      use.onclick = () => {
+        g.clipboard = p.bp;
+        g.setBlueprint(p.bp);
+        this.toggleBlueprints();
+        this.flash(p.hint);
+      };
+      const exp = el('button', '', it);
+      exp.textContent = 'Text';
+      exp.onclick = () => {
+        area.value = bpEncode(p.bp);
+        area.select();
+        void navigator.clipboard?.writeText(area.value).then(() => this.flash('Text in die Zwischenablage kopiert'), () => {});
+      };
+    }
+    el('div', 'bp-sub', body).textContent = 'Eigene';
     const list = el('div', 'bp-list', body);
     if (!lib.length) el('div', 'dim', list).textContent = 'Noch keine gespeicherten Blaupausen.';
     lib.forEach((b, i) => {

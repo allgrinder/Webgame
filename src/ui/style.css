@@ -164,6 +164,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .bp-body button:hover:not(:disabled) { border-color: var(--accent); }
 .bp-body button:disabled { opacity: 0.4; cursor: default; }
 .bp-body button.bad { color: var(--bad); }
+.bp-sub { margin: 6px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
 .bp-list { display: flex; flex-direction: column; gap: 3px; }
 .bp-item { display: grid; grid-template-columns: 90px 1fr auto auto auto; align-items: center; gap: 6px; padding: 3px; border: 1px solid var(--slot-edge); border-radius: 3px; }
 .bp-icons { display: flex; gap: 1px; }

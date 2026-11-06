@@ -51,7 +51,9 @@ export interface RenderUi {
 }
 
 const SHAPE_KEY = ['s', 'l', 'r'];
-const ITEM_SCALE_BELT = 0.42;
+/** Items auf Bändern und in Greifarmen: Größe und dunkle Kontur (Lesbarkeit aus der Entfernung). */
+const ITEM_SCALE_BELT = 0.5;
+const ITEM_OUTLINE = { scale: 1.16, alpha: 0.6 };
 
 export class Camera {
   x = 0;
@@ -604,7 +606,8 @@ export class GameRenderer {
           const tex = itemTex[idx] ?? (itemTex[idx] = this.sprites.frame(`item.${itemId(idx)}`));
           const ix = (t.x + p.x) * TILE;
           const iy = (t.y + p.y) * TILE;
-          if (shadow) pool.push(shadow, ix + 2, iy + 3, 1, 0.55);
+          if (shadow) pool.push(shadow, ix + 3, iy + 4, 1.1, 0.5);
+          pool.push(tex, ix, iy, ITEM_SCALE_BELT * ITEM_OUTLINE.scale, ITEM_OUTLINE.alpha, 0, 0x000000);
           pool.push(tex, ix, iy, ITEM_SCALE_BELT);
         }
       }
@@ -774,8 +777,15 @@ export class GameRenderer {
         if (angles > 0) {
           // vorgerenderte Winkel (geneigte Kamera), Reichweite über leichte Skalierung
           const k = ((Math.round((rot / (Math.PI * 2)) * angles) % angles) + angles) % angles;
-          const arm = this.ents.get(s.frame(`${pre}.arm`, k));
           const sc = reach / (info?.meta?.reach ?? 1);
+          // dunkle Kontur unter dem Arm (hebt ihn vom Boden ab)
+          const ol = this.ents.get(s.frame(`${pre}.arm`, k));
+          ol.position.set(cx, cy);
+          ol.scale.set(sc * 1.05);
+          ol.tint = 0x000000;
+          ol.alpha = 0.45;
+          ol.zIndex = z + 0.9;
+          const arm = this.ents.get(s.frame(`${pre}.arm`, k));
           arm.position.set(cx, cy);
           arm.scale.set(sc);
           arm.zIndex = z + 1;
@@ -794,6 +804,12 @@ export class GameRenderer {
           hy = cy - lift - Math.cos(rot) * reach * TILE;
         }
         if (e.held) {
+          const ot = this.ents.get(s.frame(`item.${e.held}`));
+          ot.position.set(hx, hy);
+          ot.scale.set(ITEM_SCALE_BELT * ITEM_OUTLINE.scale);
+          ot.tint = 0x000000;
+          ot.alpha = ITEM_OUTLINE.alpha;
+          ot.zIndex = z + 1.9;
           const it = this.ents.get(s.frame(`item.${e.held}`));
           it.position.set(hx, hy);
           it.scale.set(ITEM_SCALE_BELT);

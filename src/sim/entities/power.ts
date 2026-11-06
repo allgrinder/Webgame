@@ -96,7 +96,8 @@ export class PumpEntity extends EntityBase implements FluidHolder {
     }
     const n = net.add(this.def.fluid, this.def.pumpingSpeed * FLUID_UNIT);
     w.stats.made(this.def.fluid, n / FLUID_UNIT);
-    this.status = n > 0 ? Status.Working : Status.OutputBlocked;
+    // volle Leitung ist der Normalfall (1 Pumpe reicht für 20 Kessel): Leerlauf, kein Fehler
+    this.status = n > 0 ? Status.Working : Status.Idle;
     if (n > 0) this.workTicks++;
   }
   override save() {
@@ -148,17 +149,20 @@ export class BoilerEntity extends EntityBase implements FluidHolder {
   override update(w: World): void {
     const wn = this.water.net;
     const sn = this.steam.net;
-    const amt = this.steamPerTick;
+    // wie im Original: der Kessel erzeugt nur so viel Dampf, wie abgenommen wird (Rest der Leistung ruht)
+    const full = this.steamPerTick;
+    const amt = sn ? Math.min(full, sn.space(this.def.outputFluid)) : 0;
     const water = Math.ceil(amt / this.def.steamPerWater);
-    if (!wn || wn.fluid !== this.def.inputFluid || wn.amount < water) {
+    if (!wn || wn.fluid !== this.def.inputFluid || wn.amount < Math.max(1, water)) {
       this.status = Status.NoInput;
       return;
     }
-    if (!sn || sn.space(this.def.outputFluid) < amt) {
-      this.status = Status.OutputBlocked;
+    if (!sn || amt <= 0) {
+      // Dampf steht an, aber niemand braucht Strom: kein Fehler, nur Leerlauf
+      this.status = this.fuelSource.canSupply(1) ? Status.Idle : Status.NoFuel;
       return;
     }
-    if (!this.fuelSource.consume(this.joulesPerTick)) {
+    if (!this.fuelSource.consume(Math.ceil((this.joulesPerTick * amt) / full))) {
       this.status = Status.NoFuel;
       return;
     }

@@ -57,4 +57,25 @@ describe('Blaupausen-Vorlagen', () => {
       bp = rotate(bp);
     }
   });
+
+  it('ohne Strombedarf: Leerlauf statt „Ausgabe blockiert“, kaum Brennstoffverbrauch', () => {
+    const w = new World(1);
+    for (let y = -5; y < 20; y++) for (let x = -5; x < 10; x++) {
+      w.map.setResource(x, y, 0, 0);
+      w.map.setWater(x, y, false);
+    }
+    w.map.setWater(0, 0, true);
+    for (const p of placed(STEAM_POWER, 0, 0)) w.place(p.name, p.x, p.y, p.dir);
+    const boiler = [...w.entities.values()].find((e) => e.kind === 'boiler') as BoilerEntity;
+    insertInto(boiler, 'coal', 10, 'player');
+    w.run(60 * 60);
+    for (const e of w.entities.values()) expect(e.status, e.name).not.toBe(3);
+    expect(boiler.status).toBe(0);
+    // nur die erste Füllung von Kessel und Maschinen kostet Brennstoff, danach ruht der Kessel
+    const coal = () => boiler.contents().find((c) => c.item === 'coal')?.count ?? 0;
+    const before = coal();
+    expect(before).toBeGreaterThanOrEqual(4);
+    w.run(5 * 60 * 60);
+    expect(coal()).toBe(before);
+  });
 });

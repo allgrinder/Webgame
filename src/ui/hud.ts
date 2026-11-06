@@ -34,6 +34,16 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.Disabled]: 'Durch Schaltbedingung aus',
 };
 
+/** Statustext; Leerlauf bei Strom- und Wasserteilen genauer benennen. */
+function statusText(e: Entity): string {
+  if (e.status === Status.Idle) {
+    if (e.kind === 'offshore-pump') return 'Leitung voll – wartet auf Verbrauch';
+    if (e.kind === 'boiler') return 'Dampf voll – kein Strombedarf';
+    if (e.kind === 'generator') return 'Kein Strombedarf (Verbraucher anschließen)';
+  }
+  return STATUS_TEXT[e.status];
+}
+
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?: HTMLElement): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -473,7 +483,7 @@ export class Hud {
     close.textContent = '×';
     close.onclick = () => this.closeEntity();
     const body = el('div', 'win-body', this.entWin);
-    el('div', `status s${e.status}`, body).textContent = STATUS_TEXT[e.status];
+    el('div', `status s${e.status}`, body).textContent = statusText(e);
     const row = (label: string, inv: Inventory) => {
       const r = el('div', 'slot-row', body);
       el('span', 'label', r).textContent = label;

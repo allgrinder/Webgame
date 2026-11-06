@@ -365,7 +365,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pole', id: 'small-electric-pole', name: 'Kleiner Strommast', width: 1, height: 1, health: 100,
-    item: 'small-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 7.5, supplyRadius: 2.5,
+    item: 'small-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 7.5, supplyRadius: 3.5,
   },
   {
     kind: 'assembler', id: 'assembling-machine-1', name: 'Montagemaschine', width: 3, height: 3, health: 300,
@@ -395,11 +395,11 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pole', id: 'medium-electric-pole', name: 'Mittlerer Strommast', width: 1, height: 1, health: 100,
-    item: 'medium-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 9, supplyRadius: 3.5,
+    item: 'medium-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 9, supplyRadius: 4.5,
   },
   {
     kind: 'pole', id: 'big-electric-pole', name: 'Großer Strommast', width: 2, height: 2, health: 150,
-    item: 'big-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 32, supplyRadius: 2,
+    item: 'big-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 32, supplyRadius: 3,
   },
   {
     kind: 'lamp', id: 'lamp', name: 'Lampe', width: 1, height: 1, health: 100,
@@ -468,7 +468,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pole', id: 'substation', name: 'Umspannwerk', width: 2, height: 2, health: 200,
-    item: 'substation', mineTime: 0.1, solid: true, rotatable: false, wireReach: 18, supplyRadius: 9,
+    item: 'substation', mineTime: 0.1, solid: true, rotatable: false, wireReach: 18, supplyRadius: 10,
   },
   {
     kind: 'belt', id: 'express-transport-belt', name: 'Express-Förderband', width: 1, height: 1, health: 170,

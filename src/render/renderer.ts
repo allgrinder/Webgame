@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, type Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
-import { type PoleDef, entityDef, sizeOf } from '../data/entities';
+import { type DrillDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
@@ -8,6 +8,7 @@ import { BeltSystem, Shape } from '../sim/belts';
 import { Status } from '../sim/entity';
 import { DX, DY, type Dir } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
+import { drillAreaTiles, drillOutputPoint } from '../sim/entities/basic';
 import { CircuitSystem } from '../sim/circuit';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
@@ -43,6 +44,8 @@ export interface RenderUi {
   robotAreas?: boolean;
   /** Stromnetz zeigen (Mast im Cursor oder unter der Maus): Versorgungsflächen, Kabelvorschau für pole. */
   power?: { pole: Ghost | null } | null;
+  /** Bohrer im Cursor oder unter der Maus: Abbaufelder und Ausgabestelle zeigen. */
+  drill?: Ghost | null;
   /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
   wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
@@ -1205,6 +1208,28 @@ export class GameRenderer {
     }
   }
 
+  /**
+   * Abbaufelder eines Bohrers: Felder mit Rohstoff hell, leere Felder blass, Rahmen um den Bereich;
+   * gelb die Ausgabestelle (dort muss ein Band, eine Kiste oder ein Ofen stehen).
+   */
+  private drawDrillArea(world: World, d: Ghost, g: Graphics): void {
+    const z = this.camera.zoom;
+    const def = entityDef(d.name) as DrillDef;
+    const area = drillAreaTiles(def, d.x, d.y);
+    for (const [tx, ty] of area) {
+      const r = world.map.resourceAt(tx, ty);
+      const has = r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
+      g.rect(tx * TILE, ty * TILE, TILE, TILE).fill({ color: has ? 0x4fb4ff : 0xffffff, alpha: has ? 0.28 : 0.07 });
+    }
+    const n = def.miningAreaSize;
+    g.rect(area[0][0] * TILE, area[0][1] * TILE, n * TILE, n * TILE).stroke({ width: 2 / z, color: 0x9fd4ff, alpha: 0.95 });
+    const [px, py] = drillOutputPoint(def, d.x, d.y, d.dir);
+    const ox = Math.floor(px);
+    const oy = Math.floor(py);
+    g.rect(ox * TILE + 2, oy * TILE + 2, TILE - 4, TILE - 4).fill({ color: 0xffd23a, alpha: 0.18 }).stroke({ width: 2 / z, color: 0xffd23a, alpha: 0.95 });
+    this.arrow(g, px - DX[d.dir] * 0.15, py - DY[d.dir] * 0.15, d.dir, 0xffd23a, 0.3, 0.95);
+  }
+
   private drawOverlay(world: World, ui: RenderUi): void {
     const g = this.overlay;
     g.clear();
@@ -1221,6 +1246,7 @@ export class GameRenderer {
       }
     }
     if (ui.power) this.drawPowerAreas(world, ui.power.pole, g);
+    if (ui.drill) this.drawDrillArea(world, ui.drill, g);
     // zum Abriss markiert: rotes Kreuz
     for (const id of world.robots.marked) {
       const e = world.entities.get(id);

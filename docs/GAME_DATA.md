@@ -151,7 +151,7 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 | Kessel | 3×2, 1,8 MW, Zieltemperatur 165 °C, Fassung 200 | P `boiler.lua`: `energy_consumption = "1.8MW"`, `target_temperature = 165` |
 | Kessel-Durchsatz | 60 Einheiten Dampf/s (1,8 MW / (150 °C × 0,2 kJ)) | abgeleitet |
 | Dampfmaschine | 3×5, 0,5 Einheiten/Tick, 900 kW | P `entity/entities.lua`: `fluid_usage_per_tick = 0.5`, `maximum_temperature = 165` → 30 /s × 30 kJ |
-| Kleiner Strommast | Kabel 7,5 Felder, Versorgung 2,5 Felder (5×5) | P `entity/entities.lua`: `maximum_wire_distance = 7.5`, `supply_area_distance = 2.5` |
+| Kleiner Strommast | Kabel 7,5 Felder, Versorgung 3,5 Felder (7×7; **eigene Abweichung**, Original 5×5) | P `entity/entities.lua`: `maximum_wire_distance = 7.5`, `supply_area_distance = 2.5` |
 | Kleiner Strommast, Rezept | 1 Eisenstange + 2 Kupferkabel → 2 Masten | Abweichung: Vorbild Holz + Kupferkabel; Holz gibt es nicht, E |
 | Stromverteilung | anteilig nach Bedarf; Maschinen werden bei Mangel anteilig langsamer | E, angelehnt an das Verhalten |
 | Elektrischer Bohrer | 3×3, Abbaubereich 5×5, 0,5/s, 90 kW, Lebenspunkte 300 | P `mining-drill.lua`: `mining_speed = 0.5`, `energy_usage = "90kW"`, `resource_searching_radius = 2.49` |
@@ -225,8 +225,8 @@ Das Wiki ist inzwischen erreichbar; diese Werte ersetzen frühere Angaben in den
 | Stahlkiste | 8 Stahl, 0,5 s | 48 Plätze, 350 LP | Stahlverarbeitung |
 | Stahlofen | 6 Stahl + 10 Ziegel, 3 s | 2×2, Geschwindigkeit 2, 90 kW | Fortgeschrittene Materialverarbeitung 75 × 30 s rot+grün |
 | Schneller Greifarm | 2 Schaltkreise + 1 Greifarm + 2 Platten | 0,04 U/Tick, 24 Ticks je Zyklus, 8,12 kJ je Zyklus, Grundlast 0,5 kW | Schneller Greifarm 30 × 15 s rot |
-| Mittlerer Strommast | 2 Kabel + 4 Eisenstangen + 2 Stahl | Kabel 9, Versorgung 7×7 | Energieverteilung 1 120 × 30 s rot+grün |
-| Großer Strommast | 4 Kabel + 8 Eisenstangen + 5 Stahl | 2×2, Kabel 32, Versorgung 4×4 | Energieverteilung 1 |
+| Mittlerer Strommast | 2 Kabel + 4 Eisenstangen + 2 Stahl | Kabel 9, Versorgung 9×9 (**eigene Abweichung**, Original 7×7) | Energieverteilung 1 120 × 30 s rot+grün |
+| Großer Strommast | 4 Kabel + 8 Eisenstangen + 5 Stahl | 2×2, Kabel 32, Versorgung 6×6 (**eigene Abweichung**, Original 4×4) | Energieverteilung 1 |
 | Eisenstange | 1 Platte → 2 | – | Energieverteilung 1 (2.0) |
 | Lampe | 3 Kabel + 1 Schaltkreis + 1 Platte | 5 kW | Lampe 10 × 15 s rot |
 | Montagemaschine 2 | 1 Montagemaschine 1 + 3 Schaltkreise + 5 Zahnräder + 2 Stahl | 0,75, 150 kW, Grundlast 5 kW, 350 LP | Automatisierung 2 40 × 15 s rot+grün |
@@ -247,7 +247,7 @@ Die Lampe leuchtet, sobald sie Strom hat (noch kein Tag-Nacht-Wechsel).
 | Ölraffinerie | 5×5, 2 Eingänge Süd, 3 Ausgänge Nord | Geschwindigkeit 1, 420 kW, Grundlast 14 kW | 10 Schaltkreise + 10 Zahnräder + 10 Rohre + 15 Stahl + 10 Ziegel, 8 s | Ölverarbeitung (Auslöser: Rohöl fördern) |
 | Chemiefabrik | 3×3, 2 Eingänge Süd, 2 Ausgänge Nord | Geschwindigkeit 1, 210 kW, Grundlast 7 kW | 5 Schaltkreise + 5 Zahnräder + 5 Rohre + 5 Stahl, 5 s | Ölverarbeitung |
 | Elektrischer Ofen | 3×3 | Geschwindigkeit 2, 180 kW, Grundlast 6 kW | 5 fortgeschr. Schaltkreise + 10 Stahl + 10 Ziegel, 5 s | Fortgeschr. Materialverarbeitung 2 |
-| Umspannwerk | 2×2 | Kabel 18, Versorgung 18×18 | 5 fortgeschr. Schaltkreise + 6 Kabel + 10 Stahl, 0,5 s | Energieverteilung 2 |
+| Umspannwerk | 2×2 | Kabel 18, Versorgung 20×20 (**eigene Abweichung**, Original 18×18) | 5 fortgeschr. Schaltkreise + 6 Kabel + 10 Stahl, 0,5 s | Energieverteilung 2 |
 | Express-Band / -Untergrund / -Splitter | – | 45 Items/s (24 Positionen/Tick), Untergrund bis 9 Lücke | mit 20 / 40 / 80 Schmiermittel (Montage 2) | Logistik 3 (folgt mit Block 4) |
 
 Rohölquellen: Ergiebigkeit 60–200 % (+0,25 % je Feldabstand, `src/data/mapgen.ts`), 4–10 Quellen je Feld, nicht

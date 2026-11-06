@@ -745,6 +745,14 @@ export class Game {
         : !poleInHand && under?.kind === 'pole' ? { name: under.name, x: under.x, y: under.y, dir: under.dir, ok: true } : null;
       power = { pole };
     }
+    // Bohrer: Abbaufelder und Ausgabe beim Bauen bzw. beim Zeigen auf einen Bohrer
+    let drill: RenderUi['drill'] = null;
+    if (ghost && entityDef(ghost.name).kind === 'drill') drill = ghost;
+    else if (cursorPlace && entityDef(cursorPlace).kind === 'drill' && this.input.overCanvas) {
+      const def = entityDef(cursorPlace);
+      const [w, h] = sizeOf(def, this.buildDir);
+      drill = { name: cursorPlace, x: Math.round(m.x - w / 2), y: Math.round(m.y - h / 2), dir: this.buildDir, ok: false };
+    } else if (!this.cursorItem && under?.kind === 'drill') drill = { name: under.name, x: under.x, y: under.y, dir: under.dir, ok: true };
     let wire: RenderUi['wire'] = null;
     if (this.wireTool) {
       const from = this.wireFrom ? this.world.entities.get(this.wireFrom.id) : undefined;
@@ -752,7 +760,7 @@ export class Game {
       wire = { color: this.wireTool, from: p, to: m };
     }
     return {
-      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power,
+      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power, drill,
       selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
     };
   }

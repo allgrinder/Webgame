@@ -71,16 +71,10 @@ export class DrillEntity extends EntityBase {
     return secondsToTicks(r.miningTime / this.def.miningSpeed);
   }
   areaTiles(): [number, number][] {
-    const size = this.def.miningAreaSize;
-    const ox = this.x + (this.w - size) / 2;
-    const oy = this.y + (this.h - size) / 2;
-    const out: [number, number][] = [];
-    for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) out.push([Math.floor(ox + i), Math.floor(oy + j)]);
-    return out;
+    return drillAreaTiles(this.def, this.x, this.y);
   }
   outputPoint(): [number, number] {
-    const [vx, vy] = rotateVec(this.def.outputVector[0], this.def.outputVector[1], this.dir);
-    return [this.cx + vx, this.cy + vy];
+    return drillOutputPoint(this.def, this.x, this.y, this.dir);
   }
 
   override update(w: World): void {
@@ -392,4 +386,20 @@ export class ContainerEntity extends EntityBase {
     this.requests.length = 0;
     for (const [item, count] of (d.rq as [string, number][] | undefined) ?? []) this.requests.push({ item, count });
   }
+}
+
+/** Abbaufelder eines Bohrers mit linker oberer Ecke (x, y) – auch für die Vorschau beim Bauen. */
+export function drillAreaTiles(def: DrillDef, x: number, y: number): [number, number][] {
+  const size = def.miningAreaSize;
+  const ox = x + (def.width - size) / 2;
+  const oy = y + (def.height - size) / 2;
+  const out: [number, number][] = [];
+  for (let j = 0; j < size; j++) for (let i = 0; i < size; i++) out.push([Math.floor(ox + i), Math.floor(oy + j)]);
+  return out;
+}
+
+/** Punkt, an dem der Bohrer sein Erz ablegt (Band, Kiste, Ofen oder Boden). */
+export function drillOutputPoint(def: DrillDef, x: number, y: number, dir: Dir): [number, number] {
+  const [vx, vy] = rotateVec(def.outputVector[0], def.outputVector[1], dir);
+  return [x + def.width / 2 + vx, y + def.height / 2 + vy];
 }

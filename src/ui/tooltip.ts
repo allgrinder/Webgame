@@ -87,6 +87,7 @@ export class Tooltip {
       const ln: string[] = [`Größe: ${e.width}×${e.height}`, `Lebenspunkte: ${e.health}`];
       if (typeof e.craftingSpeed === 'number') ln.push(`Fertigungstempo: ${e.craftingSpeed}`);
       if (typeof e.miningSpeed === 'number') ln.push(`Abbautempo: ${e.miningSpeed}/s`);
+      if (typeof e.miningAreaSize === 'number') ln.push(`Abbaufläche: ${e.miningAreaSize}×${e.miningAreaSize} Felder`);
       if (typeof e.energyUsage === 'number' && (e.energyUsage as number) > 0) ln.push(`Leistung: ${fmtW(e.energyUsage as number)}${e.energy === 'burner' ? ' (Brennstoff)' : ''}`);
       if (typeof e.speed === 'number' && (e.kind === 'belt' || e.kind === 'splitter' || e.kind === 'underground')) ln.push(`Durchsatz: ${(((e.speed as number) * 60) / 64 * 2).toFixed(1)} Items/s`);
       if (e.kind === 'pole') {

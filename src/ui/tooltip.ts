@@ -89,6 +89,11 @@ export class Tooltip {
       if (typeof e.miningSpeed === 'number') ln.push(`Abbautempo: ${e.miningSpeed}/s`);
       if (typeof e.energyUsage === 'number' && (e.energyUsage as number) > 0) ln.push(`Leistung: ${fmtW(e.energyUsage as number)}${e.energy === 'burner' ? ' (Brennstoff)' : ''}`);
       if (typeof e.speed === 'number' && (e.kind === 'belt' || e.kind === 'splitter' || e.kind === 'underground')) ln.push(`Durchsatz: ${(((e.speed as number) * 60) / 64 * 2).toFixed(1)} Items/s`);
+      if (e.kind === 'pole') {
+        const de = (n: number) => String(n).replace('.', ',');
+        ln.push(`Kabellänge: bis ${de(e.wireReach as number)} Felder (Mitte zu Mitte)`);
+        ln.push(`Versorgungsbereich: ${de((e.supplyRadius as number) * 2)}×${de((e.supplyRadius as number) * 2)} Felder`);
+      }
       if (typeof e.slots === 'number') ln.push(`Plätze: ${e.slots}`);
       if (typeof e.moduleSlots === 'number' && e.moduleSlots) ln.push(`Modulplätze: ${e.moduleSlots}`);
       const pol = POLLUTION_PER_MINUTE[def.placeResult];

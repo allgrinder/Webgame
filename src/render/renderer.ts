@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, type Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
-import { entityDef, sizeOf } from '../data/entities';
+import { type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
@@ -41,6 +41,8 @@ export interface RenderUi {
   selection?: { x0: number; y0: number; x1: number; y1: number; cut?: boolean } | null;
   /** Bereiche der Roboterhangars zeigen (Hangar/Logistikkiste im Cursor oder unter der Maus). */
   robotAreas?: boolean;
+  /** Stromnetz zeigen (Mast im Cursor oder unter der Maus): Versorgungsflächen, Kabelvorschau für pole. */
+  power?: { pole: Ghost | null } | null;
   /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
   wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
@@ -1140,6 +1142,69 @@ export class GameRenderer {
 
   // ------------------------------------------------------------------ Overlay
 
+  /**
+   * Wie im Original beim Bauen von Masten: Versorgungsflächen aller Masten (blau, vereinigt),
+   * für den Mast im Cursor bzw. unter der Maus zusätzlich Fläche, Kabelreichweite und Kabelvorschau
+   * (grün: wird verbunden; rot: nächster Mast zu weit weg).
+   */
+  private drawPowerAreas(world: World, pole: Ghost | null, g: Graphics): void {
+    const z = this.camera.zoom;
+    const v = this.viewRect();
+    const poles: { cx: number; cy: number; def: PoleDef; x: number; y: number }[] = [];
+    for (const e of world.entities.values()) if (e.kind === 'pole') poles.push({ cx: e.cx, cy: e.cy, def: e.def as PoleDef, x: e.x, y: e.y });
+    // Vereinigung der Versorgungsflächen als Feldzeilen (gleichmäßige Farbe ohne Überlappungen)
+    const rows = new Map<number, [number, number][]>();
+    const area = (cx: number, cy: number, r: number) => {
+      const x0 = Math.max(v.x0, Math.ceil(cx - r - 1e-9));
+      const x1 = Math.min(v.x1, Math.floor(cx + r - 1e-9));
+      for (let y = Math.max(v.y0, Math.ceil(cy - r - 1e-9)); y <= Math.min(v.y1, Math.floor(cy + r - 1e-9)); y++) {
+        if (x0 > x1) continue;
+        let l = rows.get(y);
+        if (!l) rows.set(y, (l = []));
+        l.push([x0, x1]);
+      }
+    };
+    for (const p of poles) area(p.cx, p.cy, p.def.supplyRadius);
+    for (const [y, spans] of rows) {
+      spans.sort((a, b) => a[0] - b[0]);
+      let [a, b] = spans[0];
+      for (let i = 1; i <= spans.length; i++) {
+        const s = spans[i];
+        if (s && s[0] <= b + 1) {
+          b = Math.max(b, s[1]);
+          continue;
+        }
+        g.rect(a * TILE, y * TILE, (b - a + 1) * TILE, TILE);
+        if (s) [a, b] = s;
+      }
+    }
+    g.fill({ color: 0x3a8fff, alpha: 0.16 });
+    if (!pole) return;
+    const def = entityDef(pole.name) as PoleDef;
+    const [w, h] = sizeOf(def, pole.dir);
+    const cx = pole.x + w / 2;
+    const cy = pole.y + h / 2;
+    const r = def.supplyRadius;
+    g.rect((cx - r) * TILE, (cy - r) * TILE, 2 * r * TILE, 2 * r * TILE)
+      .fill({ color: 0x3a8fff, alpha: 0.14 })
+      .stroke({ width: 2 / z, color: 0x9fd4ff, alpha: 0.95 });
+    // Kabelreichweite (Mittelpunkt zu Mittelpunkt)
+    g.circle(cx * TILE, cy * TILE, def.wireReach * TILE).stroke({ width: 1.5 / z, color: 0x9fd4ff, alpha: 0.45 });
+    let near: { cx: number; cy: number; d: number } | null = null;
+    let linked = 0;
+    for (const p of poles) {
+      if (p.x === pole.x && p.y === pole.y) continue;
+      const d = Math.hypot(p.cx - cx, p.cy - cy);
+      if (d <= Math.min(def.wireReach, p.def.wireReach)) {
+        g.moveTo(cx * TILE, cy * TILE).lineTo(p.cx * TILE, p.cy * TILE).stroke({ width: 2.5 / z, color: 0x7dff8a, alpha: 0.9 });
+        linked++;
+      } else if (!near || d < near.d) near = { cx: p.cx, cy: p.cy, d };
+    }
+    if (!linked && near && near.d < def.wireReach * 3) {
+      g.moveTo(cx * TILE, cy * TILE).lineTo(near.cx * TILE, near.cy * TILE).stroke({ width: 2.5 / z, color: 0xff6a5a, alpha: 0.85 });
+    }
+  }
+
   private drawOverlay(world: World, ui: RenderUi): void {
     const g = this.overlay;
     g.clear();
@@ -1155,6 +1220,7 @@ export class GameRenderer {
         }
       }
     }
+    if (ui.power) this.drawPowerAreas(world, ui.power.pole, g);
     // zum Abriss markiert: rotes Kreuz
     for (const id of world.robots.marked) {
       const e = world.entities.get(id);

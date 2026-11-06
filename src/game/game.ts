@@ -735,6 +735,16 @@ export class Game {
     const under = this.input.overCanvas ? this.world.entityAt(m.x, m.y) : undefined;
     const showAreas = /roboport|provider-chest|storage-chest|requester-chest|buffer-chest/.test(this.cursorItem ?? '')
       || under?.kind === 'roboport' || (under?.kind === 'container' && !!under.logistic);
+    // Stromnetz: Mast im Cursor (auch in einer Blaupause) oder Mast unter der Maus
+    const cursorPlace = this.cursorItem ? ITEMS[this.cursorItem]?.placeResult : undefined;
+    const poleInHand = !!cursorPlace && entityDef(cursorPlace).kind === 'pole';
+    const poleInBp = !!this.cursorBlueprint?.entities.some((e) => entityDef(e.name).kind === 'pole');
+    let power: RenderUi['power'] = null;
+    if (poleInHand || poleInBp || under?.kind === 'pole') {
+      const pole = ghost && entityDef(ghost.name).kind === 'pole' ? ghost
+        : !poleInHand && under?.kind === 'pole' ? { name: under.name, x: under.x, y: under.y, dir: under.dir, ok: true } : null;
+      power = { pole };
+    }
     let wire: RenderUi['wire'] = null;
     if (this.wireTool) {
       const from = this.wireFrom ? this.world.entities.get(this.wireFrom.id) : undefined;
@@ -742,7 +752,7 @@ export class Game {
       wire = { color: this.wireTool, from: p, to: m };
     }
     return {
-      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire,
+      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power,
       selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
     };
   }

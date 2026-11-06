@@ -1097,6 +1097,7 @@ export class Hud {
     const r = this.game.world.research;
     if (r.finished.length) {
       for (const id of r.finished) this.game.world.player?.note(`Forschung abgeschlossen: ${TECH_BY_ID[id]?.name ?? id}`);
+      this.game.sound.play('research', 0.8);
       r.finished.length = 0;
       this.refreshAll();
     }
@@ -1243,6 +1244,16 @@ export class Hud {
     btn('Spielstand exportieren (Datei)', () => this.exportGame());
     btn('Spielstand importieren (Datei)', () => this.importGame());
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
+    {
+      const vol = Math.round(this.game.sound.volume * 100);
+      btn(`Ton: ${vol === 0 ? 'aus' : `${vol} %`} (Klick: lauter/leiser)`, () => {
+        const steps = [0, 0.25, 0.5, 0.75, 1];
+        const i = steps.findIndex((v) => Math.abs(v - this.game.sound.volume) < 0.01);
+        this.game.sound.setVolume(steps[(i + 1) % steps.length]);
+        this.game.sound.play('click', 1, 0, 0);
+        void this.buildMenu();
+      });
+    }
     const hd = graphicsQuality() === 'hd';
     btn(hd ? 'Grafik: Hoch (HD) → Standard' : 'Grafik: Standard → Hoch (HD, braucht viel Grafikspeicher)', () => {
       // vorher sichern, nach dem Neuladen geht es mit „Weiterspielen“ weiter

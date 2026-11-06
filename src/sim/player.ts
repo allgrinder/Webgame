@@ -195,6 +195,7 @@ export class Player {
     this.lastShot = world.tick;
     this.shotX = t.x;
     this.shotY = t.y;
+    world.events.push('shot', this.x, this.y);
     world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage, { x: this.x, y: this.y });
     if (this.rounds === 0) this.roundsItem = null;
   }
@@ -346,6 +347,7 @@ export class Player {
       this.mineTotal = this.mineTicks(kind.mineTime);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
+        world.events.push('tree', tree.x, tree.y);
         if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
@@ -380,6 +382,7 @@ export class Player {
       this.mineTotal = secondsToTicks(def.miningTime / (PLAYER.miningSpeed * PLAYER.handMiningFactor));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
+        world.events.push('mine', t.x + 0.5, t.y + 0.5);
         if (world.map.mineOne(t.x, t.y)) {
           this.inventory.add(def.result, 1);
           world.stats.made(def.result, 1);
@@ -400,6 +403,7 @@ export class Player {
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         const rec = { name: e.name, x: e.x, y: e.y, dir: e.dir };
+        world.events.push('remove', e.cx, e.cy);
         if (this.pickUpEntity(world, t.id)) this.minedLog.push(rec);
         this.mineTarget = null;
       }
@@ -505,6 +509,7 @@ export class Player {
     if (!job) return;
     if (--job.ticks > 0) return;
     this.craftQueue.shift();
+    world.events.push('craft', this.x, this.y);
     for (const ing of RECIPES[job.recipe].ingredients) this.onUsed(ing.item, ing.amount);
     for (const res of RECIPES[job.recipe].results) this.onCrafted(res.item, res.amount);
     if (!job.toInventory) return; // Zwischenprodukt wird vom folgenden Auftrag verbraucht

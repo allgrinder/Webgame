@@ -62,6 +62,7 @@ export class TurretEntity extends EntityBase {
     this.lastShot = w.tick;
     this.shotX = target.x;
     this.shotY = target.y;
+    w.events.push('turret', this.cx, this.cy);
     w.enemies.damageTarget(w, target, AMMO[this.roundsItem!].damage);
     if (this.rounds === 0) this.roundsItem = null;
     this.status = Status.Working;

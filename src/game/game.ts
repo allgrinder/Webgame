@@ -1,3 +1,4 @@
+import { SoundSystem } from '../audio/sound';
 import { entityDef, sizeOf } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -29,6 +30,8 @@ export class Game {
   readonly renderer: GameRenderer;
   readonly input: Input;
   readonly hud: Hud;
+  /** Geräusche (src/audio/sound.ts). */
+  readonly sound = new SoundSystem();
   cursorItem: string | null = null;
   /** Drahtwerkzeug (G): Farbe und erster gewählter Anschluss. */
   wireTool: 'red' | 'green' | null = null;
@@ -131,6 +134,7 @@ export class Game {
     const alpha = this.paused ? 1 : this.acc / STEP_MS;
     this.updateCamera(dt, alpha);
     this.renderer.render(this.world, alpha, this.buildUi());
+    this.sound.update(this.world, this.renderer.camera, this.renderer.app.screen.width);
     this.frameCount++;
     this.fpsTime += dt;
     if (this.fpsTime >= 500) {

@@ -377,6 +377,7 @@ export class EnemySystem {
         u.angle = Math.atan2(p.y - u.y, p.x - u.x);
         if (u.cd === 0) {
           p.damage(w, def.damage);
+          w.events.push('bite', p.x, p.y);
           u.cd = def.cooldown;
         }
       } else this.move(w, u, p.x, p.y, def.speed);
@@ -498,6 +499,7 @@ export class EnemySystem {
       if (u.hp <= 0) {
         this.units.delete(u.id);
         this.remnants.push({ x: u.x, y: u.y, kind: 'unit', size: def.scale, tick: w.tick });
+        w.events.push('death', u.x, u.y);
         w.stats.made(`kill.${u.kind}`, 1);
       }
     } else {
@@ -515,6 +517,7 @@ export class EnemySystem {
     for (let j = 0; j < NEST.size; j++) for (let i = 0; i < NEST.size; i++) this.occ.delete(cellKey(n.x + i, n.y + j));
     this.evolve(EVOLUTION.perNestDestroyed * this.gen(w).evolutionFactor);
     this.remnants.push({ x: n.x + 2.5, y: n.y + 2.5, kind: 'nest', size: 1, tick: w.tick });
+    w.events.push('nest', n.x + 2.5, n.y + 2.5);
     for (const u of this.units.values()) if (u.nest === n.id && u.mode === 'guard') u.mode = 'attack';
   }
 

@@ -1,6 +1,7 @@
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
 import { PollutionSystem } from './pollution';
+import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
@@ -62,6 +63,8 @@ export class World {
   /** Gleise und Züge. */
   readonly trains = new TrainSystem();
   readonly pollution = new PollutionSystem();
+  /** Ereignisse für Ton/Effekte (nicht gespeichert). */
+  readonly events = new EventQueue();
   readonly enemies = new EnemySystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
@@ -180,7 +183,9 @@ export class World {
       return e;
     }
     if (!chk.ok && !force) return null;
-    return this.create(this.nextId++, name, x, y, dir);
+    const e = this.create(this.nextId++, name, x, y, dir);
+    this.events.push('build', e.cx, e.cy);
+    return e;
   }
 
   /** Legt ein Gebäude mit fester ID an (auch beim Laden). */
@@ -264,7 +269,9 @@ export class World {
   /** Schaden an einem Gebäude; bei 0 Lebenspunkten wird es zerstört (Inhalt geht verloren, wie im Original). */
   damageEntity(e: Entity, dmg: number): void {
     e.hp -= dmg;
+    this.events.push('hit', e.cx, e.cy);
     if (e.hp > 0) return;
+    this.events.push('explode', e.cx, e.cy);
     this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick });
     this.stats.used(`lost.${e.name}`, 1);
     this.remove(e.id);

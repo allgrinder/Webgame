@@ -36,8 +36,8 @@ function walkTo(w: World, p: Player, x: number, y: number) {
 
 function mine(w: World, p: Player, x: number, y: number, count: number) {
   p.setMineTarget({ kind: 'resource', x, y });
-  // Handabbau 3× schneller als im Original (PLAYER.handMiningFactor): 1 s Abbauzeit → 40 Ticks je Stück
-  for (let i = 0; i < count * 40 + 10; i++) w.step();
+  // Handabbau 6× schneller als im Original (PLAYER.handMiningFactor): 1 s Abbauzeit → 20 Ticks je Stück
+  for (let i = 0; i < count * 20 + 5; i++) w.step();
   p.setMineTarget(null);
 }
 

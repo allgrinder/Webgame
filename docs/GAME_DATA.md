@@ -105,7 +105,7 @@ Abkürzungen: **A** = Tabelle der Aufgabenstellung, **P** = Prototypdaten (Datei
 
 | Wert | Projekt | Quelle |
 |---|---|---|
-| Abbaugeschwindigkeit | 0,5 (Original) × 3 Handabbau-Faktor für Rohstoffe (Wunsch, bewusste Abweichung) → 1,5 Items/s bei Abbauzeit 1 | A |
+| Abbaugeschwindigkeit | 0,5 (Original) × 6 Handabbau-Faktor für Rohstoffe (Wunsch, bewusste Abweichung) → 3 Items/s bei Abbauzeit 1 | A |
 | Reichweite Bauen / Gebäude | 10 Felder | P `entities.lua` (character): `build_distance = 10`, `reach_distance = 10` |
 | Reichweite Ressourcen | 2,7 Felder | P `reach_resource_distance = 2.7` |
 | Laufgeschwindigkeit | 0,15 Felder/Tick ≈ 8,9 Felder/s (Diagonale × 181/256) | P `running_speed = 0.15` |
@@ -335,7 +335,7 @@ geschüttet (wie im Original), nicht mehr verworfen.
 | Rohstoffe leicht / mittel / schwer | Menge je Feld × 25 / × 4 / × 1 (Grundwerte) | Wunsch („leicht fast unendlich, schwer wie bisher“); Original: Einstellung „Reichtum“ |
 | Feldgröße | × 1,8 gegenüber den Grundwerten (Radius), Startfelder entsprechend weiter weg | Wunsch („deutlich größer“); Original: Einstellung „Größe“ |
 | Alte Spielstände | ohne gespeicherte Einstellung: Größe 1, schwer, keine Gegner (Karte bleibt gleich) | – |
-| Handabbau Rohstoffe | Abbautempo 0,5 × 3 | Wunsch (bewusste Abweichung) |
+| Handabbau Rohstoffe | Abbautempo 0,5 × 6 | Wunsch (bewusste Abweichung) |
 
 ## Gegner, Verschmutzung, Militär (Wunsch 05.11.2026, Wiki-Abgleich 06.11.2026)
 

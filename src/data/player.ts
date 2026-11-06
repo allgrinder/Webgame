@@ -3,8 +3,8 @@ export const PLAYER = {
   /** Laufgeschwindigkeit in Feldern pro Tick. */
   runningSpeed: 0.15,
   miningSpeed: 0.5,
-  /** Handabbau von Rohstoffen: Faktor auf miningSpeed (Wunsch: 3× schneller als im Original, siehe GAME_DATA.md). */
-  handMiningFactor: 3,
+  /** Handabbau von Rohstoffen: Faktor auf miningSpeed (Wunsch: 6× schneller als im Original, siehe GAME_DATA.md). */
+  handMiningFactor: 6,
   /** Reichweite für Bauen und Gebäude öffnen (Felder). */
   buildDistance: 10,
   reachDistance: 10,

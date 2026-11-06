@@ -1,7 +1,10 @@
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
+import { AMMO, POLLUTION_PER_MINUTE } from '../data/enemies';
+import { entityDef } from '../data/entities';
+import { TECHS } from '../data/tech';
 import { MJ } from '../data/time';
-import { type RecipeDef, craftingRecipeFor, smeltingRecipeFor } from '../data/recipes';
+import { RECIPE_LIST, type RecipeDef, craftingRecipeFor, smeltingRecipeFor } from '../data/recipes';
 
 /** Ein gemeinsames Tooltip-Fenster für Slots und Rezepte (folgt der Maus). */
 export class Tooltip {
@@ -51,17 +54,49 @@ export class Tooltip {
     head.className = 'tt-head';
     head.textContent = `${def?.name ?? id}${count ? ` (${count})` : ''}`;
     box.appendChild(head);
-    const lines: string[] = [`Stapel: ${def?.stackSize ?? 1}`];
-    if (def?.fuelValue) lines.push(`Brennwert: ${(def.fuelValue / MJ).toFixed(1)} MJ`);
-    if (def?.placeResult) lines.push('Baubar');
-    for (const l of lines) {
-      const d = document.createElement('div');
-      d.className = 'tt-line';
-      d.textContent = l;
-      box.appendChild(d);
+    const section = (title: string, lines: string[]) => {
+      if (!lines.length) return;
+      const sec = document.createElement('div');
+      sec.className = 'tt-sec';
+      const t = document.createElement('div');
+      t.className = 'tt-sec-head';
+      t.textContent = title;
+      sec.appendChild(t);
+      for (const l of lines) {
+        const d = document.createElement('div');
+        d.className = 'tt-line';
+        d.textContent = l;
+        sec.appendChild(d);
+      }
+      box.appendChild(sec);
+    };
+    const basic: string[] = [`Stapelgröße: ${def?.stackSize ?? 1}`];
+    if (def?.fuelValue) basic.push(`Brennwert: ${(def.fuelValue / MJ).toFixed(1)} MJ`);
+    const ammo = AMMO[id];
+    if (ammo) basic.push(`Schaden: ${ammo.damage} je Schuss · ${ammo.rounds} Schuss je Magazin`);
+    section('Gegenstand', basic);
+    // Gebäudedaten (wie die Infobox im Original)
+    if (def?.placeResult) {
+      const e = entityDef(def.placeResult) as unknown as Record<string, unknown>;
+      const ln: string[] = [`Größe: ${e.width}×${e.height}`, `Lebenspunkte: ${e.health}`];
+      if (typeof e.craftingSpeed === 'number') ln.push(`Fertigungstempo: ${e.craftingSpeed}`);
+      if (typeof e.miningSpeed === 'number') ln.push(`Abbautempo: ${e.miningSpeed}/s`);
+      if (typeof e.energyUsage === 'number' && (e.energyUsage as number) > 0) ln.push(`Leistung: ${fmtW(e.energyUsage as number)}${e.energy === 'burner' ? ' (Brennstoff)' : ''}`);
+      if (typeof e.speed === 'number' && (e.kind === 'belt' || e.kind === 'splitter' || e.kind === 'underground')) ln.push(`Durchsatz: ${(((e.speed as number) * 60) / 64 * 2).toFixed(1)} Items/s`);
+      if (typeof e.slots === 'number') ln.push(`Plätze: ${e.slots}`);
+      if (typeof e.moduleSlots === 'number' && e.moduleSlots) ln.push(`Modulplätze: ${e.moduleSlots}`);
+      const pol = POLLUTION_PER_MINUTE[def.placeResult];
+      if (pol) ln.push(`Verschmutzung: ${pol}/min`);
+      section('Gebäude', ln);
     }
+    // Verwendung: in welchen Rezepten es vorkommt (wie „Zutat für“)
+    const uses = RECIPE_LIST.filter((r) => r.ingredients.some((g) => g.item === id)).map((r) => nameOf(r.results[0].item));
+    if (uses.length) section('Zutat für', [uses.slice(0, 6).join(', ') + (uses.length > 6 ? ` … (+${uses.length - 6})` : '')]);
+    const tech = TECHS.find((t) => t.unlocks.includes(id));
+    if (tech) section('Freigeschaltet durch', [tech.name]);
     return box;
   }
+
 
   /**
    * Inhalt für ein Rezept: Ergebnis, Rezeptbaum (Zutaten und deren Zwischenprodukte, rekursiv) mit Vorrat,
@@ -172,4 +207,8 @@ function expand(item: string, amount: number, out: Map<string, number>, depth: n
 /** Anzeigename eines Items oder einer Flüssigkeit. */
 export function nameOf(id: string): string {
   return ITEMS[id]?.name ?? FLUIDS[id]?.name ?? id;
+}
+
+function fmtW(w: number): string {
+  return w >= 1e6 ? `${(w / 1e6).toFixed(1)} MW` : `${Math.round(w / 1e3)} kW`;
 }

@@ -90,6 +90,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBe(0);
 
   // Zahnrad herstellen
+  await page.locator('.inventory .craft-tab[title="Zwischenprodukte"]').click();
   await page.locator('.inventory .recipe[data-recipe="iron-gear-wheel"]').click();
   await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel') >= 1, null, { timeout: 15_000 });
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel'))).toBe(1);

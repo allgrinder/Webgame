@@ -41,6 +41,19 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?
 }
 
 /** Schlankes DOM-Overlay für Schnellleiste, Inventar, Handwerk und Gebäudefenster. */
+/** Rezeptreiter wie im Original. */
+const CRAFT_GROUPS = ['Logistik', 'Produktion', 'Zwischenprodukte', 'Kampf'] as const;
+type CraftGroup = (typeof CRAFT_GROUPS)[number];
+const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'rail', 'train-stop', 'roboport', 'lamp', 'combinator']);
+const KAMPF = new Set(['firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar']);
+function recipeGroup(item: string): CraftGroup {
+  if (KAMPF.has(item)) return 'Kampf';
+  const place = ITEMS[item]?.placeResult;
+  if (place) return LOGISTIK_KINDS.has(entityDef(place).kind) ? 'Logistik' : 'Produktion';
+  if (item === 'locomotive' || item === 'cargo-wagon' || item.endsWith('-robot')) return 'Logistik';
+  return 'Zwischenprodukte';
+}
+
 export class Hud {
   private readonly layer: HTMLDivElement;
   private readonly info: HTMLDivElement;
@@ -110,6 +123,7 @@ export class Hud {
     this.refreshAll();
   }
 
+  private craftTab: CraftGroup = 'Logistik';
   private healthEl!: HTMLElement;
   private healthFill!: HTMLElement;
 
@@ -291,11 +305,22 @@ export class Hud {
     });
     const right = el('div', 'col', body);
     el('div', 'sub-head', right).textContent = 'Handwerk (Klick: 1, Umschalt: 5, Strg: alle)';
+    // Reiter wie im Original: Logistik, Produktion, Zwischenprodukte, Kampf
+    const tabs = el('div', 'craft-tabs', right);
     const rgrid = el('div', 'grid recipes', right);
     this.recipeEls.clear();
     const research = this.game.world.research;
+    const group = recipeGroup;
+    const all = RECIPE_LIST.filter((r) => r.category === 'crafting');
+    for (const gname of CRAFT_GROUPS) {
+      const b = el('button', `craft-tab${gname === this.craftTab ? ' on' : ''}`, tabs);
+      const first = all.find((r) => group(r.results[0].item) === gname);
+      if (first) b.appendChild(this.icon(`item.${first.results[0].item}`));
+      b.title = gname;
+      b.onclick = () => { this.craftTab = gname; this.buildInventory(); };
+    }
     // Gesperrte Rezepte ausgegraut hinten anhängen (mit Hinweis auf die nötige Forschung)
-    const unlockedFirst = RECIPE_LIST.filter((r) => r.category === 'crafting').sort((a, b) => Number(!research.recipeUnlocked(a.id)) - Number(!research.recipeUnlocked(b.id)));
+    const unlockedFirst = all.filter((r) => group(r.results[0].item) === this.craftTab).sort((a, b) => Number(!research.recipeUnlocked(a.id)) - Number(!research.recipeUnlocked(b.id)));
     for (const r of unlockedFirst) {
       if (!research.recipeUnlocked(r.id)) {
         const tech = TECHS.find((t) => t.unlocks.includes(r.id));

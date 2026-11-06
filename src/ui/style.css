@@ -207,3 +207,69 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 
 .hud-health { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); width: 240px; height: 8px; background: #111a; border: 1px solid #000; border-radius: 2px; display: none; pointer-events: none; }
 .hud-health .fill { height: 100%; background: linear-gradient(#e86a5a, #b8382a); border-radius: 1px; }
+
+/* ======================================================================
+   Bedienoberfläche „Werkhalle“: kantige Fenster mit Fasen, eingelassene
+   dunkle Inhaltsflächen, plastische Schaltflächen, gegliederte Tooltips.
+   (eigener Stil; Prinzip wie im Original: klare Rahmen, hoher Kontrast)
+   ====================================================================== */
+:root {
+  --frame-hi: rgba(255, 240, 215, 0.13);
+  --frame-lo: rgba(0, 0, 0, 0.6);
+  --deep: #171513;
+  --btn: linear-gradient(180deg, #a49c8e 0%, #8a8274 48%, #776f62 52%, #6a6357 100%);
+  --btn-hover: linear-gradient(180deg, #e6b24a 0%, #d49a2c 50%, #b97f1c 100%);
+  --btn-ok: linear-gradient(180deg, #7fb86a 0%, #5f9a4c 50%, #4b8039 100%);
+}
+.window { border-radius: 0; border: 1px solid #0c0b0a;
+  background: linear-gradient(180deg, #34312d 0%, #2b2926 100%);
+  box-shadow: 0 10px 30px rgba(0,0,0,.6), inset 1px 1px 0 var(--frame-hi), inset -1px -1px 0 var(--frame-lo), inset 0 0 0 3px #26231f; }
+.win-head { border-radius: 0; padding: 7px 10px 6px 12px; gap: 10px; color: #f0d9a8; font-size: 14px;
+  background: linear-gradient(180deg, #403a33 0%, #332e28 100%); border-bottom: 1px solid #0c0b0a; justify-content: flex-start; }
+.win-head::before { display: none; }
+/* Riffelband als Griff zwischen Titel und Schließen */
+.win-head::after { display: block; content: ''; position: static; flex: 1; height: 10px; margin: 0; border-radius: 0; width: auto;
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,0.45) 0 2px, rgba(255,235,200,0.08) 2px 4px); box-shadow: none; }
+.win-head .close { order: 3; width: 22px; height: 22px; padding: 0; font-size: 15px; font-weight: 700; color: #1c1a17;
+  background: var(--btn); border: 1px solid #0c0b0a; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35); }
+.win-head .close:hover { background: var(--btn-hover); }
+.win-body { padding: 10px; }
+/* eingelassene Inhaltsflächen */
+.grid.inv, .grid.recipes, .slot-row, .tech-body, .stats-cols, .bp-list, .menu-body, .help-body {
+  background: var(--deep); box-shadow: inset 1px 1px 0 var(--frame-lo), inset -1px -1px 0 var(--frame-hi); padding: 6px; }
+.slot { border-radius: 0; border: 1px solid #0f0e0c; background: linear-gradient(180deg, #3b3833 0%, #2c2a26 100%);
+  box-shadow: inset 1px 1px 0 rgba(255,240,215,0.10), inset -1px -1px 0 rgba(0,0,0,0.5); }
+.slot:hover { border-color: #e0a53a; box-shadow: inset 0 0 0 1px #e0a53a; }
+.slot.active { background: linear-gradient(180deg, #6b5426 0%, #4c3b1b 100%); border-color: #e0a53a; }
+.slot .count { font-size: 12px; right: 3px; bottom: 1px; }
+.quickbar { border-radius: 0; background: linear-gradient(180deg, #34312d, #2b2926); border: 1px solid #0c0b0a;
+  box-shadow: 0 6px 18px rgba(0,0,0,.5), inset 1px 1px 0 var(--frame-hi), inset -1px -1px 0 var(--frame-lo); }
+/* Schaltflächen */
+.menu-btn, .small-btn, .choice, .bp-body button, .circuit button, .req-row button, .train button, .stats-tabs button {
+  border-radius: 0 !important; border: 1px solid #0c0b0a !important; color: #15130f !important; font-weight: 600;
+  background: var(--btn) !important; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), 0 1px 0 rgba(0,0,0,0.5) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.25); cursor: pointer; }
+.menu-btn:hover, .small-btn:hover, .choice:hover, .bp-body button:hover:not(:disabled), .circuit button:hover, .req-row button:hover,
+.train button:hover, .stats-tabs button:hover { background: var(--btn-hover) !important; }
+.menu-btn:active, .small-btn:active, .choice:active { box-shadow: inset 1px 1px 2px rgba(0,0,0,0.6) !important; transform: translateY(1px); }
+.menu-btn.primary, .choice.on, .small-btn.active, .stats-tabs button.active { background: var(--btn-ok) !important; }
+.menu-btn { padding: 7px 10px; }
+/* Fortschrittsbalken: kantig, eingelassen */
+.progress { border-radius: 0; background: var(--deep); box-shadow: inset 1px 1px 0 var(--frame-lo); border: 1px solid #0c0b0a; }
+.progress .fill { border-radius: 0; }
+/* Tooltip: Kopf mit Farbbalken, gegliederte Abschnitte */
+.tooltip { border-radius: 0 !important; padding: 0 !important; border: 1px solid #0c0b0a !important;
+  background: #24221f !important; box-shadow: 0 8px 22px rgba(0,0,0,.6), inset 1px 1px 0 var(--frame-hi) !important; }
+.tooltip > div { padding: 6px 9px 7px; }
+.tooltip .tt-head { margin: -6px -9px 6px; padding: 6px 9px; background: linear-gradient(180deg, #4d4336, #3c342a);
+  color: #ffe2a6; border-bottom: 1px solid #0c0b0a; font-size: 13px; }
+.tt-sec { margin-top: 5px; padding-top: 4px; border-top: 1px solid rgba(255,235,200,0.08); }
+.tt-sec-head { color: #c9a66a; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 1px; }
+.craft-tabs { display: flex; gap: 3px; margin-bottom: 4px; }
+.craft-tab { width: 56px; height: 44px; display: grid; place-items: center; padding: 0; cursor: pointer; border-radius: 0;
+  border: 1px solid #0c0b0a; background: linear-gradient(180deg, #3b3833, #2c2a26); box-shadow: inset 1px 1px 0 rgba(255,240,215,0.1); }
+.craft-tab .icon { width: 34px; height: 34px; }
+.craft-tab.on { background: linear-gradient(180deg, #6b5426, #4c3b1b); border-color: #e0a53a; }
+.craft-tab:hover { border-color: #e0a53a; }
+.window-row > .window { max-height: 92vh; overflow-y: auto; }
+.grid.recipes { max-height: 56vh; overflow-y: auto; align-content: start; }

@@ -276,3 +276,20 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .grid.recipes { max-height: 56vh; overflow-y: auto; align-content: start; }
 .mapview { position: fixed; inset: 0; z-index: 20; cursor: grab; background: #1d1b17; }
 .mapview:active { cursor: grabbing; }
+
+/* Strom-Übersicht */
+.hud-power { position: absolute; left: 10px; top: 66px; display: flex; align-items: center; gap: 6px; padding: 3px 8px; font-size: 12px; background: #15120fd0; border: 1px solid #0c0b0a; box-shadow: inset 1px 1px 0 #ffffff14; cursor: pointer; pointer-events: auto; color: var(--text); }
+.hud-power.hidden { display: none; }
+.hud-power .bolt { color: #e8cf4a; }
+.hud-power .progress { width: 70px; flex: none; }
+.hud-power.high .progress .fill { background: #e89a3a; }
+.hud-power.bad { border-color: #b8382a; }
+.hud-power.bad .progress .fill { background: #d8503a; }
+.hud-power .warn { color: #ff7a5a; font-weight: 700; }
+.power-hints { margin: 6px 0; padding: 6px 8px; border: 1px solid #8a5a2a; background: #3a2510a0; color: #f3c88a; display: flex; flex-direction: column; gap: 3px; }
+.power-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+.power-nums > div { background: var(--slot); border: 1px solid var(--slot-edge); padding: 4px 6px; }
+.power-nums b { font-size: 15px; }
+.power-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.power-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.power-row .icon.small { width: 24px; height: 24px; }

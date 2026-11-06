@@ -20,6 +20,7 @@ import { FLUIDS } from '../data/fluids';
 import type { Condition } from '../sim/circuit';
 import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
+import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -80,6 +81,11 @@ export class Hud {
   private readonly menu: HTMLDivElement;
   private readonly techWin: HTMLDivElement;
   private readonly statsWin: HTMLDivElement;
+  private readonly powerWin: HTMLDivElement;
+  private readonly powerBadge: HTMLDivElement;
+  private readonly gridView: StatsView;
+  /** gewähltes Netz in der Stromübersicht (Schlüssel), null = größtes. */
+  private powerNetKey: number | null = null;
   private readonly bpWin: HTMLDivElement;
   private readonly trainWin: HTMLDivElement;
   private openTrainId: { train: number; vehicle: number } | null = null;
@@ -114,11 +120,16 @@ export class Hud {
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.statsWin = el('div', 'window stats hidden', this.layer);
+    this.powerWin = el('div', 'window stats power-win hidden', this.layer);
+    this.powerBadge = el('div', 'hud-power hidden', this.layer);
+    this.powerBadge.title = 'Strom-Übersicht (O)';
+    this.powerBadge.onclick = () => this.togglePower();
     this.bpWin = el('div', 'window blueprints hidden', this.layer);
     this.trainWin = el('div', 'window train hidden', this.layer);
     const statIcon = (id: string) => (this.sprites.has(`item.${id}`) ? this.icon(`item.${id}`, 'icon small') : null);
     this.prodView = new StatsView(statIcon, 'items');
     this.powerView = new StatsView(statIcon, 'power');
+    this.gridView = new StatsView(statIcon, 'power');
     this.researchEl = el('div', 'research-bar', this.layer);
     this.minimap = new Minimap(this.layer, () => game.renderer.biomeField(game.world));
     this.mapView = new MapView(this.layer, this.minimap);
@@ -219,6 +230,8 @@ export class Hud {
       } else if (Number(this.msgEl.dataset.t ?? 0) + 180 < this.frame) this.msgEl.textContent = '';
     }
     if (this.frame % 60 === 0 && !this.statsWin.classList.contains('hidden')) this.buildStats();
+    if (this.frame % 30 === 0) this.updatePowerBadge();
+    if (this.frame % 60 === 0 && !this.powerWin.classList.contains('hidden')) this.buildPower();
     if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
@@ -598,7 +611,7 @@ export class Hud {
       this.mapView.toggle(0, 0);
       any = true;
     }
-    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.bpWin, this.trainWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.powerWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -910,6 +923,126 @@ export class Hud {
       this.buildTrain();
     };
     if (!stations.length) el('div', 'dim', body).textContent = 'Noch keine Bahnhöfe – Bahnhof rechts neben das Gleis setzen (in Fahrtrichtung).';
+  }
+
+  // ---------------------------------------------------------- Strom
+
+  togglePower(): void {
+    const hidden = this.powerWin.classList.toggle('hidden');
+    if (!hidden) this.buildPower();
+  }
+
+  /** Kleine Anzeige oben links: Erzeugung / Nennleistung, rot bei Unterversorgung. */
+  private updatePowerBadge(): void {
+    const w = this.game.world;
+    const rep = powerReport(w);
+    if (!rep.nets.length && !rep.engines) {
+      this.powerBadge.classList.add('hidden');
+      return;
+    }
+    let demand = 0;
+    let supplied = 0;
+    let installed = 0;
+    for (const n of rep.nets) {
+      demand += n.demand;
+      supplied += n.supplied;
+      installed += n.installed;
+    }
+    const sat = demand > 0 ? supplied / demand : 1;
+    const load = installed > 0 ? supplied / installed : 0;
+    const warn = rep.boilersNoFuel + rep.boilersNoWater + rep.unconnected + rep.generatorsAlone > 0;
+    this.powerBadge.classList.remove('hidden');
+    this.powerBadge.classList.toggle('bad', sat < 0.98);
+    this.powerBadge.classList.toggle('high', sat >= 0.98 && load > 0.9);
+    this.powerBadge.replaceChildren();
+    el('span', 'bolt', this.powerBadge).textContent = '⚡';
+    el('span', '', this.powerBadge).textContent = `${fmtPower(supplied)} / ${fmtPower(installed)}`;
+    const bar = el('div', 'progress power', this.powerBadge);
+    el('div', 'fill', bar).style.width = `${Math.round(Math.min(1, load) * 100)}%`;
+    el('span', 'dim', this.powerBadge).textContent = sat < 0.98 ? `nur ${Math.round(sat * 100)} % gedeckt` : demand > 0 ? 'gedeckt' : 'kein Bedarf';
+    if (warn) el('span', 'warn', this.powerBadge).textContent = '!';
+  }
+
+  /** Strom-Übersicht (O): je Netz Bedarf, Erzeugung, Nennleistung, Erzeuger/Verbraucher, Hinweise, Verlauf. */
+  private buildPower(): void {
+    const w = this.game.world;
+    const rep = powerReport(w);
+    const scroll = this.powerWin.querySelector<HTMLElement>('.win-body')?.scrollTop ?? 0;
+    this.powerWin.replaceChildren();
+    const head = el('div', 'win-head', this.powerWin);
+    head.textContent = 'Strom';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => this.togglePower();
+    const body = el('div', 'win-body', this.powerWin);
+    if (!rep.nets.length) {
+      el('div', 'dim', body).textContent = 'Noch kein Stromnetz. Dampfmaschine bauen und einen Strommast so setzen, dass sein blauer Bereich sie berührt (Vorlage: B → Vorlagen → Dampfkraft).';
+    }
+    let net = rep.nets.find((n) => n.key === this.powerNetKey) ?? rep.nets[0];
+    if (rep.nets.length > 1) {
+      const row = el('div', 'choice-row', body);
+      rep.nets.forEach((n, i) => {
+        const b = el('button', `choice${n === net ? ' on' : ''}`, row);
+        b.textContent = `Netz ${i + 1}`;
+        b.title = `${n.poles} Masten · ${fmtPower(n.supplied)} von ${fmtPower(n.installed)}`;
+        b.onclick = () => { this.powerNetKey = n.key; this.buildPower(); };
+      });
+    }
+    // Hinweise (gelten für alle Netze)
+    const hints: string[] = [];
+    if (net) {
+      if (net.demand > 0 && net.supplied < net.demand * 0.98) hints.push(`Zu wenig Strom: Bedarf ${fmtPower(net.demand)}, verfügbar ${fmtPower(net.supplied)}. Mehr Erzeuger bauen (1 Kessel versorgt 2 Dampfmaschinen) oder Kessel prüfen.`);
+      if (net.noSteam) hints.push(`${net.noSteam} Dampfmaschine${net.noSteam > 1 ? 'n' : ''} ohne Dampf – Kessel braucht Brennstoff und Wasser.`);
+    }
+    if (rep.boilersNoFuel) hints.push(`${rep.boilersNoFuel} Kessel ohne Brennstoff (Kohle oder Holz einlegen, am besten per Greifarm vom Band).`);
+    if (rep.boilersNoWater) hints.push(`${rep.boilersNoWater} Kessel ohne Wasser (Uferpumpe und Rohr an die Schmalseite).`);
+    if (rep.engines > rep.boilers * 2) hints.push(`${rep.engines} Dampfmaschinen, aber nur ${rep.boilers} Kessel – ein Kessel reicht für 2 Dampfmaschinen.`);
+    if (rep.generatorsAlone) hints.push(`${rep.generatorsAlone} Erzeuger ohne Strommast in Reichweite.`);
+    if (rep.unconnected) hints.push(`${rep.unconnected} Maschine${rep.unconnected > 1 ? 'n' : ''} außerhalb jedes Versorgungsbereichs (kein Strom).`);
+    if (hints.length) {
+      const box = el('div', 'power-hints', body);
+      for (const h of hints) el('div', '', box).textContent = h;
+    }
+    if (!net) return;
+    const sec = el('div', 'power-info', body);
+    const line = (label: string, frac: number, text: string, cls = 'power') => {
+      const r = el('div', 'progress-row', sec);
+      el('span', 'label', r).textContent = label;
+      const b = el('div', `progress ${cls}`, r);
+      el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
+      el('span', 'dim', r).textContent = text;
+    };
+    const sat = net.demand > 0 ? net.supplied / net.demand : 1;
+    line('Bedarf gedeckt', sat, `${Math.round(sat * 100)} %`);
+    line('Auslastung', net.installed > 0 ? net.supplied / net.installed : 0, `${fmtPower(net.supplied)} von ${fmtPower(net.installed)}`);
+    const nums = el('div', 'power-nums', body);
+    const num = (label: string, v: string) => {
+      const d = el('div', '', nums);
+      el('div', 'dim', d).textContent = label;
+      el('b', '', d).textContent = v;
+    };
+    num('Erzeugung jetzt', fmtPower(net.supplied));
+    num('Bedarf jetzt', fmtPower(net.demand));
+    num('Nennleistung', fmtPower(net.installed));
+    num('Reserve', fmtPower(Math.max(0, net.installed - net.supplied)));
+    const lists = el('div', 'power-lists', body);
+    const list = (title: string, rows: { name: string; text: string }[]) => {
+      const col = el('div', '', lists);
+      el('div', 'sub-head', col).textContent = title;
+      if (!rows.length) el('div', 'dim', col).textContent = '–';
+      for (const r of rows) {
+        const it = el('div', 'power-row', col);
+        it.appendChild(this.icon(`item.${entityDef(r.name).item}`, 'icon small'));
+        el('span', '', it).textContent = r.text;
+      }
+    };
+    list('Erzeuger', net.generators.map((g) => ({ name: g.name, text: `${g.count}× ${entityDef(g.name).name} · max ${fmtPower(g.installed)}` })));
+    list('Verbraucher', net.consumers.map((c) => ({ name: c.name, text: `${c.count}× ${entityDef(c.name).name}` })));
+    el('div', 'sub-head', body).textContent = 'Verlauf';
+    const st = el('div', 'power-stats', body);
+    const stats = w.power.nets.find((n) => n.key === net.key)?.stats;
+    if (stats) this.gridView.render(st, stats);
+    body.scrollTop = scroll;
   }
 
   toggleStats(): void {
@@ -1284,7 +1417,7 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>

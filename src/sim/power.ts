@@ -46,7 +46,7 @@ export interface ElectricConsumer {
   readonly energy: unknown;
 }
 
-function electricOf(e: unknown): ElectricSource | null {
+export function electricOf(e: unknown): ElectricSource | null {
   const en = (e as { energy?: { type?: string } } | null)?.energy;
   return en && en.type === 'electric' ? (en as ElectricSource) : null;
 }

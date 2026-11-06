@@ -333,6 +333,7 @@ export class Game {
       case 'alt': this.alt = !this.alt; break;
       case 'f3': this.hud.toggleDebug(); break;
       case 'p': this.hud.toggleStats(); break;
+      case 'o': this.hud.togglePower(); break;
       case 'f4': if (this.debug) this.paused = !this.paused; break;
       case 'h': this.hud.toggleHelp(); break;
       case 'z':

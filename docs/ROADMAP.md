@@ -195,4 +195,5 @@ Wissenschaft; Zug-Signale, Diagonalen und Selbstfahren; Kernkraft und Dampfturbi
   PixiJS-Decoder nur über fremdes CDN; Nutzen nur im HD-Modus.
 - Simulation im Web Worker: geprüft, zurückgestellt – 0,65 ms/Tick bei 3200 Gebäuden und 100 Gegnern (~4 % des
   Bildbudgets); großer Umbau ohne spürbaren Gewinn.
-- CC0-Texturen (Poly Haven): Test `docs/img/cc0-test.png` – Struktur ja, Muster teils unpassend; Entscheidung offen.
+- CC0-Texturen (Poly Haven): getestet (vollflächig und nur als Rost-/Schmutzschicht) und verworfen – kaum Gewinn,
+  in SD praktisch unsichtbar; Grafik bleibt vollständig aus eigenen Blender-Skripten.

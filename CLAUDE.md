@@ -67,6 +67,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Stil „Endzeit-Industrie“ in drei Ausbaustufen (Notbau → Werkstatt → Hochtechnik): `docs/ART_STYLE.md`, Baukasten
   `assets/blender/lib/kit.py`; Pilot Montagemaschinen 1–3 (`lib/stufen.py`, `models/montage.py`). Neue/überarbeitete
   Modelle folgen der Stilbibel.
+- Phase I: Geräusche `src/audio/sound.ts` (ZzFX, Ereignisse `src/sim/events.ts`), Spielstände gzip (`src/game/packing.ts`),
+  Bloom (pixi-filters, Menü/`?bloom=0`), Partikel-Ausbrüche (`render/effects.ts`), Flussfeld-Wegsuche (`src/sim/flowfield.ts`),
+  Eigenschafts-Tests (fast-check). Wiki ist direkt erreichbar (Umgebung „Webgame“).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

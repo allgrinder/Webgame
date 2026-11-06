@@ -181,3 +181,18 @@ Reparaturset (`src/sim/enemies.ts`, `src/sim/pollution.ts`, `src/data/enemies.ts
 
 Nächste Blöcke (Vorschlag): Speier/Würmer und Ausbreitung; Tor, Laser-/Flammentürme, Rüstung, Granaten, militärische
 Wissenschaft; Zug-Signale, Diagonalen und Selbstfahren; Kernkraft und Dampfturbine; Auto/Panzer; Klippen.
+
+## Phase I – Bibliotheken und Werkzeuge (Wunsch 06.11.2026)
+
+- Wiki-Abgleich Gegner/Militär direkt aus wiki.factorio.com (Werte in `docs/GAME_DATA.md`) – erledigt.
+- Geräusche: eigene Formel-Klänge mit ZzFX über Web Audio (`src/audio/sound.ts`, Ereignisse `src/sim/events.ts`);
+  Howler.js nicht nötig (keine Tondateien) – erledigt.
+- Spielstände mit fflate komprimiert (`src/game/packing.ts`, Export `.eisenwerk`) – erledigt.
+- Leuchten (Bloom, pixi-filters) und Partikel-Ausbrüche; @pixi/particle-emitter passt nicht zu PixiJS 8 – erledigt.
+- Gegner-Wegsuche mit Flussfeld (`src/sim/flowfield.ts`), Eimer-Raster für Zielsuche statt rbush (bewegte Punkte) – erledigt.
+- Eigenschafts-Tests mit fast-check (`tests/sim/properties.test.ts`) – erledigt.
+- Komprimierte Texturen (KTX2/Basis): geprüft, zurückgestellt – Encoder höchstens 12 Megapixel (HD-Atlanten 16),
+  PixiJS-Decoder nur über fremdes CDN; Nutzen nur im HD-Modus.
+- Simulation im Web Worker: geprüft, zurückgestellt – 0,65 ms/Tick bei 3200 Gebäuden und 100 Gegnern (~4 % des
+  Bildbudgets); großer Umbau ohne spürbaren Gewinn.
+- CC0-Texturen (Poly Haven): Test `docs/img/cc0-test.png` – Struktur ja, Muster teils unpassend; Entscheidung offen.

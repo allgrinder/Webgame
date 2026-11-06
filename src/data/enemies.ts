@@ -138,3 +138,6 @@ export const PLAYER_COMBAT = {
 
 /** Reparaturset (Wiki „Repair pack“): Haltbarkeit 300, Tempo 2 → 2 Lebenspunkte je Tick (Messvorschlag). */
 export const REPAIR = { durability: 300, perTick: 2 } as const;
+
+/** Wegsuche der Gegner: Flussfeld im Fenster ±window Felder um das Ziel (eigener Wert; Original: Wegsuche je Gruppe). */
+export const PATH = { window: 48 } as const;

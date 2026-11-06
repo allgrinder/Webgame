@@ -177,7 +177,7 @@ export class Player {
     const wpn = this.weapon;
     if (!wpn) return;
     const W = WEAPONS[wpn];
-    const t = world.enemies.nearestTarget(this.x, this.y, W.range);
+    const t = world.enemies.nearestTarget(this.x, this.y, W.range, world.tick);
     if (!t) return;
     if (this.rounds === 0) {
       const it = Object.keys(AMMO).reverse().find((a) => this.inventory.count(a) > 0);

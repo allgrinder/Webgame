@@ -32,7 +32,7 @@ export class TurretEntity extends EntityBase {
 
   override update(w: World): void {
     if (this.cooldown > 0) this.cooldown--;
-    const target = w.enemies.nearestTarget(this.cx, this.cy, TURRET.range);
+    const target = w.enemies.nearestTarget(this.cx, this.cy, TURRET.range, w.tick);
     if (!target) {
       this.status = this.rounds > 0 || !this.ammo.isEmpty() ? Status.Idle : Status.NoInput;
       return;

@@ -1,6 +1,7 @@
-import { ENEMY_MAPGEN, EVOLUTION, NEST, PLAYER_COMBAT, POLLUTION, POLLUTION_PER_MINUTE, UNITS, type UnitKind } from '../data/enemies';
+import { ENEMY_MAPGEN, EVOLUTION, NEST, PATH, PLAYER_COMBAT, POLLUTION, POLLUTION_PER_MINUTE, UNITS, type UnitKind } from '../data/enemies';
 import { entityDef } from '../data/entities';
 import type { Entity } from './machines';
+import { FlowField } from './flowfield';
 import { PollutionSystem } from './pollution';
 
 const PollutionSystemUnkey = PollutionSystem.unkey;
@@ -356,7 +357,7 @@ export class EnemySystem {
         u.target = null;
       } else {
         if (Math.hypot(u.x - nest.x - 2.5, u.y - nest.y - 2.5) < 4) u.mode = 'guard';
-        else this.move(w, u, nest.x + 2.5, nest.y + 2.5, def.speed);
+        else this.moveVia(w, u, `n${nest.id}`, nest.x, nest.y, NEST.size, NEST.size, null, def.speed);
         return;
       }
     }
@@ -420,17 +421,50 @@ export class EnemySystem {
       }
       return;
     }
-    this.move(w, u, e.cx, e.cy, def.speed);
+    this.moveVia(w, u, `e${e.id}`, e.x, e.y, e.w, e.h, e.id, def.speed);
+  }
+
+  /** Flussfelder je Ziel (Wegsuche um Wasser und Mauern), neu bei jeder Bauänderung. */
+  private readonly fields = new Map<string, { f: FlowField; ver: number }>();
+
+  /** Marsch zu einem Rechteck-Ziel: im Fenster dem Flussfeld folgen, sonst geradeaus. */
+  private moveVia(w: World, u: Unit, key: string, gx: number, gy: number, gw: number, gh: number, ignore: number | null, speed: number): void {
+    const cx = gx + gw / 2;
+    const cy = gy + gh / 2;
+    const d = Math.hypot(u.x - cx, u.y - cy);
+    if (d > PATH.window - 4) {
+      this.move(w, u, cx, cy, speed);
+      return;
+    }
+    let c = this.fields.get(key);
+    if (!c || c.ver !== w.structureVersion || c.f.at(Math.floor(u.x), Math.floor(u.y)) === Infinity && !this.inside(c.f, u)) {
+      const goals: [number, number][] = [];
+      for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) goals.push([gx + i, gy + j]);
+      const R = PATH.window;
+      const f = FlowField.build(w, goals, Math.floor(cx) - R, Math.floor(cy) - R, 2 * R, 2 * R, ignore);
+      this.fields.set(key, (c = { f, ver: w.structureVersion }));
+    }
+    const nx = c.f.next(u.x, u.y);
+    if (!nx) {
+      this.move(w, u, cx, cy, speed);
+      return;
+    }
+    this.move(w, u, nx[0], nx[1], speed, false);
+  }
+
+  private inside(f: FlowField, u: Unit): boolean {
+    return u.x >= f.x0 && u.y >= f.y0 && u.x < f.x0 + f.w && u.y < f.y0 + f.h;
   }
 
   /** Schritt in Richtung (tx, ty); Hindernisse: Wasser umgehen, Gebäude angreifen. */
-  private move(w: World, u: Unit, tx: number, ty: number, speed: number): void {
+  private move(w: World, u: Unit, tx: number, ty: number, speed: number, aggressive = true): void {
     const dx = tx - u.x;
     const dy = ty - u.y;
     const d = Math.hypot(dx, dy);
     if (d < 1e-6) return;
     const s = Math.min(speed, d);
     let a = Math.atan2(dy, dx);
+    let first: number | null = null;
     for (const off of [0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9]) {
       const b = a + off * (u.id % 2 ? 1 : -1);
       const nx = u.x + Math.cos(b) * s;
@@ -438,8 +472,9 @@ export class EnemySystem {
       if (w.map.isWater(Math.floor(nx), Math.floor(ny))) continue;
       const blocker = w.entityAt(nx, ny);
       if (blocker && entityDef(blocker.name).solid && blocker.kind !== 'rail') {
-        if (off === 0 && (u.mode === 'attack' || u.target !== null)) {
-          // Hindernis im Weg: angreifen (wie im Original)
+        if (off === 0) first = blocker.id;
+        // ohne Wegsuche: Hindernis im Weg sofort angreifen (wie im Original)
+        if (off === 0 && aggressive && (u.mode === 'attack' || u.target !== null)) {
           u.target = blocker.id;
           return;
         }
@@ -453,20 +488,56 @@ export class EnemySystem {
       u.stuck = 0;
       return;
     }
+    // kein Ausweichen möglich: das Hindernis angreifen
+    if (first !== null && (u.mode === 'attack' || u.target !== null)) u.target = first;
     u.stuck++;
   }
 
+
   // ------------------------------------------------------------ Kampf
 
+  /** Eimer-Raster der Einheiten (16×16 Felder), je Tick beim ersten Zugriff neu gefüllt. */
+  private buckets = new Map<number, Unit[]>();
+  private bucketTick = -1;
+  private bucketsFor(tick: number): Map<number, Unit[]> {
+    if (this.bucketTick !== tick) {
+      this.buckets.clear();
+      for (const u of this.units.values()) {
+        const k = Math.floor(u.x / 16) * 100003 + Math.floor(u.y / 16);
+        let l = this.buckets.get(k);
+        if (!l) this.buckets.set(k, (l = []));
+        l.push(u);
+      }
+      this.bucketTick = tick;
+    }
+    return this.buckets;
+  }
+
   /** Nächstes Ziel für Türme und Spieler: Einheit oder Nest im Umkreis. */
-  nearestTarget(x: number, y: number, r: number): Target | null {
+  nearestTarget(x: number, y: number, r: number, tick = -2): Target | null {
     let best: Target | null = null;
     let bd = r;
-    for (const u of this.units.values()) {
-      const d = Math.hypot(u.x - x, u.y - y);
-      if (d < bd) {
-        bd = d;
-        best = { kind: 'unit', id: u.id, x: u.x, y: u.y };
+    if (tick >= 0 && this.units.size > 32) {
+      const b = this.bucketsFor(tick);
+      for (let gy = Math.floor((y - r) / 16); gy <= Math.floor((y + r) / 16); gy++) {
+        for (let gx = Math.floor((x - r) / 16); gx <= Math.floor((x + r) / 16); gx++) {
+          for (const u of b.get(gx * 100003 + gy) ?? []) {
+            if (!this.units.has(u.id)) continue;
+            const d = Math.hypot(u.x - x, u.y - y);
+            if (d < bd || (d === bd && best && u.id < best.id)) {
+              bd = d;
+              best = { kind: 'unit', id: u.id, x: u.x, y: u.y };
+            }
+          }
+        }
+      }
+    } else {
+      for (const u of this.units.values()) {
+        const d = Math.hypot(u.x - x, u.y - y);
+        if (d < bd) {
+          bd = d;
+          best = { kind: 'unit', id: u.id, x: u.x, y: u.y };
+        }
       }
     }
     if (best) return best;

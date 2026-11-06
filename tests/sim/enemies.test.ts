@@ -50,6 +50,21 @@ describe('Gegner', () => {
     expect(chest).toBeDefined();
   });
 
+  it('Wegsuche: Krabbler laufen durch eine Lücke in der Mauer statt sie zu zerstören', () => {
+    const w = world('normal');
+    const chest = w.place('iron-chest', 0, 0, 0, true)!;
+    const walls: number[] = [];
+    for (let y = -15; y <= 15; y++) if (y !== 6) walls.push(w.place('stone-wall', 10, y, 0, true)!.id);
+    for (let k = 0; k < 3; k++) {
+      const u = w.enemies.spawnAt(20, k * 0.5, 'small');
+      u.target = chest.id;
+    }
+    for (let t = 0; t < 60 * 40 && w.entities.has(chest.id); t++) w.step();
+    expect(w.entities.has(chest.id)).toBe(false);
+    // bis die Kiste fällt, bleibt die Mauer unberührt (danach greifen sie das Nächstgelegene an, wie im Original)
+    expect(walls.every((id) => w.entities.get(id)?.hp === 350)).toBe(true);
+  });
+
   it('Geschützturm mit Munition erledigt anrückende Krabbler', () => {
     const w = world('normal');
     const t = w.place('gun-turret', 0, 0, 0, true)!;

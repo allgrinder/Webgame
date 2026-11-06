@@ -363,4 +363,5 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 | Forschung | Militär 10×15 s rot (MP); Geschützturm 10×10 s rot; Steinmauer 10×10 s rot; Reparaturset 25×10 s rot; Militär 2 20×15 s rot+grün (panzerbrechend) | W Infoboxen |
 | Spielfigur | 250 LP, Heilung 0,15/Tick nach 10 s ohne Treffer; Tod: Neustart am Start, Inventar bleibt | W „Character“; Tod vereinfacht (M) |
 | Start | Pistole + 10 Magazine | W „Freeplay“ |
+| Wegsuche | Flussfeld (Dijkstra, 8 Nachbarn) im Fenster ±48 Felder ums Ziel; Wasser unpassierbar, feste Gebäude +8 Kosten (Umweg oder Durchbruch), keine Ecken schneiden; neu bei jeder Bauänderung | M (Original: Wegsuche je Gruppe) |
 | Nester auf der Karte | Raster 96 Felder, 35 % je Zelle, 2–5 Nester je Basis, frei im Umkreis 140 um den Start (stark: 80/50 %/3–7/110) | M |

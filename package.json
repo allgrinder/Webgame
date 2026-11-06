@@ -16,14 +16,20 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/howler": "^2.2.13",
     "@types/node": "^26.6.6",
     "@types/pngjs": "^6.0.5",
+    "fast-check": "^4.10.2",
     "pngjs": "^7.0.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
   },
   "dependencies": {
-    "pixi.js": "^8.22.0"
+    "fflate": "^0.8.3",
+    "howler": "^2.2.4",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.22.0",
+    "zzfx": "^1.4.0"
   }
 }

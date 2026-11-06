@@ -6,7 +6,8 @@ import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
-import { deserializeWorld, serializeWorld } from '../sim/serialize';
+import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serialize';
+import { isGzip, pack, unpack } from '../game/packing';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
 import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
 import { Status } from '../sim/entity';
@@ -1365,28 +1366,29 @@ export class Hud {
     }
   }
 
-  /** Spielstand als JSON-Datei herunterladen. */
+  /** Spielstand als komprimierte Datei (.eisenwerk, gzip-JSON) herunterladen. */
   exportGame(): void {
-    const data = JSON.stringify({ format: 'eisenwerk', creative: this.game.creative, data: serializeWorld(this.game.world) });
-    const blob = new Blob([data], { type: 'application/json' });
+    const bytes = pack({ format: 'eisenwerk', creative: this.game.creative, data: serializeWorld(this.game.world) });
+    const blob = new Blob([bytes as BlobPart], { type: 'application/gzip' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `eisenwerk-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    a.download = `eisenwerk-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.eisenwerk`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     this.flash('Exportiert');
   }
 
-  /** Spielstand aus einer JSON-Datei laden. */
+  /** Spielstand aus einer Datei laden (.eisenwerk komprimiert oder ältere .json). */
   importGame(): void {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'application/json,.json';
+    input.accept = '.eisenwerk,application/gzip,application/json,.json';
     input.onchange = async () => {
       const f = input.files?.[0];
       if (!f) return;
       try {
-        const j = JSON.parse(await f.text());
+        const bytes = new Uint8Array(await f.arrayBuffer());
+        const j = isGzip(bytes) ? unpack<{ format: string; creative: boolean; data: SaveData }>(bytes) : JSON.parse(new TextDecoder().decode(bytes));
         if (j.format !== 'eisenwerk') throw new Error('keine Eisenwerk-Datei');
         this.closeWindows();
         this.game.setWorld(deserializeWorld(j.data), !!j.creative);

@@ -1,4 +1,5 @@
 import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serialize';
+import { pack, unpack } from './packing';
 import type { World } from '../sim/world';
 
 const DB_NAME = 'eisenwerk';
@@ -8,7 +9,10 @@ interface SaveRecord {
   name: string;
   time: number;
   creative: boolean;
-  data: SaveData;
+  /** alte Spielstände: unkomprimiert */
+  data?: SaveData;
+  /** gzip-komprimiertes JSON (fflate) */
+  z?: Uint8Array;
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -36,14 +40,15 @@ function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T
 }
 
 export async function saveWorld(name: string, world: World, creative: boolean): Promise<void> {
-  const rec: SaveRecord = { name, time: Date.now(), creative, data: serializeWorld(world) };
+  const rec: SaveRecord = { name, time: Date.now(), creative, z: pack(serializeWorld(world)) };
   await tx('readwrite', (s) => s.put(rec));
 }
 
 export async function loadWorld(name: string): Promise<{ world: World; creative: boolean } | null> {
   const rec = await tx<SaveRecord | undefined>('readonly', (s) => s.get(name));
   if (!rec) return null;
-  return { world: deserializeWorld(rec.data), creative: rec.creative };
+  const data = rec.z ? unpack<SaveData>(rec.z) : rec.data!;
+  return { world: deserializeWorld(data), creative: rec.creative };
 }
 
 export async function listSaves(): Promise<{ name: string; time: number }[]> {

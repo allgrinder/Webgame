@@ -273,3 +273,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .craft-tab:hover { border-color: #e0a53a; }
 .window-row > .window { max-height: 92vh; overflow-y: auto; }
 .grid.recipes { max-height: 56vh; overflow-y: auto; align-content: start; }
+.mapview { position: fixed; inset: 0; z-index: 20; cursor: grab; background: #1d1b17; }
+.mapview:active { cursor: grabbing; }

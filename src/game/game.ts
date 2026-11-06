@@ -316,7 +316,14 @@ export class Game {
       case 'q': this.pipette(); break;
       case 'e': this.hud.toggleInventory(); break;
       case 't': this.hud.toggleResearch(); break;
-      case 'm': this.hud.minimap.toggle(); break;
+      case 'm':
+        // M: Kartenansicht (wie im Original); Umschalt+M: Minimap-Größe
+        if (shift) this.hud.minimap.toggle();
+        else {
+          const p = this.world.player;
+          this.hud.mapView.toggle(p ? p.px / 256 : this.renderer.camera.x, p ? p.py / 256 : this.renderer.camera.y);
+        }
+        break;
       case 'escape':
         if (!this.hud.closeWindows()) {
           if (this.cursorItem) this.cursorItem = null;

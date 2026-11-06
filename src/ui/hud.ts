@@ -17,7 +17,7 @@ import type { Inventory } from '../sim/inventory';
 import { ARITHMETIC_OPS, COMPARATORS, VIRTUAL_SIGNALS, signalLabel } from '../data/circuit';
 import { FLUIDS } from '../data/fluids';
 import type { Condition } from '../sim/circuit';
-import { Minimap } from './minimap';
+import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
 import { Tooltip } from './tooltip';
 
@@ -75,6 +75,7 @@ export class Hud {
   private readonly powerView: StatsView;
   readonly tip: Tooltip;
   readonly minimap: Minimap;
+  readonly mapView: MapView;
   private readonly researchEl: HTMLDivElement;
   private readonly craftQueueEl: HTMLDivElement;
   private openEntityId: number | null = null;
@@ -108,6 +109,13 @@ export class Hud {
     this.powerView = new StatsView(statIcon, 'power');
     this.researchEl = el('div', 'research-bar', this.layer);
     this.minimap = new Minimap(this.layer, () => game.renderer.biomeField(game.world));
+    this.mapView = new MapView(this.layer, this.minimap);
+    this.mapView.onPick = (x, y) => {
+      if (!game.world.player) {
+        game.renderer.camera.x = x;
+        game.renderer.camera.y = y;
+      }
+    };
     this.minimap.onPick = (x, y) => {
       if (game.world.player) return; // im freien Spiel folgt die Kamera dem Spieler
       game.renderer.camera.x = x;
@@ -155,6 +163,7 @@ export class Hud {
       const r = g.renderer.screenToWorld(0, 0);
       const r2 = g.renderer.screenToWorld(g.renderer.app.screen.width, g.renderer.app.screen.height);
       this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
+      this.mapView.update(w, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
     const evo = w.settings.enemies !== 'aus' ? ` · Gegner-Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : '';
     this.info.textContent = `Eisenwerk – ${this.title}${evo} · H: Hilfe`;
@@ -573,6 +582,10 @@ export class Hud {
 
   closeWindows(): boolean {
     let any = false;
+    if (this.mapView.open) {
+      this.mapView.toggle(0, 0);
+      any = true;
+    }
     for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
@@ -1234,7 +1247,7 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Karte · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>

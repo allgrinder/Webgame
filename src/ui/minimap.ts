@@ -119,54 +119,168 @@ export class Minimap {
     if (!this.visible) return;
     if (this.frame++ % MINIMAP.every !== 0) return;
     const s = MINIMAP.sizes[this.sizeIdx];
-    const ctx = this.ctx;
     this.center = { x: cx, y: cy };
-    const half = s.px / 2 / s.scale;
-    const x0 = cx - half;
-    const y0 = cy - half;
-    const toX = (x: number) => (x - x0) * s.scale;
-    const toY = (y: number) => (y - y0) * s.scale;
+    this.draw(this.ctx, world, s.px, s.px, cx, cy, s.scale, view, false);
+  }
+
+  /**
+   * Karte zeichnen (Minimap und große Kartenansicht): Gelände, Gebäude, Verschmutzung, Gegner,
+   * bei detail zusätzlich Stromnetze (Versorgungsflächen und Kabel) und einzelne Gegner.
+   */
+  draw(ctx: CanvasRenderingContext2D, world: World, wpx: number, hpx: number, cx: number, cy: number, scale: number,
+    view: { x0: number; y0: number; x1: number; y1: number } | null, detail: boolean): void {
+    const x0 = cx - wpx / 2 / scale;
+    const y0 = cy - hpx / 2 / scale;
+    const x1 = x0 + wpx / scale;
+    const y1 = y0 + hpx / scale;
+    const toX = (x: number) => (x - x0) * scale;
+    const toY = (y: number) => (y - y0) * scale;
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = '#1d1b17';
-    ctx.fillRect(0, 0, s.px, s.px);
+    ctx.fillRect(0, 0, wpx, hpx);
     const CS = MAPGEN.chunkSize;
-    for (let gy = Math.floor(y0 / CS); gy <= Math.floor((y0 + 2 * half) / CS); gy++) {
-      for (let gx = Math.floor(x0 / CS); gx <= Math.floor((x0 + 2 * half) / CS); gx++) {
-        ctx.drawImage(this.chunkCanvas(world, gx, gy), toX(gx * CS), toY(gy * CS), CS * s.scale + 0.5, CS * s.scale + 0.5);
+    for (let gy = Math.floor(y0 / CS); gy <= Math.floor(y1 / CS); gy++) {
+      for (let gx = Math.floor(x0 / CS); gx <= Math.floor(x1 / CS); gx++) {
+        ctx.drawImage(this.chunkCanvas(world, gx, gy), toX(gx * CS), toY(gy * CS), CS * scale + 0.5, CS * scale + 0.5);
+      }
+    }
+    // Stromnetz: Versorgungsflächen der Masten (nur Kartenansicht)
+    if (detail) {
+      ctx.fillStyle = 'rgba(90,170,255,0.10)';
+      for (const e of world.entities.values()) {
+        if (e.kind !== 'pole') continue;
+        const r = (e.def as { supplyRadius?: number }).supplyRadius ?? 2.5;
+        if (e.cx + r < x0 || e.cy + r < y0 || e.cx - r > x1 || e.cy - r > y1) continue;
+        ctx.fillRect(toX(e.cx - r), toY(e.cy - r), 2 * r * scale, 2 * r * scale);
       }
     }
     for (const e of world.entities.values()) {
-      if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x0 + 2 * half || e.y > y0 + 2 * half) continue;
-      ctx.fillStyle = css(e.kind === 'belt' || e.kind === 'underground' || e.kind === 'splitter' ? MINIMAP.belt : MINIMAP.building);
-      ctx.fillRect(toX(e.x), toY(e.y), Math.max(1, e.w * s.scale), Math.max(1, e.h * s.scale));
+      if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x1 || e.y > y1) continue;
+      ctx.fillStyle = css(e.kind === 'belt' || e.kind === 'underground' || e.kind === 'splitter' ? MINIMAP.belt
+        : e.kind === 'rail' ? 0x8a8a8a : e.kind === 'turret' || e.kind === 'wall' ? 0xb0b0a0 : MINIMAP.building);
+      ctx.fillRect(toX(e.x), toY(e.y), Math.max(1, e.w * scale), Math.max(1, e.h * scale));
     }
-    // Verschmutzung (rötlicher Schleier je Abschnitt) und Gegnernester
+    if (detail) {
+      ctx.strokeStyle = 'rgba(120,190,255,0.7)';
+      ctx.lineWidth = 1;
+      for (const [a, b] of world.power.wires) {
+        const pa = world.entities.get(a);
+        const pb = world.entities.get(b);
+        if (!pa || !pb) continue;
+        if (Math.max(pa.cx, pb.cx) < x0 || Math.min(pa.cx, pb.cx) > x1 || Math.max(pa.cy, pb.cy) < y0 || Math.min(pa.cy, pb.cy) > y1) continue;
+        ctx.beginPath();
+        ctx.moveTo(toX(pa.cx), toY(pa.cy));
+        ctx.lineTo(toX(pb.cx), toY(pb.cy));
+        ctx.stroke();
+      }
+    }
+    // Verschmutzung (rötlicher Schleier je Abschnitt) und Gegner
     const PC = 32;
     for (const [k, val] of world.pollution.chunks) {
       if (val < 5) continue;
       const [gx, gy] = PollutionSystem.unkey(k);
-      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x0 + 2 * half || gy * PC > y0 + 2 * half) continue;
+      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x1 || gy * PC > y1) continue;
       ctx.fillStyle = `rgba(200,60,40,${Math.min(0.45, 0.06 + val / 600).toFixed(3)})`;
-      ctx.fillRect(toX(gx * PC), toY(gy * PC), PC * s.scale, PC * s.scale);
+      ctx.fillRect(toX(gx * PC), toY(gy * PC), PC * scale, PC * scale);
     }
     ctx.fillStyle = '#d23a2a';
-    for (const n of world.enemies.nestsIn(x0, y0, x0 + 2 * half, y0 + 2 * half)) {
-      ctx.fillRect(toX(n.x), toY(n.y), Math.max(2, 5 * s.scale), Math.max(2, 5 * s.scale));
+    for (const n of world.enemies.nestsIn(x0, y0, x1, y1)) {
+      ctx.fillRect(toX(n.x), toY(n.y), Math.max(2, 5 * scale), Math.max(2, 5 * scale));
+    }
+    if (detail) {
+      ctx.fillStyle = '#ff6a50';
+      for (const u of world.enemies.units.values()) {
+        if (u.x < x0 || u.y < y0 || u.x > x1 || u.y > y1) continue;
+        ctx.fillRect(toX(u.x) - 1, toY(u.y) - 1, 2, 2);
+      }
     }
     // sichtbarer Ausschnitt
-    ctx.strokeStyle = MINIMAP.view;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(toX(view.x0) + 0.5, toY(view.y0) + 0.5, (view.x1 - view.x0) * s.scale, (view.y1 - view.y0) * s.scale);
+    if (view) {
+      ctx.strokeStyle = MINIMAP.view;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(toX(view.x0) + 0.5, toY(view.y0) + 0.5, (view.x1 - view.x0) * scale, (view.y1 - view.y0) * scale);
+    }
     const p = world.player;
     if (p) {
-      const px = toX(p.px / 256);
-      const py = toY(p.py / 256);
       ctx.fillStyle = css(MINIMAP.player);
       ctx.strokeStyle = '#000';
       ctx.beginPath();
-      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.arc(toX(p.px / 256), toY(p.py / 256), detail ? 5 : 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
     }
+  }
+}
+
+/**
+ * Große Kartenansicht (Taste M, wie im Original): bildschirmfüllend, Mausrad zoomt, Ziehen verschiebt,
+ * Doppelklick setzt die Kamera (ohne Spieler). Zeigt Stromnetze, Verschmutzung, Nester und Gegner.
+ */
+export class MapView {
+  readonly el: HTMLCanvasElement;
+  private readonly ctx: CanvasRenderingContext2D;
+  private scale = 2;
+  private cx = 0;
+  private cy = 0;
+  private drag: { x: number; y: number } | null = null;
+  open = false;
+  onPick: ((x: number, y: number) => void) | null = null;
+
+  constructor(parent: HTMLElement, private readonly mini: Minimap) {
+    this.el = document.createElement('canvas');
+    this.el.className = 'mapview';
+    this.el.style.display = 'none';
+    parent.appendChild(this.el);
+    this.ctx = this.el.getContext('2d')!;
+    this.el.addEventListener('wheel', (e) => {
+      this.scale = Math.max(0.25, Math.min(8, this.scale * Math.pow(0.85, Math.sign(e.deltaY))));
+      e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
+    this.el.addEventListener('pointerdown', (e) => {
+      this.drag = { x: e.clientX, y: e.clientY };
+      e.stopPropagation();
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!this.drag) return;
+      this.cx -= (e.clientX - this.drag.x) / this.scale;
+      this.cy -= (e.clientY - this.drag.y) / this.scale;
+      this.drag = { x: e.clientX, y: e.clientY };
+    });
+    window.addEventListener('pointerup', () => (this.drag = null));
+    this.el.addEventListener('dblclick', (e) => {
+      const r = this.el.getBoundingClientRect();
+      this.onPick?.(this.cx + (e.clientX - r.left - r.width / 2) / this.scale, this.cy + (e.clientY - r.top - r.height / 2) / this.scale);
+    });
+  }
+
+  toggle(cx: number, cy: number): void {
+    this.open = !this.open;
+    this.el.style.display = this.open ? 'block' : 'none';
+    if (this.open) {
+      this.cx = cx;
+      this.cy = cy;
+    }
+  }
+
+  update(world: World, view: { x0: number; y0: number; x1: number; y1: number }): void {
+    if (!this.open) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (this.el.width !== Math.round(w * dpr) || this.el.height !== Math.round(h * dpr)) {
+      this.el.width = Math.round(w * dpr);
+      this.el.height = Math.round(h * dpr);
+      this.el.style.width = `${w}px`;
+      this.el.style.height = `${h}px`;
+    }
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.mini.draw(this.ctx, world, w, h, this.cx, this.cy, this.scale, view, true);
+    const ctx = this.ctx;
+    ctx.fillStyle = 'rgba(20,18,16,0.85)';
+    ctx.fillRect(12, h - 40, 520, 28);
+    ctx.fillStyle = '#e8dfcf';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillText(`Karte · ${this.scale >= 1 ? this.scale.toFixed(1) : this.scale.toFixed(2)} px/Feld · Mausrad zoomen · Ziehen verschieben · M/Esc schließen`, 22, h - 21);
   }
 }

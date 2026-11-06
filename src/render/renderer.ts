@@ -112,6 +112,8 @@ export class GameRenderer {
   /** Hintergrundscheiben der Alt-Symbole (unter den Symbolen). */
   private readonly altBg = new Graphics();
   private readonly wires = new Graphics();
+  /** Schatten der Stromkabel am Boden (unter den Gebäuden). */
+  private readonly wireShadows = new Graphics();
   private readonly ghostSprites = new SpritePool();
   /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
   private groundPeriod = 1;
@@ -242,6 +244,7 @@ export class GameRenderer {
       this.groundItems.container,
       this.belts.container,
       this.items.container,
+      this.wireShadows,
       this.shadows.container,
       this.ents.container,
       this.glow.container,
@@ -850,6 +853,11 @@ export class GameRenderer {
   private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>, ui: RenderUi): void {
     const g = this.wires;
     g.clear();
+    const gs = this.wireShadows;
+    gs.clear();
+    // Licht von Nordwesten: Schatten fallen nach Südosten, Versatz wächst mit der Kabelhöhe
+    const SHX = 0.85;
+    const SHY = 0.32;
     const liftOf = (name: string) => (this.sprites.info(name)?.meta?.wireLift ?? this.sprites.info('small-electric-pole')?.meta?.wireLift ?? 0.95) * TILE;
     for (const [a, b] of world.power.wires) {
       const pa = world.entities.get(a);
@@ -863,7 +871,13 @@ export class GameRenderer {
       const bx = pb.cx * TILE;
       const by = pb.cy * TILE - lb;
       const sag = Math.hypot(bx - ax, by - ay) * 0.08;
-      g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.6, color: 0x5a3a22, alpha: 0.85 });
+      g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.8, color: 0x4a2e1a, alpha: 0.9 });
+      g.moveTo(ax, ay - 0.6).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag - 0.6, bx, by - 0.6).stroke({ width: 0.7, color: 0xb07040, alpha: 0.7 });
+      const sax = pa.cx * TILE + la * SHX;
+      const say = pa.cy * TILE + la * SHY;
+      const sbx = pb.cx * TILE + lb * SHX;
+      const sby = pb.cy * TILE + lb * SHY;
+      gs.moveTo(sax, say).quadraticCurveTo((sax + sbx) / 2 - sag * SHX * 0.5, (say + sby) / 2 - sag * 0.2, sbx, sby).stroke({ width: 2, color: 0x000000, alpha: 0.28 });
     }
     // Schaltungsdrähte (rot/grün), leicht versetzt
     const lift = (e: Entity) => (e.kind === 'pole' ? liftOf(e.name) : 0.35 * TILE);

@@ -71,7 +71,9 @@ export class PollutionSystem {
     const after = [...this.chunks.entries()].sort((a, b) => a[0] - b[0]);
     this.chunks.clear();
     for (const [k, v] of after) {
-      const n = v - ground;
+      // Boden plus Bäume (Wiki: je Baum 0,001/s)
+      const [cx, cy] = unkey(k);
+      const n = v - ground - w.map.trees.treesIn(cx, cy).length * POLLUTION.treeAbsorbPerMinute * f;
       if (n > 0.01) this.chunks.set(k, n);
     }
   }

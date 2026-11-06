@@ -27,8 +27,10 @@ export const POLLUTION = {
   /** alle n Ticks: Anteil, der in jeden der vier Nachbarn wandert (Original-Standard 2 % je 64 Ticks). */
   interval: 64,
   diffusion: 0.02,
-  /** Aufnahme durch den Boden je Abschnitt und Minute (Gras ≈ 0,0000075/Tick je Feld × 1024 Felder). */
-  groundAbsorbPerMinute: 27,
+  /** Aufnahme durch den Boden je Abschnitt und Minute (Wiki „Pollution“: Gras/Erde 0,000018/s je Feld → 1,106/min). */
+  groundAbsorbPerMinute: 1.106,
+  /** Bäume: je Baum 0,001/s (Wiki „Pollution“, Abschnitt Trees) → 0,06/min. */
+  treeAbsorbPerMinute: 0.06,
   /** unter dieser Menge wird ein Abschnitt nicht weiter verteilt (Rechenaufwand). */
   minSpread: 15,
 } as const;
@@ -40,8 +42,10 @@ export interface UnitDef {
   readonly name: string;
   readonly health: number;
   readonly damage: number;
-  /** Ticks zwischen zwei Bissen. */
+  /** Ticks zwischen zwei Bissen (1,71/s). */
   readonly cooldown: number;
+  /** Angriffsreichweite (Felder). */
+  readonly reach: number;
   /** Felder je Tick. */
   readonly speed: number;
   /** Panzerung gegen physischen Schaden: fester Abzug und Prozent. */
@@ -56,24 +60,30 @@ export interface UnitDef {
 
 /** Wiki „Small/Medium/Big biter“ (Gesundheit, Schaden, Tempo, Verschmutzung für den Angriff). */
 export const UNITS: Readonly<Record<UnitKind, UnitDef>> = {
-  small: { kind: 'small', name: 'Kleiner Krabbler', health: 15, damage: 7, cooldown: 35, speed: 0.2, armorFlat: 0, armorPercent: 0, pollution: 4, radius: 0.25, scale: 0.6 },
-  medium: { kind: 'medium', name: 'Mittlerer Krabbler', health: 75, damage: 15, cooldown: 35, speed: 0.24, armorFlat: 4, armorPercent: 0.1, pollution: 20, radius: 0.35, scale: 0.9 },
-  big: { kind: 'big', name: 'Großer Krabbler', health: 375, damage: 30, cooldown: 35, speed: 0.23, armorFlat: 8, armorPercent: 0.1, pollution: 80, radius: 0.5, scale: 1.3 },
+  small: { kind: 'small', name: 'Kleiner Krabbler', health: 15, damage: 7, cooldown: 35, reach: 0.5, speed: 0.2, armorFlat: 0, armorPercent: 0, pollution: 4, radius: 0.25, scale: 0.6 },
+  medium: { kind: 'medium', name: 'Mittlerer Krabbler', health: 75, damage: 15, cooldown: 35, reach: 1, speed: 0.24, armorFlat: 4, armorPercent: 0.1, pollution: 20, radius: 0.35, scale: 0.9 },
+  big: { kind: 'big', name: 'Großer Krabbler', health: 375, damage: 30, cooldown: 35, reach: 1.5, speed: 0.23, armorFlat: 8, armorPercent: 0.1, pollution: 80, radius: 0.5, scale: 1.3 },
 };
 
 /** Nest (Vorbild: Spawner): Gesundheit nach Wiki, Größe 5×5; Rest Messvorschlag. */
 export const NEST = {
   health: 350,
   size: 5,
-  /** Verteidiger je Nest höchstens; Nachschub alle n Ticks. */
+  /** Verteidiger je Nest höchstens; Nachschub alle 360 (Entwicklung 0) bis 150 Ticks (Entwicklung 1), Wiki „Enemies“. */
   maxDefenders: 5,
   spawnCooldown: 360,
-  /** Aufnahme von Verschmutzung je Abschnitt und Minute (fest) plus Anteil des Bestands. */
-  absorbPerMinute: 60,
+  spawnCooldownEvolved: 150,
+  /** Aufnahme je 64 Ticks: 20 + 1 % des Abschnitts (wenn > 20), höchstens bis 3× teuerste Einheit (Wiki „Pollution“). */
+  absorbFixed: 20,
   absorbFraction: 0.01,
-  /** Angriff, sobald so viele Einheiten bereitstehen (oder nach waitTicks mit mindestens einer). */
-  groupSize: 6,
-  waitTicks: 60 * 60,
+  absorbCapFactor: 3,
+  /** Gesammelte Angreifer starten nach zufällig 1–10 Minuten (Wiki „Pollution“). */
+  attackDelayMin: 60 * 60,
+  attackDelayMax: 10 * 60 * 60,
+  /** Regeneration je Tick (1,2/s) und Panzerung physisch 2 / 15 % (Wiki „Enemies“, Biter spawner). */
+  regenPerTick: 0.02,
+  armorFlat: 2,
+  armorPercent: 0.15,
   /** Verteidiger greifen Spieler/Gebäude in diesem Umkreis an. */
   guardRadius: 14,
   /** Angriffsziele: verschmutzende Gebäude in diesem Umkreis um das Nest. */
@@ -85,6 +95,7 @@ export const EVOLUTION = {
   timePerSecond: 0.000004,
   perNestDestroyed: 0.002,
   perPollution: 0.0000009,
+  /** Zuwächse werden mit (1 − Entwicklung)² gedämpft (Wiki „Enemies“, Evolution). */
   /** Ab dieser Entwicklung erscheinen mittlere bzw. große Krabbler (Messvorschlag nach Spawn-Tabelle). */
   mediumFrom: 0.2,
   bigFrom: 0.5,

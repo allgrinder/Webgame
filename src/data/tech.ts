@@ -56,6 +56,7 @@ export const TECHS: readonly TechDef[] = [
   // Militär (Wiki „Military“, „Gun turret (research)“, „Stone wall (research)“, „Military 2“)
   { id: 'military', name: 'Militär', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['submachine-gun'] },
   { id: 'gun-turret', name: 'Geschützturm', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['gun-turret'] },
+  { id: 'repair-pack', name: 'Reparaturset', count: 25, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['repair-pack'] },
   { id: 'stone-wall', name: 'Steinmauer', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall'] },
   {
     id: 'military-2', name: 'Militär 2', count: 20, time: 15, packs: RED_GREEN,

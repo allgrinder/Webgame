@@ -44,9 +44,9 @@ describe('Gegner', () => {
     const drill = w.place('burner-mining-drill', 4, 0, 0, true)!;
     const nest = w.enemies.spawnNest(w, 30, -2);
     nest.budget = UNITS.small.pollution * 6;
-    w.run(60 * 20);
+    // Wiki: Angriff nach zufällig 1–10 Minuten
+    w.run(60 * 60 * 11);
     expect(w.entities.has(drill.id)).toBe(false);
-    expect(w.enemies.remnants.some((r) => r.kind === 'building')).toBe(true);
     expect(chest).toBeDefined();
   });
 

@@ -22,6 +22,8 @@ export interface Nest {
   spawnCd: number;
   /** Tick des letzten Treffers (Verteidiger werden aggressiv) */
   hitAt: number;
+  /** Wartezeit der aktuellen Angriffsgruppe (Ticks) */
+  wait: number;
   /** Zwischenspeicher: Gebäude im Wachradius (alle 30 Ticks neu, nicht gespeichert) */
   threat?: number | null;
 }
@@ -113,7 +115,7 @@ export class EnemySystem {
       const y = Math.round(by + Math.sin(a) * r) - 2;
       const id = (Math.abs(cellKey(gx, gy)) % 10_000_000) * 16 + i + 1;
       if (this.destroyed.has(id) || !this.freeFor(w, x, y)) continue;
-      this.addNest(w, { id, x, y, hp: NEST.health, budget: 0, group: [], groupSince: 0, spawnCd: 0, hitAt: -1e9 });
+      this.addNest(w, { id, x, y, hp: NEST.health, budget: 0, group: [], groupSince: 0, wait: NEST.attackDelayMin, spawnCd: 0, hitAt: -1e9 });
       // Verteidiger beim Erzeugen (Lage aus der Zelle, unabhängig vom Simulationszufall)
       for (let k = 0; k < 2 + (i % 3); k++) this.spawnUnit(w, this.nests.get(id)!, 'guard', 'small', hash01(s, gx, gy, 600 + i * 8 + k) * Math.PI * 2);
     }
@@ -137,7 +139,7 @@ export class EnemySystem {
   /** Nest von Hand setzen (Tests, Sandkasten). */
   spawnNest(w: World, x: number, y: number, guards = 0): Nest {
     const id = 900_000_000 + this.nests.size + this.destroyed.size + 1;
-    const n: Nest = { id, x, y, hp: NEST.health, budget: 0, group: [], groupSince: 0, spawnCd: NEST.spawnCooldown, hitAt: -1e9 };
+    const n: Nest = { id, x, y, hp: NEST.health, budget: 0, group: [], groupSince: 0, wait: NEST.attackDelayMin, spawnCd: NEST.spawnCooldown, hitAt: -1e9 };
     this.addNest(w, n);
     for (let k = 0; k < guards; k++) this.spawnUnit(w, n, 'guard', 'small', k);
     return n;
@@ -163,6 +165,17 @@ export class EnemySystem {
   }
 
   // ------------------------------------------------------------ Einheiten
+
+  /** Teuerste Einheit, die bei der aktuellen Entwicklung erscheinen kann. */
+  private maxKind(): UnitKind {
+    return this.evolution >= EVOLUTION.bigFrom ? 'big' : this.evolution >= EVOLUTION.mediumFrom ? 'medium' : 'small';
+  }
+
+  /** Entwicklungszuwachs, gedämpft mit (1 − Entwicklung)² (Wiki). */
+  private evolve(d: number): void {
+    const e = this.evolution;
+    this.evolution = Math.min(1, e + d * (1 - e) * (1 - e));
+  }
 
   private pickKind(): UnitKind {
     const e = this.evolution;
@@ -194,14 +207,16 @@ export class EnemySystem {
   absorbPollution(_w: World, p: PollutionSystem): void {
     if (this.nests.size === 0) return;
     const C = POLLUTION.chunk;
-    const f = POLLUTION.interval / 3600;
     for (const n of this.nests.values()) {
       const cx = Math.floor((n.x + 2) / C);
       const cy = Math.floor((n.y + 2) / C);
       const have = p.chunkAt(cx, cy);
       if (have <= 0) continue;
-      const got = p.take(cx, cy, NEST.absorbPerMinute * f + have * NEST.absorbFraction);
-      n.budget += got;
+      // Wiki: bis zum Dreifachen der teuersten Einheit; über 20 im Abschnitt: 20 + 1 % je 64 Ticks
+      const cap = NEST.absorbCapFactor * UNITS[this.maxKind()].pollution;
+      if (n.budget >= cap) continue;
+      const want = have > NEST.absorbFixed ? NEST.absorbFixed + have * NEST.absorbFraction : have;
+      n.budget += p.take(cx, cy, want);
     }
   }
 
@@ -211,7 +226,7 @@ export class EnemySystem {
     const g = this.gen(w);
     if (g.chance <= 0 && this.units.size === 0) return;
     if (w.tick % 60 === 0) {
-      this.evolution = Math.min(1, this.evolution + EVOLUTION.timePerSecond * g.evolutionFactor);
+      this.evolve(EVOLUTION.timePerSecond * g.evolutionFactor);
       // Nester um die Spielfigur und in verschmutzten Abschnitten anlegen
       const p = w.player;
       if (p) this.ensureArea(w, p.x - 140, p.y - 140, p.x + 140, p.y + 140);
@@ -231,23 +246,28 @@ export class EnemySystem {
       for (const u of this.units.values()) if (u.mode === 'guard') guardsOf.set(u.nest, (guardsOf.get(u.nest) ?? 0) + 1);
       for (const n of this.nests.values()) {
         if (n.spawnCd > 0) n.spawnCd -= 30;
+        if (n.hp < NEST.health) n.hp = Math.min(NEST.health, n.hp + NEST.regenPerTick * 30);
         const guards = guardsOf.get(n.id) ?? 0;
         n.threat = this.nearbyBuilding(w, n.x + 2.5, n.y + 2.5, NEST.guardRadius);
         if (guards < NEST.maxDefenders && n.spawnCd <= 0 && this.units.size < 600) {
           this.spawnUnit(w, n, 'guard', this.pickKind());
-          n.spawnCd = NEST.spawnCooldown;
+          n.spawnCd = Math.round(NEST.spawnCooldown + (NEST.spawnCooldownEvolved - NEST.spawnCooldown) * this.evolution);
         }
         if (peaceful) continue;
         let kind = this.pickKind();
         while (n.budget >= UNITS[kind].pollution && this.units.size < 600) {
           n.budget -= UNITS[kind].pollution;
           const u = this.spawnUnit(w, n, 'guard', kind);
-          if (!n.group.length) n.groupSince = w.tick;
+          if (!n.group.length) {
+            n.groupSince = w.tick;
+            n.wait = Math.round(NEST.attackDelayMin + this.rand() * (NEST.attackDelayMax - NEST.attackDelayMin));
+          }
           n.group.push(u.id);
           kind = this.pickKind();
         }
         n.group = n.group.filter((id) => this.units.has(id));
-        if (n.group.length >= NEST.groupSize || (n.group.length > 0 && w.tick - n.groupSince > NEST.waitTicks)) {
+        // Angriff nach zufälliger Wartezeit (1–10 min ab dem ersten Angreifer)
+        if (n.group.length > 0 && w.tick - n.groupSince > n.wait) {
           const t = this.attackTarget(w, n.x + 2, n.y + 2, NEST.attackRadius, true);
           if (t) for (const id of n.group) this.order(this.units.get(id)!, t);
           n.group = [];
@@ -352,7 +372,7 @@ export class EnemySystem {
         u.mode = nest ? 'return' : 'attack';
         return;
       }
-      if (d <= def.radius + 0.6) {
+      if (d <= def.radius + def.reach + 0.1) {
         u.phase = 0;
         u.angle = Math.atan2(p.y - u.y, p.x - u.x);
         if (u.cd === 0) {
@@ -390,7 +410,7 @@ export class EnemySystem {
     // Abstand zur Grundfläche
     const dx = Math.max(e.x - u.x, 0, u.x - (e.x + e.w));
     const dy = Math.max(e.y - u.y, 0, u.y - (e.y + e.h));
-    if (Math.hypot(dx, dy) <= def.radius + 0.35) {
+    if (Math.hypot(dx, dy) <= def.reach) {
       u.phase = 0;
       u.angle = Math.atan2(e.cy - u.y, e.cx - u.x);
       if (u.cd === 0) {
@@ -483,7 +503,7 @@ export class EnemySystem {
     } else {
       const n = this.nests.get(t.id);
       if (!n) return;
-      n.hp -= dmg;
+      n.hp -= EnemySystem.applyArmor(dmg, NEST.armorFlat, NEST.armorPercent);
       n.hitAt = w.tick;
       if (n.hp <= 0) this.destroyNest(w, n);
     }
@@ -493,14 +513,14 @@ export class EnemySystem {
     this.nests.delete(n.id);
     this.destroyed.add(n.id);
     for (let j = 0; j < NEST.size; j++) for (let i = 0; i < NEST.size; i++) this.occ.delete(cellKey(n.x + i, n.y + j));
-    this.evolution = Math.min(1, this.evolution + EVOLUTION.perNestDestroyed * this.gen(w).evolutionFactor);
+    this.evolve(EVOLUTION.perNestDestroyed * this.gen(w).evolutionFactor);
     this.remnants.push({ x: n.x + 2.5, y: n.y + 2.5, kind: 'nest', size: 1, tick: w.tick });
     for (const u of this.units.values()) if (u.nest === n.id && u.mode === 'guard') u.mode = 'attack';
   }
 
   /** Verschmutzung erhöht die Entwicklung (aus dem Gesamtausstoß, je Sekunde). */
   onPollution(amount: number, factor: number): void {
-    this.evolution = Math.min(1, this.evolution + amount * EVOLUTION.perPollution * factor);
+    this.evolve(amount * EVOLUTION.perPollution * factor);
   }
 
   // ------------------------------------------------------------ Speichern
@@ -510,7 +530,7 @@ export class EnemySystem {
       evo: this.evolution, nu: this.nextUnit, rs: this.rs, le: this.lastEmitted,
       cells: [...this.cells].sort((a, b) => a - b),
       dead: [...this.destroyed].sort((a, b) => a - b),
-      nests: [...this.nests.values()].map((n) => [n.id, n.x, n.y, n.hp, n.budget, n.group, n.groupSince, n.spawnCd, n.hitAt, n.threat ?? null]),
+      nests: [...this.nests.values()].map((n) => [n.id, n.x, n.y, n.hp, n.budget, n.group, n.groupSince, n.spawnCd, n.hitAt, n.threat ?? null, n.wait]),
       units: [...this.units.values()].map((u) => [u.id, u.kind, u.x, u.y, u.hp, u.nest, u.mode, u.target, u.tx, u.ty, u.cd, u.angle, u.phase, u.stuck, u.retry ?? 0]),
     };
   }
@@ -528,8 +548,8 @@ export class EnemySystem {
     this.lastEmitted = d.le ?? 0;
     for (const c of d.cells) this.cells.add(c);
     for (const id of d.dead) this.destroyed.add(id);
-    for (const [id, x, y, hp, budget, group, gs, cd, hit, threat] of d.nests as [number, number, number, number, number, number[], number, number, number, number | null][]) {
-      this.addNest(w, { id, x, y, hp, budget, group, groupSince: gs, spawnCd: cd, hitAt: hit, threat });
+    for (const [id, x, y, hp, budget, group, gs, cd, hit, threat, wait] of d.nests as [number, number, number, number, number, number[], number, number, number, number | null, number][]) {
+      this.addNest(w, { id, x, y, hp, budget, group, groupSince: gs, spawnCd: cd, hitAt: hit, threat, wait: wait ?? NEST.attackDelayMin });
     }
     for (const r of d.units as [number, UnitKind, number, number, number, number, UnitMode, number | null, number, number, number, number, number, number, number][]) {
       const [id, kind, x, y, hp, nest, mode, target, tx, ty, cd, angle, phase, stuck, retry] = r;

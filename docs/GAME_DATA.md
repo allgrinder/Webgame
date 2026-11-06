@@ -337,25 +337,30 @@ geschüttet (wie im Original), nicht mehr verworfen.
 | Alte Spielstände | ohne gespeicherte Einstellung: Größe 1, schwer, keine Gegner (Karte bleibt gleich) | – |
 | Handabbau Rohstoffe | Abbautempo 0,5 × 3 | Wunsch (bewusste Abweichung) |
 
-## Gegner, Verschmutzung, Militär (Wunsch 05.11.2026)
+## Gegner, Verschmutzung, Militär (Wunsch 05.11.2026, Wiki-Abgleich 06.11.2026)
 
 Eigene Gestaltung: „Krabbler“ (Vorbild Beißer) und „Nest“ (Vorbild Spawner). Werte in `src/data/enemies.ts`.
-Quelle W = Wiki (über Websuche bestätigt), M = Messvorschlag/Vereinfachung.
+Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M = Messvorschlag/Vereinfachung.
 
 | Wert | Eisenwerk | Quelle |
 |---|---|---|
-| Verschmutzung/min | Brennstoff-Bohrer 12, E-Bohrer 10, Steinofen 2, Stahlofen 4, Elektroofen 1, Kessel 30, Montage 1/2/3: 4/3/2, Pumpjack 10, Raffinerie 6, Chemiefabrik 4 | W „Pollution“ / Infoboxen |
-| Verteilung | je 64 Ticks 2 % in jeden der 4 Nachbarabschnitte (32×32) | M (Standard der Karteneinstellungen) |
-| Aufnahme Boden | 27 je Abschnitt und Minute (Gras ≈ 0,0000075/Tick je Feld) | M |
-| Kleiner / mittlerer / großer Krabbler | LP 15 / 75 / 375, Schaden 7 / 15 / 30, Tempo 0,2 / 0,24 / 0,23 Felder/Tick, Verschmutzung für Angriff 4 / 20 / 80, Panzerung 0 / 4+10 % / 8+10 % | W „Small/Medium/Big biter“ (LP, Schaden, Tempo, klein 4), Rest M |
-| Nest | 350 LP, 5×5, bis 5 Verteidiger, Nachschub alle 6 s, Aufnahme 60/min + 1 %, Angriff ab 6 Einheiten | W (LP), Rest M |
-| Entwicklung | Zeit 0,000004/s, Nest zerstört 0,002, Verschmutzung 0,0000009 je Einheit; mittlere ab 0,2, große ab 0,5 | W „Enemies/Evolution“ (Zeit, Nest), Rest M |
-| Geschützturm | 2×2, 400 LP, Reichweite 18, 10 Schuss/s, füllt bis 10 Magazine | W „Gun turret“ |
-| Magazin / panzerbrechend | 5 / 8 Schaden, je 10 Schuss; Rezepte 4 Eisenplatten (1 s) / 1 Magazin + 1 Stahl + 5 Kupfer (3 s) | W |
-| Pistole / Maschinenpistole | Reichweite 15 / 18, 4 / 10 Schuss/s | W (gerundet) |
-| Steinmauer | 350 LP, 5 Ziegel (0,5 s) | W „Stone wall“ |
+| Verschmutzung/min | Brennstoff-Bohrer 12, E-Bohrer 10, Steinofen 2, Stahlofen 4, Elektroofen 1, Kessel 30, Montage 1/2/3: 4/3/2, Pumpjack 10, Raffinerie 6, Chemiefabrik 4 | W Infoboxen |
+| Verteilung | ab 15 je Abschnitt 2 % je 64 Ticks in jeden der 4 Nachbarn | W „Pollution“ |
+| Aufnahme Boden | Gras/Erde 0,000018/s je Feld = 1,106 je Abschnitt und Minute | W „Pollution“ (Tabelle) |
+| Aufnahme Bäume | 0,001/s je Baum | W „Pollution“ (Trees, volle Belaubung) |
+| Aufnahme Nest | je 64 Ticks 20 + 1 % (wenn > 20), bis 3× Kosten der teuersten Einheit | W „Pollution“ |
+| Angriff | gesammelte Angreifer starten nach zufällig 1–10 min | W „Pollution“ |
+| Kleiner / mittlerer / großer Krabbler | LP 15 / 75 / 375, Schaden 7 / 15 / 30 (1,71/s), Reichweite 0,5 / 1 / 1,5, Tempo 43,2 / 51,8 / 49,7 km/h (0,2 / 0,24 / 0,23 Felder/Tick), Verschmutzung 4 / 20 / 80, Panzerung physisch 0 / 4+10 % / 8+10 % | W „Enemies“ |
+| Nest | 350 LP, Regeneration 1,2/s, Panzerung physisch 2 / 15 %, Nachschub alle 360 → 150 Ticks mit der Entwicklung, bis 5 Verteidiger, 5×5 | W „Enemies“ (LP, Regeneration, Panzerung, Takt); Verteidigerzahl M; LP-Zuwachs mit Entwicklung fehlt |
+| Entwicklung | Zeit 0,000004/s, Nest 0,002, Verschmutzung 0,0000009 je Einheit; jeder Zuwachs × (1 − Entwicklung)² | W „Enemies“ (Evolution) |
+| Arten nach Entwicklung | mittlere ab 0,2, große ab 0,5 | M (Wiki zeigt nur Diagramme) |
+| Geschützturm | 2×2, 400 LP, Reichweite 18, 10 Schuss/s; 10 Kupfer + 10 Zahnräder + 20 Eisen, 8 s | W „Gun turret“ |
+| Magazin | 5 Schaden, 10 Schuss; 4 Eisenplatten, 1 s | W „Firearm magazine“ |
+| Panzerbrechendes Magazin | 8 Schaden, 10 Schuss; 2 Kupfer + 2 Magazine + 1 Stahl → 2 Stück, 6 s | W „Piercing rounds magazine“ (2.0) |
+| Pistole / Maschinenpistole | Reichweite 15 / 18, 4 / 10 Schuss/s; MP: 5 Kupfer + 10 Zahnräder + 10 Eisen, 10 s | W |
+| Steinmauer | 350 LP, 5 Ziegel, 0,5 s | W „Wall“ |
+| Reparaturset | 2 Schaltkreise + 2 Zahnräder, 0,5 s, Haltbarkeit 300; 2 LP je Tick | W (Rezept, Haltbarkeit, Forschung), M (Tempo) |
+| Forschung | Militär 10×15 s rot (MP); Geschützturm 10×10 s rot; Steinmauer 10×10 s rot; Reparaturset 25×10 s rot; Militär 2 20×15 s rot+grün (panzerbrechend) | W Infoboxen |
 | Spielfigur | 250 LP, Heilung 0,15/Tick nach 10 s ohne Treffer; Tod: Neustart am Start, Inventar bleibt | W „Character“; Tod vereinfacht (M) |
-| Reparaturset | 2 Schaltkreise + 2 Zahnräder (0,5 s), Haltbarkeit 300, 2 LP je Tick | W (Rezept, Haltbarkeit), M (Tempo) |
-| Forschung | Militär (MP) 10×15 s rot; Geschützturm 10×10 s rot; Steinmauer 10×10 s rot; Militär 2 (panzerbrechend) 20×15 s rot+grün | W (vereinfacht) |
 | Start | Pistole + 10 Magazine | W „Freeplay“ |
-| Nester auf der Karte | Raster 96 Felder, 35 % je Zelle, 2–5 Nester je Basis, keine im Umkreis 140 um den Start (stark: 80/50 %/3–7/110) | M |
+| Nester auf der Karte | Raster 96 Felder, 35 % je Zelle, 2–5 Nester je Basis, frei im Umkreis 140 um den Start (stark: 80/50 %/3–7/110) | M |

@@ -96,9 +96,9 @@ const list: RecipeDef[] = [
   // Militär (Wiki)
   { id: 'firearm-magazine', category: 'crafting', time: 1, ingredients: [{ item: 'iron-plate', amount: 4 }], results: [{ item: 'firearm-magazine', amount: 1 }] },
   {
-    id: 'piercing-rounds-magazine', category: 'crafting', time: 3,
-    ingredients: [{ item: 'copper-plate', amount: 5 }, { item: 'firearm-magazine', amount: 1 }, { item: 'steel-plate', amount: 1 }],
-    results: [{ item: 'piercing-rounds-magazine', amount: 1 }],
+    id: 'piercing-rounds-magazine', category: 'crafting', time: 6,
+    ingredients: [{ item: 'copper-plate', amount: 2 }, { item: 'firearm-magazine', amount: 2 }, { item: 'steel-plate', amount: 1 }],
+    results: [{ item: 'piercing-rounds-magazine', amount: 2 }],
   },
   {
     id: 'pistol', category: 'crafting', time: 5,

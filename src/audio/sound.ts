@@ -3,7 +3,7 @@
  * Lautstärke nach Entfernung zur Bildmitte, Stereo nach links/rechts, Drosselung gleicher Klänge.
  * Wird erst nach der ersten Nutzeraktion gestartet (Browser-Regel für Audio).
  */
-import type { GameEventType } from '../sim/events';
+import type { GameEvent, GameEventType } from '../sim/events';
 import type { World } from '../sim/world';
 import { Status } from '../sim/entity';
 
@@ -124,11 +124,8 @@ export class SoundSystem {
   }
 
   /** Ereignisse der Simulation hörbar machen (Entfernung zur Bildmitte, Zoom). */
-  update(world: World, cam: { x: number; y: number; zoom: number }, viewW: number): void {
-    if (!this.ctx) {
-      world.events.drain();
-      return;
-    }
+  update(world: World, events: readonly GameEvent[], cam: { x: number; y: number; zoom: number }, viewW: number): void {
+    if (!this.ctx) return;
     const halfW = viewW / 2 / (64 * cam.zoom);
     const hear = Math.max(12, halfW * 1.3);
     const atten = (x: number, y: number) => {
@@ -136,7 +133,7 @@ export class SoundSystem {
       return d > hear ? 0 : 1 - d / hear;
     };
     const gap: Partial<Record<GameEventType, number>> = { turret: 70, shot: 60, hit: 80, bite: 90, mine: 120, death: 50 };
-    for (const ev of world.events.drain()) {
+    for (const ev of events) {
       const a = atten(ev.x, ev.y);
       if (a <= 0) continue;
       this.play(ev.type, a, (ev.x - cam.x) / Math.max(1, halfW), gap[ev.type] ?? 40);

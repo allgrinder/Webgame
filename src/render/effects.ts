@@ -1,6 +1,7 @@
 import type { Texture } from 'pixi.js';
 import { EMITTERS, FX, type FxKind } from '../data/fx';
 import { Status } from '../sim/entity';
+import type { GameEvent } from '../sim/events';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import type { SpritePool } from './pools';
@@ -17,6 +18,10 @@ interface Particle {
   tex: Texture;
   rot: number;
   vr: number;
+  tint: number;
+  /** Lebensdauer-Faktor und Größenfaktor (Ausbrüche) */
+  life: number;
+  size: number;
 }
 
 /**
@@ -94,20 +99,25 @@ export class Effects {
     for (const q of this.parts) {
       const cfg = FX[q.kind];
       q.age += dt;
-      if (q.age >= cfg.life) continue;
+      if (q.age >= cfg.life * q.life) continue;
       q.x += q.vx * dt * T;
       q.y += q.vy * dt * T;
       q.rot += q.vr * dt;
       if (q.kind === 'spark') q.vy += 0.35 * dt; // Funken sinken nach dem Aufsteigen
+      if (q.life !== 1) {
+        q.vx *= 1 - Math.min(1, 2.5 * dt);
+        q.vy *= 1 - Math.min(1, 2.5 * dt);
+      }
       this.parts[n++] = q;
-      const f = q.age / cfg.life;
-      const size = cfg.size0 + (cfg.size1 - cfg.size0) * f;
+      const f = q.age / (cfg.life * q.life);
+      const size = (cfg.size0 + (cfg.size1 - cfg.size0) * f) * q.size;
       const fade = q.kind === 'spark' ? 1 - f : Math.min(1, f * 5) * (1 - f);
       const s = (q.kind === 'spark' ? this.addPool : this.pool).get(q.tex);
       s.position.set(q.x, q.y);
       s.scale.set((size * T) / q.tex.width);
       s.rotation = q.rot;
       s.alpha = cfg.alpha * fade;
+      s.tint = q.tint;
     }
     this.parts.length = n;
     this.pool.end();
@@ -126,6 +136,59 @@ export class Effects {
       tex: list[(Math.random() * list.length) | 0],
       rot: Math.random() * Math.PI * 2,
       vr: (Math.random() - 0.5) * 0.6,
+      tint: 0xffffff, life: 1, size: 1,
     });
+  }
+
+  /** Ausbruch: n Partikel strahlenförmig (Felder/s), mit Farbe, Lebensdauer- und Größenfaktor. */
+  burst(kind: FxKind, x: number, y: number, n: number, speed: number, tint = 0xffffff, life = 1, size = 1): void {
+    const list = this.tex[kind];
+    if (!list.length) return;
+    for (let i = 0; i < n && this.parts.length < FX.maxParticles; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = speed * (0.4 + Math.random() * 0.8);
+      this.parts.push({
+        kind, x: x * this.tile, y: y * this.tile, vx: Math.cos(a) * v, vy: Math.sin(a) * v * 0.7 - (kind === 'smoke' ? 0.3 : 0),
+        age: 0, tex: list[(Math.random() * list.length) | 0], rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 2,
+        tint, life: life * (0.7 + Math.random() * 0.6), size: size * (0.7 + Math.random() * 0.6),
+      });
+    }
+  }
+
+  /** Simulationsereignisse sichtbar machen (Explosionen, Treffer, Kadaver, Mündungsfeuer). */
+  onEvents(events: readonly GameEvent[]): void {
+    if (!this.enabled) return;
+    for (const ev of events) {
+      switch (ev.type) {
+        case 'explode':
+          this.burst('spark', ev.x, ev.y, 14, 3.5, 0xffc060, 0.8, 1.3);
+          this.burst('smoke', ev.x, ev.y, 10, 1.4, 0x3a3530, 0.7, 1.2);
+          this.burst('dust', ev.x, ev.y, 8, 2, 0x6a5a48, 1, 1.2);
+          break;
+        case 'nest':
+          this.burst('spark', ev.x, ev.y, 20, 4, 0xff8040, 0.9, 1.6);
+          this.burst('smoke', ev.x, ev.y, 16, 1.8, 0x2a201a, 0.8, 1.8);
+          this.burst('dust', ev.x, ev.y, 14, 2.5, 0x4a3022, 1, 1.5);
+          break;
+        case 'death':
+          this.burst('dust', ev.x, ev.y, 5, 1.6, 0x4a3022, 0.6, 0.7);
+          break;
+        case 'hit':
+          this.burst('spark', ev.x, ev.y, 2, 2, 0xffd080, 0.3, 0.5);
+          break;
+        case 'turret':
+        case 'shot':
+          this.burst('spark', ev.x, ev.y - 0.4, 1, 0.6, 0xffe0a0, 0.15, 0.7);
+          break;
+        case 'tree':
+          this.burst('dust', ev.x, ev.y, 6, 1.5, 0x6a7a40, 0.8, 0.8);
+          break;
+        case 'build':
+          this.burst('dust', ev.x, ev.y, 6, 1.2, 0x8a7a62, 0.7, 0.9);
+          break;
+        default:
+          break;
+      }
+    }
   }
 }

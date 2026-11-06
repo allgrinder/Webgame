@@ -14,9 +14,11 @@ import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
 import { LOOK } from '../data/look';
+import { AdvancedBloomFilter } from 'pixi-filters';
+import type { GameEvent } from '../sim/events';
 import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
-import { gradeFilter, lookEnabled } from './look';
+import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
@@ -217,6 +219,17 @@ export class GameRenderer {
       this.res.container,
     );
     if (lookEnabled()) {
+      // Leuchten: Glut, Lampen, Funken und Mündungsfeuer strahlen über ihre Fläche hinaus
+      // Ergebnis additiv mischen (sonst verdecken die schwarzen Leuchtbild-Ränder die Gebäude)
+      const bloom = () => {
+        const f = new AdvancedBloomFilter(LOOK.bloom);
+        f.blendMode = 'add';
+        return f;
+      };
+      if (bloomEnabled()) {
+        this.glow.container.filters = [bloom()];
+        this.fxAddPool.container.filters = [bloom()];
+      }
       this.groundLayer.filters = [gradeFilter(LOOK.ground)];
       this.root.filters = [gradeFilter(LOOK.world)];
     }
@@ -266,6 +279,11 @@ export class GameRenderer {
     const a = this.screenToWorld(0, 0);
     const b = this.screenToWorld(this.app.screen.width, this.app.screen.height);
     return { x0: Math.floor(a.x) - 2, y0: Math.floor(a.y) - 3, x1: Math.ceil(b.x) + 2, y1: Math.ceil(b.y) + 2 };
+  }
+
+  /** Ereignisse der Simulation (Explosionen usw.) an die Effekte geben. */
+  onEvents(events: readonly GameEvent[]): void {
+    this.effects?.onEvents(events);
   }
 
   render(world: World, alpha: number, ui: RenderUi): void {

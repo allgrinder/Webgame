@@ -21,6 +21,8 @@ export interface Grade {
 export const LOOK = {
   ground: { brightness: 0.8, contrast: 1.18, pivot: 0.42, saturation: 0.98, gain: [0.98, 1, 0.98], lift: [0, 0, 0] } as Grade,
   world: { brightness: 1.02, contrast: 1.1, pivot: 0.45, saturation: 1.04, gain: [1.03, 1.0, 0.95], lift: [0, 0.004, 0.016] } as Grade,
+  /** Leuchten (Bloom) für Leuchtebenen und Funken: Schwelle, Stärke, Weichzeichnung (pixi-filters). */
+  bloom: { threshold: 0.15, bloomScale: 1.4, brightness: 1.1, blur: 6, quality: 4 },
   /** Deckkraft der Schattenebene (Gebäude, Bäume, Items). */
   shadowAlpha: 0.74,
   /** Großflächige Helligkeitsschwankung des Bodens: Stärke (±) und Größe der Flecken in Feldern. */

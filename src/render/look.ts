@@ -41,6 +41,23 @@ export function gradeFilter(g: Grade): ColorMatrixFilter {
   return f;
 }
 
+/** Leuchteffekte (Bloom): Menü bzw. `?bloom=0`; Standard an. */
+export function bloomEnabled(): boolean {
+  try {
+    const q = new URLSearchParams(location.search).get('bloom');
+    if (q !== null) return q !== '0';
+    return localStorage.getItem('eisenwerk.bloom') !== '0';
+  } catch {
+    return true;
+  }
+}
+
+export function setBloomEnabled(on: boolean): void {
+  try {
+    localStorage.setItem('eisenwerk.bloom', on ? '1' : '0');
+  } catch { /* privat */ }
+}
+
 /** Farbabstimmung an (Standard) oder aus (`?look=0`, zum Vergleichen). */
 export function lookEnabled(): boolean {
   try {

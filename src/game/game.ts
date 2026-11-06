@@ -134,7 +134,9 @@ export class Game {
     const alpha = this.paused ? 1 : this.acc / STEP_MS;
     this.updateCamera(dt, alpha);
     this.renderer.render(this.world, alpha, this.buildUi());
-    this.sound.update(this.world, this.renderer.camera, this.renderer.app.screen.width);
+    const events = this.world.events.drain();
+    this.renderer.onEvents(events);
+    this.sound.update(this.world, events, this.renderer.camera, this.renderer.app.screen.width);
     this.frameCount++;
     this.fpsTime += dt;
     if (this.fpsTime >= 500) {

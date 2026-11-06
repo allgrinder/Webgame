@@ -10,6 +10,7 @@ import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serializ
 import { isGzip, pack, unpack } from '../game/packing';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
 import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
+import { bloomEnabled, setBloomEnabled } from '../render/look';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
@@ -1259,6 +1260,13 @@ export class Hud {
       // vorher sichern, nach dem Neuladen geht es mit „Weiterspielen“ weiter
       void this.saveGame('autosave').finally(() => {
         setGraphicsQuality(hd ? 'sd' : 'hd');
+        location.reload();
+      });
+    });
+    const bl = bloomEnabled();
+    btn(`Leuchteffekte: ${bl ? 'an' : 'aus'} (Klick zum Umschalten, lädt neu)`, () => {
+      void this.saveGame('autosave').finally(() => {
+        setBloomEnabled(!bl);
         location.reload();
       });
     });

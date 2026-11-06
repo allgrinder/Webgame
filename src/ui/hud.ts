@@ -36,6 +36,7 @@ const STATUS_TEXT: Record<Status, string> = {
 
 /** Statustext; Leerlauf bei Strom- und Wasserteilen genauer benennen. */
 function statusText(e: Entity): string {
+  if (e.kind === 'assembler' && !e.recipe) return 'Kein Rezept – unten ein Rezept wählen';
   if (e.status === Status.Idle) {
     if (e.kind === 'offshore-pump') return 'Leitung voll – wartet auf Verbrauch';
     if (e.kind === 'boiler') return 'Dampf voll – kein Strombedarf';

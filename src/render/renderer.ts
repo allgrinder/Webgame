@@ -1011,6 +1011,30 @@ export class GameRenderer {
     for (const r of en.remnants) {
       if (r.x < v.x0 - 4 || r.x > v.x1 + 4 || r.y < v.y0 - 4 || r.y > v.y1 + 4) continue;
       const age = world.tick - r.tick;
+      if (r.kind === 'building' && r.name) {
+        // Wrack: Gebäudebild verkohlt, eingesunken, leicht verdreht (wie die Trümmer im Original)
+        const base = s.has(`${r.name}.${r.dir}`) ? `${r.name}.${r.dir}` : s.has(r.name) ? r.name
+          : r.name === 'burner-mining-drill' && s.has(`drill.${r.dir}`) ? `drill.${r.dir}` : s.has(`${r.name}.off`) ? `${r.name}.off` : null;
+        const h = (Math.imul(Math.round(r.x * 7 + r.y * 13), 0x9e3779b1) >>> 0) / 4294967296;
+        if (s.has('decal.dirt.0')) {
+          // Brandfleck am Boden (Schattenebene, unter allen Gebäuden)
+          const sc = this.shadows.get(s.frame(`decal.dirt.${Math.floor(h * 4)}`));
+          sc.position.set(r.x * TILE, r.y * TILE + 6);
+          sc.scale.set(r.size * 0.55);
+          sc.tint = 0x000000;
+          sc.alpha = 0.9 * Math.max(0, 1 - age / (15 * 3600));
+        }
+        if (base) {
+          const sp = this.ents.get(s.frame(base));
+          sp.position.set(r.x * TILE, r.y * TILE + 6);
+          sp.scale.set(0.94, 0.8);
+          sp.rotation = (h - 0.5) * 0.12;
+          sp.tint = 0x4e443a;
+          sp.alpha = Math.min(1, 1.2 - age / (15 * 3600));
+          sp.zIndex = r.y * TILE - 80;
+        }
+        continue;
+      }
       const key = r.kind === 'unit' ? 'enemy.krabbler.dead' : r.kind === 'nest' ? 'enemy.nest.ruin' : null;
       if (!key || !s.has(key)) continue;
       const sp = this.ents.get(s.frame(key));
@@ -1188,8 +1212,8 @@ export class GameRenderer {
       if (n.hp < NEST.health) bar(n.x + 0.5, n.y + 5, 4, n.hp / NEST.health);
     }
     for (const r of world.enemies.remnants) {
-      if (r.kind !== 'building' || t - r.tick > 60 * 40) continue;
-      g.ellipse(r.x * TILE, r.y * TILE, r.size * 0.55 * TILE, r.size * 0.45 * TILE).fill({ color: 0x15110d, alpha: 0.55 * (1 - (t - r.tick) / 2400) });
+      if (r.kind !== 'building' || this.sprites.has('decal.dirt.0')) continue;
+      g.ellipse(r.x * TILE, r.y * TILE + 8, r.size * 0.6 * TILE, r.size * 0.42 * TILE).fill({ color: 0x15110d, alpha: 0.45 * Math.max(0, 1 - (t - r.tick) / (15 * 3600)) });
     }
     const p = world.player;
     if (p) {

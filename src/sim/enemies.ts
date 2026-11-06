@@ -63,6 +63,9 @@ export interface Remnant {
   kind: 'unit' | 'nest' | 'building';
   size: number;
   tick: number;
+  /** Gebäude: Name und Richtung (Wrack in dessen Form) */
+  name?: string;
+  dir?: number;
 }
 
 const cellKey = (gx: number, gy: number) => gx * 100003 + gy;
@@ -277,7 +280,12 @@ export class EnemySystem {
     }
     for (const u of this.units.values()) this.stepUnit(w, u);
     // Kadaver nach einer Weile entfernen
-    while (this.remnants.length && w.tick - this.remnants[0].tick > 60 * 60) this.remnants.shift();
+    // Kadaver nach 1 min, Wracks nach 15 min entfernen (oder sobald dort neu gebaut wird)
+    for (let i = this.remnants.length - 1; i >= 0; i--) {
+      const r = this.remnants[i];
+      const life = r.kind === 'building' ? 15 * 3600 : 3600;
+      if (w.tick - r.tick > life || (r.kind === 'building' && w.entityAt(r.x, r.y))) this.remnants.splice(i, 1);
+    }
   }
 
   /** Nächstes Gebäude im Umkreis: Felder abtasten (unabhängig von der Fabrikgröße) oder Gebäude durchgehen, was billiger ist. */

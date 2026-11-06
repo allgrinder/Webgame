@@ -272,7 +272,7 @@ export class World {
     this.events.push('hit', e.cx, e.cy);
     if (e.hp > 0) return;
     this.events.push('explode', e.cx, e.cy);
-    this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick });
+    this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick, name: e.name, dir: e.dir });
     this.stats.used(`lost.${e.name}`, 1);
     this.remove(e.id);
   }

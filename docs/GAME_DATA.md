@@ -336,6 +336,7 @@ geschüttet (wie im Original), nicht mehr verworfen.
 | Feldgröße | × 1,8 gegenüber den Grundwerten (Radius), Startfelder entsprechend weiter weg | Wunsch („deutlich größer“); Original: Einstellung „Größe“ |
 | Alte Spielstände | ohne gespeicherte Einstellung: Größe 1, schwer, keine Gegner (Karte bleibt gleich) | – |
 | Handabbau Rohstoffe | Abbautempo 0,5 × 6 | Wunsch (bewusste Abweichung) |
+| Gegner im laufenden Spiel | Menü → „Gegner in diesem Spiel“: Aus entfernt alle Nester und Krabbler; Friedlich ruft Angriffe zurück und sammelt keine Angreifer; Normal/Stark ändern Verhalten und Entwicklung, das Nester-Raster der Karte bleibt | Wunsch 06.11.2026; Original: Friedlich-Modus nur beim Kartenstart |
 
 ## Gegner, Verschmutzung, Militär (Wunsch 05.11.2026, Wiki-Abgleich 06.11.2026)
 

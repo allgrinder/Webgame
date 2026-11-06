@@ -91,7 +91,11 @@ export class World {
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
 
-  constructor(readonly seed: number, readonly settings: MapSettings = LEGACY_MAP_SETTINGS) {
+  /** Karteneinstellungen; die Gegner-Einstellung lässt sich im laufenden Spiel ändern (EnemySystem.applySetting). */
+  settings: MapSettings;
+
+  constructor(readonly seed: number, settings: MapSettings = LEGACY_MAP_SETTINGS) {
+    this.settings = settings;
     this.map = new GameMap(seed, settings);
   }
 

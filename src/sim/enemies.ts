@@ -1,4 +1,5 @@
 import { ENEMY_MAPGEN, EVOLUTION, NEST, PATH, PLAYER_COMBAT, POLLUTION, POLLUTION_PER_MINUTE, UNITS, type UnitKind } from '../data/enemies';
+import type { EnemySetting } from '../data/mapgen';
 import { entityDef } from '../data/entities';
 import type { Entity } from './machines';
 import { FlowField } from './flowfield';
@@ -85,14 +86,52 @@ export class EnemySystem {
 
   // ------------------------------------------------------------ Karte
 
+  /** Einstellung, mit der die Nester der Karte erzeugt werden (bleibt beim Umstellen gleich, damit sich das Raster nicht ändert). */
+  private genSetting: EnemySetting | null = null;
+
+  /** Verhalten nach der aktuellen Einstellung (Entwicklung, Angriffe). */
   private gen(w: World) {
     return ENEMY_MAPGEN[w.settings.enemies];
+  }
+  /** Erzeugung der Nester: Raster und Dichte der ersten Einstellung mit Gegnern. */
+  private mapGen(w: World) {
+    return ENEMY_MAPGEN[this.genSetting && this.genSetting !== 'aus' ? this.genSetting : w.settings.enemies];
+  }
+
+  /**
+   * Gegner-Einstellung im laufenden Spiel ändern. „Aus“ entfernt alle Nester und Krabbler,
+   * „Friedlich“ ruft laufende Angriffe zurück und verwirft gesammelte Angreifer.
+   */
+  applySetting(w: World, e: EnemySetting): void {
+    w.settings = { ...w.settings, enemies: e };
+    if (e === 'aus') {
+      this.units.clear();
+      for (const n of this.nests.values()) this.destroyed.add(n.id);
+      this.nests.clear();
+      this.occ.clear();
+      return;
+    }
+    if (e === 'friedlich') {
+      for (const n of this.nests.values()) {
+        n.budget = 0;
+        n.group = [];
+        n.hitAt = -1e9;
+      }
+      for (const u of this.units.values()) {
+        if (u.mode === 'guard') continue;
+        u.mode = this.nests.has(u.nest) ? 'return' : 'attack';
+        u.target = null;
+        if (u.mode === 'attack') this.units.delete(u.id);
+      }
+    }
   }
 
   /** Erzeugt die Nester der Rasterzellen, die das Rechteck berühren (deterministisch je Zelle). */
   ensureArea(w: World, x0: number, y0: number, x1: number, y1: number): void {
-    const g = this.gen(w);
+    if (w.settings.enemies === 'aus') return;
+    const g = this.mapGen(w);
     if (g.chance <= 0) return;
+    if (!this.genSetting || this.genSetting === 'aus') this.genSetting = w.settings.enemies;
     const c = g.cell;
     for (let gy = Math.floor(y0 / c) - 1; gy <= Math.floor(y1 / c) + 1; gy++) {
       for (let gx = Math.floor(x0 / c) - 1; gx <= Math.floor(x1 / c) + 1; gx++) {
@@ -105,7 +144,7 @@ export class EnemySystem {
   }
 
   private genCell(w: World, gx: number, gy: number): void {
-    const g = this.gen(w);
+    const g = this.mapGen(w);
     const s = w.seed;
     if (hash01(s, gx, gy, 501) >= g.chance) return;
     const bx = (gx + 0.2 + hash01(s, gx, gy, 502) * 0.6) * g.cell;
@@ -228,7 +267,7 @@ export class EnemySystem {
 
   update(w: World): void {
     const g = this.gen(w);
-    if (g.chance <= 0 && this.units.size === 0) return;
+    if ((g.chance <= 0 || w.settings.enemies === 'aus') && this.units.size === 0) return;
     if (w.tick % 60 === 0) {
       this.evolve(EVOLUTION.timePerSecond * g.evolutionFactor);
       // Nester um die Spielfigur und in verschmutzten Abschnitten anlegen
@@ -257,7 +296,11 @@ export class EnemySystem {
           this.spawnUnit(w, n, 'guard', this.pickKind());
           n.spawnCd = Math.round(NEST.spawnCooldown + (NEST.spawnCooldownEvolved - NEST.spawnCooldown) * this.evolution);
         }
-        if (peaceful) continue;
+        if (peaceful) {
+          // friedlich: keine Angriffsgruppen sammeln (sonst käme beim Umstellen eine große Welle)
+          n.budget = 0;
+          continue;
+        }
         let kind = this.pickKind();
         while (n.budget >= UNITS[kind].pollution && this.units.size < 600) {
           n.budget -= UNITS[kind].pollution;
@@ -609,7 +652,7 @@ export class EnemySystem {
 
   serialize() {
     return {
-      evo: this.evolution, nu: this.nextUnit, rs: this.rs, le: this.lastEmitted,
+      evo: this.evolution, nu: this.nextUnit, rs: this.rs, le: this.lastEmitted, gs: this.genSetting,
       cells: [...this.cells].sort((a, b) => a - b),
       dead: [...this.destroyed].sort((a, b) => a - b),
       nests: [...this.nests.values()].map((n) => [n.id, n.x, n.y, n.hp, n.budget, n.group, n.groupSince, n.spawnCd, n.hitAt, n.threat ?? null, n.wait]),
@@ -623,11 +666,13 @@ export class EnemySystem {
     this.cells.clear();
     this.destroyed.clear();
     this.occ.clear();
+    this.genSetting = null;
     if (!d) return;
     this.evolution = d.evo;
     this.nextUnit = d.nu;
     this.rs = d.rs;
     this.lastEmitted = d.le ?? 0;
+    this.genSetting = d.gs ?? (d.cells.length ? w.settings.enemies : null);
     for (const c of d.cells) this.cells.add(c);
     for (const id of d.dead) this.destroyed.add(id);
     for (const [id, x, y, hp, budget, group, gs, cd, hit, threat, wait] of d.nests as [number, number, number, number, number, number[], number, number, number, number | null, number][]) {

@@ -177,7 +177,7 @@ export class Hud {
       this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
       this.mapView.update(w, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
-    const evo = w.settings.enemies !== 'aus' ? ` · Gegner-Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : '';
+    const evo = ` · Gegner: ${ENEMY_SETTINGS[w.settings.enemies].label}${w.settings.enemies !== 'aus' ? `, Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : ''}`;
     this.info.textContent = `Eisenwerk – ${this.title}${evo} · H: Hilfe`;
     const pl0 = w.player;
     if (pl0) {
@@ -1345,6 +1345,25 @@ export class Hud {
         location.reload();
       });
     });
+    {
+      // Gegner im laufenden Spiel umstellen (wie die Karteneinstellung beim Start)
+      const w = this.game.world;
+      el('div', 'sub-head', body).textContent = 'Gegner in diesem Spiel';
+      const row = el('div', 'choice-row', body);
+      for (const k of Object.keys(ENEMY_SETTINGS) as EnemySetting[]) {
+        const b = el('button', `choice${w.settings.enemies === k ? ' on' : ''}`, row);
+        b.textContent = ENEMY_SETTINGS[k].label;
+        b.title = ENEMY_SETTINGS[k].hint;
+        b.onclick = () => {
+          if (k === w.settings.enemies) return;
+          if (k === 'aus' && w.enemies.nests.size && !confirm('Alle Nester und Krabbler werden entfernt. Fortfahren?')) return;
+          w.enemies.applySetting(w, k);
+          this.flash(`Gegner: ${ENEMY_SETTINGS[k].label} – ${ENEMY_SETTINGS[k].hint}`);
+          void this.buildMenu();
+        };
+      }
+      el('div', 'dim', body).textContent = ENEMY_SETTINGS[w.settings.enemies].hint;
+    }
     btn('Neues Spiel (neue Karte) …', () => this.newGameDialog());
     el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);

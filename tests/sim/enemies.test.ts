@@ -119,3 +119,55 @@ describe('Gegner', () => {
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
   });
 });
+
+describe('Gegner-Einstellung im laufenden Spiel', () => {
+  const world = () => {
+    const w = new World(7, { resources: 'mittel', size: 1, enemies: 'normal' });
+    w.enemies.ensureArea(w, -400, -400, 400, 400);
+    return w;
+  };
+
+  it('Aus entfernt Nester und Krabbler und erzeugt keine neuen', () => {
+    const w = world();
+    expect(w.enemies.nests.size).toBeGreaterThan(0);
+    w.enemies.applySetting(w, 'aus');
+    expect(w.enemies.nests.size).toBe(0);
+    expect(w.enemies.units.size).toBe(0);
+    w.enemies.ensureArea(w, -800, -800, 800, 800);
+    w.run(600);
+    expect(w.enemies.nests.size).toBe(0);
+    expect(w.enemies.units.size).toBe(0);
+  });
+
+  it('Friedlich ruft Angreifer zurück; wieder Normal erzeugt dasselbe Raster', () => {
+    const w = world();
+    const before = w.enemies.nests.size;
+    for (const u of w.enemies.units.values()) u.mode = 'attack';
+    w.enemies.applySetting(w, 'friedlich');
+    expect([...w.enemies.units.values()].every((u) => u.mode !== 'attack')).toBe(true);
+    w.enemies.applySetting(w, 'normal');
+    w.enemies.ensureArea(w, -400, -400, 400, 400);
+    expect(w.enemies.nests.size).toBe(before);
+  });
+
+  it('Einstellung übersteht Speichern und Laden', () => {
+    const w = world();
+    w.enemies.applySetting(w, 'friedlich');
+    const b = deserializeWorld(JSON.parse(JSON.stringify(serializeWorld(w))));
+    expect(b.settings.enemies).toBe('friedlich');
+    expect(b.enemies.nests.size).toBe(w.enemies.nests.size);
+  });
+});
+
+describe('Friedlich', () => {
+  it('trotz Verschmutzung am Nest kein Angriff', () => {
+    const w = world('friedlich');
+    const drill = w.place('burner-mining-drill', 4, 0, 0, true)!;
+    const nest = w.enemies.spawnNest(w, 30, -2);
+    for (let i = 0; i < 20; i++) w.pollution.add(30, -2, 500);
+    nest.budget = UNITS.small.pollution * 6;
+    w.run(60 * 60 * 11);
+    expect(w.entities.has(drill.id)).toBe(true);
+    expect([...w.enemies.units.values()].every((u) => u.mode === 'guard')).toBe(true);
+  });
+});

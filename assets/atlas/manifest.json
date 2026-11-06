@@ -103,7 +103,7 @@
    ]
   },
   "decals": {
-   "hash": "04e491fdbbe8bab8",
+   "hash": "e05fd83b53c2ce22",
    "sprites": [
     "decal.dirt.0",
     "decal.dirt.1",
@@ -113,6 +113,15 @@
     "decal.gravel.1",
     "decal.gravel.2",
     "decal.gravel.3",
+    "decal.sand.0",
+    "decal.sand.1",
+    "decal.sand.2",
+    "decal.earth.0",
+    "decal.earth.1",
+    "decal.earth.2",
+    "decal.rock.0",
+    "decal.rock.1",
+    "decal.rock.2",
     "decal.tint.0",
     "decal.tint.1",
     "decal.tint.2",
@@ -149,7 +158,7 @@
    ]
   },
   "edrill": {
-   "hash": "52296e1c2e451655",
+   "hash": "fe3c410beada21f3",
    "sprites": [
     "electric-mining-drill.0",
     "electric-mining-drill.0.shadow",
@@ -895,7 +904,7 @@
    ]
   },
   "montage": {
-   "hash": "ca67b0c17fef6378",
+   "hash": "b24a9c3fc7b9864f",
    "sprites": [
     "assembling-machine-1",
     "assembling-machine-1.shadow",
@@ -906,7 +915,7 @@
    ]
   },
   "oil": {
-   "hash": "b4d86a80ff539864",
+   "hash": "32052258740646a8",
    "sprites": [
     "pumpjack.0",
     "pumpjack.0.shadow",
@@ -1096,7 +1105,7 @@
    ]
   },
   "production": {
-   "hash": "de7f399c19975286",
+   "hash": "ebe450312a46958d",
    "sprites": [
     "lab",
     "lab.shadow"
@@ -1332,6 +1341,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-9.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-10.json"
   },
   {
    "group": "flora",
@@ -2763,6 +2776,51 @@
     0.5
    ]
   },
+  "decal.earth.0": {
+   "group": "decals",
+   "frames": [
+    "decal.earth.0#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.earth.1": {
+   "group": "decals",
+   "frames": [
+    "decal.earth.1#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.earth.2": {
+   "group": "decals",
+   "frames": [
+    "decal.earth.2#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "decal.flowers.0": {
    "group": "decals",
    "frames": [
@@ -2930,6 +2988,96 @@
     0.5,
     0.5
    ]
+  },
+  "decal.rock.0": {
+   "group": "decals",
+   "frames": [
+    "decal.rock.0#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.rock.1": {
+   "group": "decals",
+   "frames": [
+    "decal.rock.1#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.rock.2": {
+   "group": "decals",
+   "frames": [
+    "decal.rock.2#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.sand.0": {
+   "group": "decals",
+   "frames": [
+    "decal.sand.0#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.sand.1": {
+   "group": "decals",
+   "frames": [
+    "decal.sand.1#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "decal.sand.2": {
+   "group": "decals",
+   "frames": [
+    "decal.sand.2#0"
+   ],
+   "w": 288,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "decal.tint.0": {
    "group": "decals",
@@ -3383,7 +3531,15 @@
     "assembling-machine-1#4",
     "assembling-machine-1#5",
     "assembling-machine-1#6",
-    "assembling-machine-1#7"
+    "assembling-machine-1#7",
+    "assembling-machine-1#8",
+    "assembling-machine-1#9",
+    "assembling-machine-1#10",
+    "assembling-machine-1#11",
+    "assembling-machine-1#12",
+    "assembling-machine-1#13",
+    "assembling-machine-1#14",
+    "assembling-machine-1#15"
    ],
    "w": 240,
    "h": 288,
@@ -3391,7 +3547,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "assembling-machine-1.shadow": {
    "group": "entities",
@@ -3418,7 +3574,15 @@
     "assembling-machine-2#4",
     "assembling-machine-2#5",
     "assembling-machine-2#6",
-    "assembling-machine-2#7"
+    "assembling-machine-2#7",
+    "assembling-machine-2#8",
+    "assembling-machine-2#9",
+    "assembling-machine-2#10",
+    "assembling-machine-2#11",
+    "assembling-machine-2#12",
+    "assembling-machine-2#13",
+    "assembling-machine-2#14",
+    "assembling-machine-2#15"
    ],
    "w": 240,
    "h": 288,
@@ -3426,7 +3590,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "assembling-machine-2.shadow": {
    "group": "entities",
@@ -3453,7 +3617,15 @@
     "assembling-machine-3#4",
     "assembling-machine-3#5",
     "assembling-machine-3#6",
-    "assembling-machine-3#7"
+    "assembling-machine-3#7",
+    "assembling-machine-3#8",
+    "assembling-machine-3#9",
+    "assembling-machine-3#10",
+    "assembling-machine-3#11",
+    "assembling-machine-3#12",
+    "assembling-machine-3#13",
+    "assembling-machine-3#14",
+    "assembling-machine-3#15"
    ],
    "w": 240,
    "h": 288,
@@ -3461,7 +3633,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "assembling-machine-3.shadow": {
    "group": "entities",
@@ -4231,7 +4403,15 @@
     "chemical-plant.0#4",
     "chemical-plant.0#5",
     "chemical-plant.0#6",
-    "chemical-plant.0#7"
+    "chemical-plant.0#7",
+    "chemical-plant.0#8",
+    "chemical-plant.0#9",
+    "chemical-plant.0#10",
+    "chemical-plant.0#11",
+    "chemical-plant.0#12",
+    "chemical-plant.0#13",
+    "chemical-plant.0#14",
+    "chemical-plant.0#15"
    ],
    "w": 240,
    "h": 288,
@@ -4239,7 +4419,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "chemical-plant.0.shadow": {
    "group": "entities",
@@ -4266,7 +4446,15 @@
     "chemical-plant.1#4",
     "chemical-plant.1#5",
     "chemical-plant.1#6",
-    "chemical-plant.1#7"
+    "chemical-plant.1#7",
+    "chemical-plant.1#8",
+    "chemical-plant.1#9",
+    "chemical-plant.1#10",
+    "chemical-plant.1#11",
+    "chemical-plant.1#12",
+    "chemical-plant.1#13",
+    "chemical-plant.1#14",
+    "chemical-plant.1#15"
    ],
    "w": 240,
    "h": 288,
@@ -4274,7 +4462,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "chemical-plant.1.shadow": {
    "group": "entities",
@@ -4301,7 +4489,15 @@
     "chemical-plant.2#4",
     "chemical-plant.2#5",
     "chemical-plant.2#6",
-    "chemical-plant.2#7"
+    "chemical-plant.2#7",
+    "chemical-plant.2#8",
+    "chemical-plant.2#9",
+    "chemical-plant.2#10",
+    "chemical-plant.2#11",
+    "chemical-plant.2#12",
+    "chemical-plant.2#13",
+    "chemical-plant.2#14",
+    "chemical-plant.2#15"
    ],
    "w": 240,
    "h": 288,
@@ -4309,7 +4505,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "chemical-plant.2.shadow": {
    "group": "entities",
@@ -4336,7 +4532,15 @@
     "chemical-plant.3#4",
     "chemical-plant.3#5",
     "chemical-plant.3#6",
-    "chemical-plant.3#7"
+    "chemical-plant.3#7",
+    "chemical-plant.3#8",
+    "chemical-plant.3#9",
+    "chemical-plant.3#10",
+    "chemical-plant.3#11",
+    "chemical-plant.3#12",
+    "chemical-plant.3#13",
+    "chemical-plant.3#14",
+    "chemical-plant.3#15"
    ],
    "w": 240,
    "h": 288,
@@ -4344,7 +4548,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "chemical-plant.3.shadow": {
    "group": "entities",
@@ -4782,7 +4986,15 @@
     "electric-mining-drill.0#4",
     "electric-mining-drill.0#5",
     "electric-mining-drill.0#6",
-    "electric-mining-drill.0#7"
+    "electric-mining-drill.0#7",
+    "electric-mining-drill.0#8",
+    "electric-mining-drill.0#9",
+    "electric-mining-drill.0#10",
+    "electric-mining-drill.0#11",
+    "electric-mining-drill.0#12",
+    "electric-mining-drill.0#13",
+    "electric-mining-drill.0#14",
+    "electric-mining-drill.0#15"
    ],
    "w": 272,
    "h": 320,
@@ -4790,7 +5002,7 @@
     0.5,
     0.6
    ],
-   "fps": 15
+   "fps": 30
   },
   "electric-mining-drill.0.shadow": {
    "group": "entities",
@@ -4817,7 +5029,15 @@
     "electric-mining-drill.1#4",
     "electric-mining-drill.1#5",
     "electric-mining-drill.1#6",
-    "electric-mining-drill.1#7"
+    "electric-mining-drill.1#7",
+    "electric-mining-drill.1#8",
+    "electric-mining-drill.1#9",
+    "electric-mining-drill.1#10",
+    "electric-mining-drill.1#11",
+    "electric-mining-drill.1#12",
+    "electric-mining-drill.1#13",
+    "electric-mining-drill.1#14",
+    "electric-mining-drill.1#15"
    ],
    "w": 272,
    "h": 320,
@@ -4825,7 +5045,7 @@
     0.5,
     0.6
    ],
-   "fps": 15
+   "fps": 30
   },
   "electric-mining-drill.1.shadow": {
    "group": "entities",
@@ -4852,7 +5072,15 @@
     "electric-mining-drill.2#4",
     "electric-mining-drill.2#5",
     "electric-mining-drill.2#6",
-    "electric-mining-drill.2#7"
+    "electric-mining-drill.2#7",
+    "electric-mining-drill.2#8",
+    "electric-mining-drill.2#9",
+    "electric-mining-drill.2#10",
+    "electric-mining-drill.2#11",
+    "electric-mining-drill.2#12",
+    "electric-mining-drill.2#13",
+    "electric-mining-drill.2#14",
+    "electric-mining-drill.2#15"
    ],
    "w": 272,
    "h": 320,
@@ -4860,7 +5088,7 @@
     0.5,
     0.6
    ],
-   "fps": 15
+   "fps": 30
   },
   "electric-mining-drill.2.shadow": {
    "group": "entities",
@@ -4887,7 +5115,15 @@
     "electric-mining-drill.3#4",
     "electric-mining-drill.3#5",
     "electric-mining-drill.3#6",
-    "electric-mining-drill.3#7"
+    "electric-mining-drill.3#7",
+    "electric-mining-drill.3#8",
+    "electric-mining-drill.3#9",
+    "electric-mining-drill.3#10",
+    "electric-mining-drill.3#11",
+    "electric-mining-drill.3#12",
+    "electric-mining-drill.3#13",
+    "electric-mining-drill.3#14",
+    "electric-mining-drill.3#15"
    ],
    "w": 272,
    "h": 320,
@@ -4895,7 +5131,7 @@
     0.5,
     0.6
    ],
-   "fps": 15
+   "fps": 30
   },
   "electric-mining-drill.3.shadow": {
    "group": "entities",
@@ -6062,7 +6298,15 @@
     "lab#4",
     "lab#5",
     "lab#6",
-    "lab#7"
+    "lab#7",
+    "lab#8",
+    "lab#9",
+    "lab#10",
+    "lab#11",
+    "lab#12",
+    "lab#13",
+    "lab#14",
+    "lab#15"
    ],
    "w": 240,
    "h": 288,
@@ -6070,7 +6314,7 @@
     0.5,
     0.5777777777777778
    ],
-   "fps": 15
+   "fps": 30
   },
   "lab.shadow": {
    "group": "entities",

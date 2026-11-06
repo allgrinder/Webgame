@@ -36,6 +36,10 @@ export interface DecorKind {
 
 export const DECOR: readonly DecorKind[] = [
   { id: 'tint', sprite: 'decal.tint', layer: 'decal', cell: 11, chance: 0.7, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
+  // Bodenarten (große, weich auslaufende Flecken): Übergänge Gras → Sand/Erde/Fels
+  { id: 'sand', sprite: 'decal.sand', layer: 'decal', cell: 12, chance: 0.28, waterBoost: 3.5, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.6 },
+  { id: 'earth', sprite: 'decal.earth', layer: 'decal', cell: 13, chance: 0.32, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.9 },
+  { id: 'rock', sprite: 'decal.rock', layer: 'decal', cell: 22, chance: 0.22, clearOfResources: 2, clearOfSpawn: 6, shadow: false, warp: true, fertility: -1.2 },
   { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 10, chance: 0.3, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.8 },
   { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 17, chance: 0.18, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -1.0 },
   { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false, fertility: -0.5 },

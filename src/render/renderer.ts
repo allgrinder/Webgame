@@ -459,7 +459,7 @@ export class GameRenderer {
     p.begin();
     const small = this.camera.zoom >= DECOR_MIN_ZOOM_SMALL;
     let n = 0;
-    for (const d of this.visibleDecor(world, v, 4)) {
+    for (const d of this.visibleDecor(world, v, 6)) {
       if (d.kind.layer !== 'decal') continue;
       if (!small && d.kind.cell < 6) continue;
       if (!this.sprites.has(`${d.kind.sprite}.${d.variant}`)) continue;
@@ -698,7 +698,7 @@ export class GameRenderer {
         }
         const sh = this.shadows.get(s.frame(`${base}.${e.dir}.shadow`));
         sh.position.set(cx, cy);
-        const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / 4)));
+        const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / this.ticksPerFrame(`${base}.${e.dir}`))));
         sp.position.set(cx, cy);
         sp.zIndex = z;
         break;
@@ -904,6 +904,24 @@ export class GameRenderer {
   }
 
   /** Sprite nach Schema name.richtung bzw. name (animiert, mit Schatten und Leuchten), sonst Item-Symbol. */
+  /** Ticks je Animationsbild aus der Bildrate des Sprites (Standard 15 Bilder/s). */
+  private ticksPerFrame(name: string): number {
+    return 60 / (this.sprites.info(name)?.fps ?? 15);
+  }
+
+  /** Arbeitslicht: pulsierender Lichtpunkt an der Gebäudeecke im Arbeitstakt (wie die Statuslampen im Original). */
+  private statusLight(e: Entity, cx: number, cy: number, work: number): void {
+    const s = this.sprites;
+    if (!s.has('fx.light') || e.w < 2) return;
+    const color = e.kind === 'lab' ? 0x7fd8ff : e.kind === 'furnace' ? 0xffb050 : 0x9dff7a;
+    const pulse = 0.55 + 0.45 * Math.sin((work / 60) * Math.PI * 2 * 1.2);
+    const g = this.glow.get(s.frame('fx.light'));
+    g.position.set(cx + e.w * TILE * 0.38, cy - e.h * TILE * 0.42);
+    g.scale.set((TILE * 0.32) / g.texture.width);
+    g.tint = color;
+    g.alpha = pulse * 0.9;
+  }
+
   private drawGeneric(e: Entity, cx: number, cy: number, z: number): void {
     const s = this.sprites;
     const base = s.has(`${e.name}.${e.dir}`) ? `${e.name}.${e.dir}` : s.has(e.name) ? e.name : null;
@@ -920,7 +938,8 @@ export class GameRenderer {
       sh.position.set(cx, cy);
       sh.scale.set(s.info(`${base}.shadow`)?.meta?.scale ?? 1);
     }
-    const sp = this.ents.get(s.frame(base, Math.floor(work / 4)));
+    const sp = this.ents.get(s.frame(base, Math.floor(work / this.ticksPerFrame(base))));
+    if (e.status === Status.Working) this.statusLight(e, cx, cy, work);
     sp.position.set(cx, cy);
     sp.zIndex = z;
     if (e.status === Status.Working && s.has(`${base}.glow`)) {

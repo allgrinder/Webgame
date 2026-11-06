@@ -5,4 +5,4 @@ import bohrer
 
 def render(out):
     anlagen.building(out, 'electric-mining-drill', bohrer.electric_drill, (4.25, 5.0), (0.5, 3.0 / 5.0),
-                     (5.0, 5.0), (2.0 / 5.0, 2.0 / 5.0), dirs=(0, 1, 2, 3), frames=8, samples=36)
+                     (5.0, 5.0), (2.0 / 5.0, 2.0 / 5.0), dirs=(0, 1, 2, 3), frames=16, fps=30, samples=36)

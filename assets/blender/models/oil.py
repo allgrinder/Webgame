@@ -54,7 +54,7 @@ def render(out):
     anlagen.building(out, 'pumpjack', stufe23.pumpjack2, (3.75, 4.75), (0.5, 2.85 / 4.75),
                      (4.75, 4.75), (2.0 / 4.75, 2.0 / 4.75), dirs=ALL, frames=8, samples=36, tier=2)
     anlagen.building(out, 'chemical-plant', stufe23.chemical_plant2, (3.75, 4.5), (0.5, 2.6 / 4.5),
-                     (4.75, 4.75), (2.0 / 4.75, 2.0 / 4.75), dirs=ALL, frames=8, samples=36, tier=2)
+                     (4.75, 4.75), (2.0 / 4.75, 2.0 / 4.75), dirs=ALL, frames=16, fps=30, samples=36, tier=2)
     anlagen.building(out, 'oil-refinery', stufe23.oil_refinery2, (5.5, 6.75), (0.5, 3.65 / 6.75),
                      (8.0, 8.0), (3.0 / 8.0, 3.0 / 8.0), dirs=ALL, frames=4, samples=36, tier=2)
     electric_furnace(out)

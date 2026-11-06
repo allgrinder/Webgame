@@ -47,6 +47,31 @@ def render(out):
             finish(out, f'decal.{kind}.{k % 2 * 2 + v}', size)
         k += 1
 
+    # Bodenarten mit weichen Rändern (Übergänge Gras → Sand/Erde/Fels), halbe Auflösung, im Spiel ×2
+    terrain = [
+        ('sand', 2.7, ('#9c8a66', '#b29f7b'), ('#c2b494', '#a99878', '#8f8066'), 160, False),
+        ('earth', 2.9, ('#594632', '#6a563d'), ('#6e604a', '#4f4030', '#7a6a52'), 420, False),
+        ('rock', 2.5, ('#625d55', '#736d63'), ('#837c70', '#6a645a', '#57524b', '#918a7d'), 700, True),
+    ]
+    for kind, R, base, ptones, n, slabs in terrain:
+        for v in range(3):
+            eisen.reset(samples=24, ground=False)
+            rnd = random.Random(700 + v * 11 + len(kind))
+            disc(R, patch_material(f'tr{kind}{v}', base, 60 + v * 3 + len(kind), noise_amp=0.5))
+            pebbles(n, R * 0.8, rnd, ptones, 0.01, 0.04 if not slabs else 0.06, angular=slabs)
+            if slabs:
+                stone = gw_ground.pmat(f'slab{v}', lin('#6e685e'), 0.95, 0.3, 0.6, 12)
+                for k in range(9):
+                    a = rnd.uniform(0, math.tau)
+                    r = R * 0.55 * math.sqrt(rnd.random())
+                    eisen.rock(f'slab{k}', rnd.uniform(0.25, 0.5), (math.cos(a) * r, math.sin(a) * r, 0.0), stone, 900 + k + v * 20, squash=0.18)
+            size = math.ceil(R * 2 * 1.45 + 0.4)
+            eisen.shadow_catcher(size * 3)
+            eisen.camera(size, size)
+            bpy.context.scene.render.resolution_percentage = 50
+            name = f'decal.{kind}.{v}'
+            out.add(name, 'decals', [out.render_frame(name, 0)], (0.5, 0.5), meta={'scale': 2})
+
     # Großflächige Farbflächen (gegen sichtbare Wiederholung der Bodenkacheln), Viertelauflösung, im Spiel ×4
     tints = [('#a89a62', '#b8a873'), ('#5d6a3a', '#6a7744'), ('#6b563e', '#7a6447'), ('#8f8a55', '#9d9660')]
     for v, tones in enumerate(tints):

@@ -1,12 +1,12 @@
 import { Application, Container, Graphics, type Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
-import { type DrillDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
+import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
 import { BeltSystem, Shape } from '../sim/belts';
 import { Status } from '../sim/entity';
-import { DX, DY, type Dir } from '../sim/geom';
+import { DX, DY, type Dir, rotateVec } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
 import { drillAreaTiles, drillOutputPoint } from '../sim/entities/basic';
 import { CircuitSystem } from '../sim/circuit';
@@ -46,6 +46,8 @@ export interface RenderUi {
   power?: { pole: Ghost | null } | null;
   /** Bohrer im Cursor oder unter der Maus: Abbaufelder und Ausgabestelle zeigen. */
   drill?: Ghost | null;
+  /** Greifarm im Cursor oder unter der Maus: woher er nimmt (grün) und wohin er legt (gelb). */
+  inserter?: Ghost | null;
   /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
   wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
@@ -1230,6 +1232,31 @@ export class GameRenderer {
     this.arrow(g, px - DX[d.dir] * 0.15, py - DY[d.dir] * 0.15, d.dir, 0xffd23a, 0.3, 0.95);
   }
 
+  /** Greifarm: Aufnahmefeld und Gebäude dort grün, Ablagefeld und Zielgebäude gelb, Pfeil dazwischen. */
+  private drawInserterReach(world: World, ins: Ghost, g: Graphics): void {
+    const z = this.camera.zoom;
+    const def = entityDef(ins.name) as InserterDef;
+    const cx = ins.x + 0.5;
+    const cy = ins.y + 0.5;
+    const [pvx, pvy] = rotateVec(def.pickupVector[0], def.pickupVector[1], ins.dir);
+    const [dvx, dvy] = rotateVec(def.dropVector[0], def.dropVector[1], ins.dir);
+    const pick: [number, number] = [cx + pvx, cy + pvy];
+    const drop: [number, number] = [cx + dvx, cy + dvy];
+    const mark = (p: [number, number], color: number) => {
+      const e = world.entityAt(p[0], p[1]);
+      if (e && e.kind !== 'rail' && e.kind !== 'belt') {
+        g.rect(e.x * TILE + 2, e.y * TILE + 2, e.w * TILE - 4, e.h * TILE - 4).fill({ color, alpha: 0.12 }).stroke({ width: 2 / z, color, alpha: 0.9 });
+      }
+      const tx = Math.floor(p[0]);
+      const ty = Math.floor(p[1]);
+      g.rect(tx * TILE + 4, ty * TILE + 4, TILE - 8, TILE - 8).fill({ color, alpha: 0.3 }).stroke({ width: 2 / z, color, alpha: 1 });
+    };
+    mark(pick, 0x6fe07a);
+    mark(drop, 0xffd23a);
+    g.moveTo(pick[0] * TILE, pick[1] * TILE).lineTo(drop[0] * TILE, drop[1] * TILE).stroke({ width: 2.5 / z, color: 0xffd23a, alpha: 0.85 });
+    this.arrow(g, drop[0] - DX[ins.dir] * 0.2, drop[1] - DY[ins.dir] * 0.2, ins.dir, 0xffd23a, 0.3, 0.95);
+  }
+
   private drawOverlay(world: World, ui: RenderUi): void {
     const g = this.overlay;
     g.clear();
@@ -1247,6 +1274,7 @@ export class GameRenderer {
     }
     if (ui.power) this.drawPowerAreas(world, ui.power.pole, g);
     if (ui.drill) this.drawDrillArea(world, ui.drill, g);
+    if (ui.inserter) this.drawInserterReach(world, ui.inserter, g);
     // zum Abriss markiert: rotes Kreuz
     for (const id of world.robots.marked) {
       const e = world.entities.get(id);

@@ -79,3 +79,29 @@ describe('Blaupausen-Vorlagen', () => {
     expect(coal()).toBe(before);
   });
 });
+
+describe('Direkte Übergabe', () => {
+  it('Montagemaschine → Greifarm → Montagemaschine, ohne Band', () => {
+    const w = new World(1);
+    for (let y = -12; y < 10; y++) for (let x = -12; x < 20; x++) {
+      w.map.setResource(x, y, 0, 0);
+      w.map.setWater(x, y, false);
+    }
+    w.map.setWater(-8, -9, true);
+    for (const p of placed(STEAM_POWER, -8, -9)) w.place(p.name, p.x, p.y, p.dir);
+    insertInto([...w.entities.values()].find((e) => e.kind === 'boiler')!, 'coal', 50, 'player');
+    w.place('small-electric-pole', -2, 0, 0);
+    w.place('small-electric-pole', 3, 3, 0);
+    const a = w.place('assembling-machine-1', 0, 0, 0)!;
+    expect(w.place('inserter', 3, 1, 1)).toBeTruthy(); // Richtung Osten: nimmt aus a, legt in b
+    const b = w.place('assembling-machine-1', 4, 0, 0)!;
+    if (a.kind !== 'assembler' || b.kind !== 'assembler') throw new Error('Montagemaschine erwartet');
+    a.setRecipe('iron-gear-wheel');
+    b.setRecipe('transport-belt');
+    insertInto(a, 'iron-plate', 50, 'player');
+    insertInto(b, 'iron-plate', 50, 'player');
+    w.run(600);
+    const made = b.contents().find((c) => c.item === 'transport-belt')?.count ?? 0;
+    expect(made).toBeGreaterThan(0);
+  });
+});

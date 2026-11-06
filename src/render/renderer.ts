@@ -109,6 +109,8 @@ export class GameRenderer {
   private playerDir = 4;
   private readonly icons = new SpritePool();
   private readonly overlay = new Graphics();
+  /** Hintergrundscheiben der Alt-Symbole (unter den Symbolen). */
+  private readonly altBg = new Graphics();
   private readonly wires = new Graphics();
   private readonly ghostSprites = new SpritePool();
   /** Boden ist eine periodische Fläche aus groundPeriod×groundPeriod Kacheln. */
@@ -248,6 +250,7 @@ export class GameRenderer {
       this.cloudPool.container,
       this.wires,
       this.ghostSprites.container,
+      this.altBg,
       this.icons.container,
       this.overlay,
     );
@@ -1083,6 +1086,7 @@ export class GameRenderer {
   private drawOverlay(world: World, ui: RenderUi): void {
     const g = this.overlay;
     g.clear();
+    this.altBg.clear();
     const z = this.camera.zoom;
     if (ui.robotAreas) {
       for (const net of world.robots.nets) {
@@ -1147,7 +1151,7 @@ export class GameRenderer {
       } else if (e.kind === 'inserter') {
         this.arrow(g, e.x + 0.5 + DX[e.dir] * 0.75, e.y + 0.5 + DY[e.dir] * 0.75, e.dir, 0xffd060, 0.22);
       }
-      this.drawAltContents(e, g);
+      this.drawAltContents(e, g, world);
     }
   }
 
@@ -1194,30 +1198,63 @@ export class GameRenderer {
     }
   }
 
-  private drawAltContents(e: Entity, g: Graphics): void {
-    const list: string[] = [];
-    if (e.kind === 'furnace') {
-      const r = e.recipe?.results[0].item ?? e.result.firstItem() ?? e.source.firstItem();
-      if (r) list.push(r);
-    }
-    const f = e.burner?.fuel.firstItem();
-    if (f && e.kind !== 'inserter') list.push(f);
-    if (e.kind === 'container') {
-      const f = e.inventory.firstItem();
-      if (f) list.push(f);
-    }
+  /**
+   * Alt-Ansicht wie im Original: großes Symbol des Produkts auf Maschinen (Rezept, Erz unter dem Bohrer,
+   * Flüssigkeit im Tank), bis zu vier Items über Kisten, Module als kleine Symbole, Statuspunkt.
+   */
+  private drawAltContents(e: Entity, g: Graphics, world: World): void {
+    const s = this.sprites;
+    const icon = (item: string, x: number, y: number, size: number) => {
+      const name = `item.${item}`;
+      if (!s.has(name)) return;
+      this.altBg.circle(x, y, size * 0.62).fill({ color: 0x0b0b0a, alpha: 0.62 }).stroke({ width: 1.5, color: 0x000000, alpha: 0.5 });
+      const sp = this.icons.get(s.frame(name));
+      sp.position.set(x, y);
+      sp.scale.set((size / TILE) * 0.95);
+    };
     const cx = e.cx * TILE;
     const cy = e.cy * TILE;
-    list.forEach((it, k) => {
-      const sp = this.icons.get(this.sprites.frame(`item.${it}`));
-      const off = (k - (list.length - 1) / 2) * 26;
-      g.circle(cx + off, cy + 14, 14).fill({ color: 0x000000, alpha: 0.55 });
-      sp.position.set(cx + off, cy + 14);
-      sp.scale.set(0.38);
-    });
+    const big = Math.min(e.w, e.h) * TILE * (e.w >= 3 ? 0.48 : e.w >= 2 ? 0.6 : 0.72);
+    let main: string | null = null;
+    if (e.kind === 'assembler') main = e.recipe?.results[0]?.item ?? null;
+    else if (e.kind === 'furnace') main = e.recipe?.results[0].item ?? e.result.firstItem() ?? null;
+    else if (e.kind === 'drill') {
+      for (const [tx, ty] of e.areaTiles()) {
+        const r = world.map.resourceAt(tx, ty);
+        if (r.amount > 0) {
+          main = RESOURCE_BY_INDEX[r.res]?.result ?? null;
+          break;
+        }
+      }
+    } else if (e.kind === 'pumpjack') main = 'crude-oil';
+    else if (e.kind === 'tank') main = e.box.fluid ?? null;
+    else if (e.kind === 'offshore-pump') main = 'water';
+    else if (e.kind === 'turret') main = e.ammo.firstItem() ?? e.roundsItem ?? null;
+    if (main) icon(main, cx, cy - (e.h >= 2 ? 0.08 * TILE : 0), big);
+    if (e.kind === 'container' || e.kind === 'rocket-silo') {
+      // häufigste Items (bis zu vier) im Raster
+      const counts = new Map<string, number>();
+      const inv = e.kind === 'container' ? e.inventory : e.input;
+      for (const st of inv.slots) if (st) counts.set(st.item, (counts.get(st.item) ?? 0) + st.count);
+      const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 4).map(([k]) => k);
+      const n = top.length;
+      const sz = n === 1 ? TILE * 0.6 : TILE * 0.42;
+      top.forEach((it, k) => {
+        const ox = n === 1 ? 0 : ((k % 2) - 0.5) * sz * 1.05;
+        const oy = n <= 2 ? 0 : (Math.floor(k / 2) - 0.5) * sz * 1.05;
+        icon(it, cx + ox, cy + oy - 6, sz);
+      });
+    }
+    // Module als kleine Symbole am unteren Rand
+    const mods = (e as { modules?: { slots: ({ item: string } | null)[] } | null }).modules;
+    if (mods) {
+      const list = mods.slots.filter((x): x is { item: string } => !!x).map((x) => x.item);
+      list.forEach((it, k) => icon(it, cx + (k - (list.length - 1) / 2) * TILE * 0.32, (e.y + e.h) * TILE - TILE * 0.28, TILE * 0.28));
+    }
     const stat = STATUS_COLORS[e.status];
-    if (stat !== undefined) g.circle(cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, 5).fill({ color: stat });
+    if (stat !== undefined) g.circle(cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, 5).fill({ color: stat }).stroke({ width: 1, color: 0x000000, alpha: 0.6 });
   }
+
 
   private arrow(g: Graphics, x: number, y: number, dir: Dir, color: number, size = 0.3, alpha = 0.85): void {
     const fx = DX[dir];

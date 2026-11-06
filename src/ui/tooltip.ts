@@ -75,6 +75,12 @@ export class Tooltip {
     const ammo = AMMO[id];
     if (ammo) basic.push(`Schaden: ${ammo.damage} je Schuss · ${ammo.rounds} Schuss je Magazin`);
     section('Gegenstand', basic);
+    // Geschmolzene Items (Platten, Ziegel, Stahl) kann man nicht von Hand herstellen – wie im Original
+    const smelt = craftingRecipeFor(id) ? undefined : smeltingRecipeFor(id);
+    if (smelt) {
+      const src = smelt.ingredients.map((g) => `${g.amount} × ${nameOf(g.item)}`).join(' + ');
+      section('Herstellung', [`Im Ofen: ${src} → ${nameOf(id)}`, 'Nicht von Hand: Ofen bauen, Erz und Brennstoff einlegen']);
+    }
     // Gebäudedaten (wie die Infobox im Original)
     if (def?.placeResult) {
       const e = entityDef(def.placeResult) as unknown as Record<string, unknown>;

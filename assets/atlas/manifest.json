@@ -70,7 +70,7 @@
    ]
   },
   "chest": {
-   "hash": "4038c39478098b79",
+   "hash": "48e7bcefe329727a",
    "sprites": [
     "iron-chest",
     "iron-chest.shadow",
@@ -78,6 +78,27 @@
     "wooden-chest.shadow",
     "steel-chest",
     "steel-chest.shadow"
+   ]
+  },
+  "cliffs": {
+   "hash": "4dc79999d30f5f88",
+   "sprites": [
+    "cliff.0",
+    "cliff.0.shadow",
+    "cliff.1",
+    "cliff.1.shadow",
+    "cliff.2",
+    "cliff.2.shadow",
+    "cliff.3",
+    "cliff.3.shadow",
+    "cliff.4",
+    "cliff.4.shadow",
+    "cliff.5",
+    "cliff.5.shadow",
+    "cliff.6",
+    "cliff.6.shadow",
+    "cliff.7",
+    "cliff.7.shadow"
    ]
   },
   "clouds": {
@@ -298,6 +319,34 @@
     "item.constant-combinator",
     "item.arithmetic-combinator",
     "item.decider-combinator"
+   ]
+  },
+  "floors": {
+   "hash": "7312a5e527ae7025",
+   "sprites": [
+    "floor.stone.0",
+    "floor.stone.1",
+    "floor.stone.2",
+    "floor.stone.3",
+    "floor.concrete.0",
+    "floor.concrete.1",
+    "floor.concrete.2",
+    "floor.concrete.3",
+    "floor.hazard.0",
+    "floor.hazard.1",
+    "floor.hazard.2",
+    "floor.hazard.3",
+    "floor.refined.0",
+    "floor.refined.1",
+    "floor.refined.2",
+    "floor.refined.3",
+    "floor.refined-hazard.0",
+    "floor.refined-hazard.1",
+    "floor.refined-hazard.2",
+    "floor.refined-hazard.3",
+    "item.hazard-concrete",
+    "item.refined-concrete",
+    "item.refined-hazard-concrete"
    ]
   },
   "flora": {
@@ -691,7 +740,7 @@
    ]
   },
   "inserter": {
-   "hash": "e1979f3881c7403c",
+   "hash": "7a4681f6e58af5a9",
    "sprites": [
     "inserter.base",
     "inserter.arm",
@@ -708,7 +757,7 @@
    ]
   },
   "items": {
-   "hash": "5a97434cd3bcb69d",
+   "hash": "9106a4ef2fbce56a",
    "sprites": [
     "item.shadow",
     "item.iron-ore",
@@ -759,6 +808,14 @@
     "item.fast-splitter",
     "item.fast-underground-belt",
     "item.fast-inserter"
+   ]
+  },
+  "kapseln": {
+   "hash": "4e7a922ee4af4873",
+   "sprites": [
+    "item.grenade",
+    "item.empty-barrel",
+    "item.cliff-explosives"
    ]
   },
   "landscape": {
@@ -851,7 +908,7 @@
    ]
   },
   "logistics": {
-   "hash": "a7f7225462183ba3",
+   "hash": "975ff5ee84007889",
    "sprites": [
     "underground-belt.in.0",
     "underground-belt.in.1",
@@ -950,7 +1007,7 @@
    ]
   },
   "oilitems": {
-   "hash": "0ef3e59cd65e74bc",
+   "hash": "8bb572aca1a05d9a",
    "sprites": [
     "item.plastic-bar",
     "item.sulfur",
@@ -1008,7 +1065,7 @@
    ]
   },
   "pipe": {
-   "hash": "297471c17ee8dcc9",
+   "hash": "582b0162bfb2ae97",
    "sprites": [
     "pipe.0",
     "pipe.1",
@@ -1058,7 +1115,7 @@
    ]
   },
   "poles2": {
-   "hash": "27daa77e1f4552d9",
+   "hash": "168fb804cdf692cc",
    "sprites": [
     "medium-electric-pole",
     "medium-electric-pole.shadow",
@@ -1070,7 +1127,7 @@
    ]
   },
   "power": {
-   "hash": "d2beaa6b0097c4ae",
+   "hash": "6da3495f1499ea04",
    "sprites": [
     "offshore-pump.0",
     "offshore-pump.0.shadow",
@@ -1234,7 +1291,7 @@
    ]
   },
   "water": {
-   "hash": "4d628afd4a9babd1",
+   "hash": "72b3a42c9eab81b4",
    "sprites": [
     "water.1.0",
     "water.1.1",
@@ -1280,7 +1337,407 @@
     "water.14.2",
     "water.15.0",
     "water.15.1",
-    "water.15.2"
+    "water.15.2",
+    "water.glint.0.0",
+    "water.glint.1.0",
+    "water.glint.2.0",
+    "water.glint.3.0",
+    "water.glint.0.1",
+    "water.glint.1.1",
+    "water.glint.2.1",
+    "water.glint.3.1",
+    "water.glint.0.2",
+    "water.glint.1.2",
+    "water.glint.2.2",
+    "water.glint.3.2",
+    "water.glint.0.3",
+    "water.glint.1.3",
+    "water.glint.2.3",
+    "water.glint.3.3",
+    "water.glint.0.4",
+    "water.glint.1.4",
+    "water.glint.2.4",
+    "water.glint.3.4",
+    "water.glint.0.5",
+    "water.glint.1.5",
+    "water.glint.2.5",
+    "water.glint.3.5",
+    "water.glint.0.6",
+    "water.glint.1.6",
+    "water.glint.2.6",
+    "water.glint.3.6",
+    "water.glint.0.7",
+    "water.glint.1.7",
+    "water.glint.2.7",
+    "water.glint.3.7",
+    "water.glint.0.8",
+    "water.glint.1.8",
+    "water.glint.2.8",
+    "water.glint.3.8",
+    "water.glint.0.9",
+    "water.glint.1.9",
+    "water.glint.2.9",
+    "water.glint.3.9",
+    "water.glint.0.10",
+    "water.glint.1.10",
+    "water.glint.2.10",
+    "water.glint.3.10",
+    "water.glint.0.11",
+    "water.glint.1.11",
+    "water.glint.2.11",
+    "water.glint.3.11",
+    "water.glint.0.12",
+    "water.glint.1.12",
+    "water.glint.2.12",
+    "water.glint.3.12",
+    "water.glint.0.13",
+    "water.glint.1.13",
+    "water.glint.2.13",
+    "water.glint.3.13",
+    "water.glint.0.14",
+    "water.glint.1.14",
+    "water.glint.2.14",
+    "water.glint.3.14",
+    "water.glint.0.15",
+    "water.glint.1.15",
+    "water.glint.2.15",
+    "water.glint.3.15",
+    "water.foam.1.0.0",
+    "water.foam.1.0.1",
+    "water.foam.1.0.2",
+    "water.foam.1.0.3",
+    "water.foam.1.0.4",
+    "water.foam.1.0.5",
+    "water.foam.1.0.6",
+    "water.foam.1.0.7",
+    "water.foam.1.1.0",
+    "water.foam.1.1.1",
+    "water.foam.1.1.2",
+    "water.foam.1.1.3",
+    "water.foam.1.1.4",
+    "water.foam.1.1.5",
+    "water.foam.1.1.6",
+    "water.foam.1.1.7",
+    "water.foam.1.2.0",
+    "water.foam.1.2.1",
+    "water.foam.1.2.2",
+    "water.foam.1.2.3",
+    "water.foam.1.2.4",
+    "water.foam.1.2.5",
+    "water.foam.1.2.6",
+    "water.foam.1.2.7",
+    "water.foam.2.0.0",
+    "water.foam.2.0.1",
+    "water.foam.2.0.2",
+    "water.foam.2.0.3",
+    "water.foam.2.0.4",
+    "water.foam.2.0.5",
+    "water.foam.2.0.6",
+    "water.foam.2.0.7",
+    "water.foam.2.1.0",
+    "water.foam.2.1.1",
+    "water.foam.2.1.2",
+    "water.foam.2.1.3",
+    "water.foam.2.1.4",
+    "water.foam.2.1.5",
+    "water.foam.2.1.6",
+    "water.foam.2.1.7",
+    "water.foam.2.2.0",
+    "water.foam.2.2.1",
+    "water.foam.2.2.2",
+    "water.foam.2.2.3",
+    "water.foam.2.2.4",
+    "water.foam.2.2.5",
+    "water.foam.2.2.6",
+    "water.foam.2.2.7",
+    "water.foam.3.0.0",
+    "water.foam.3.0.1",
+    "water.foam.3.0.2",
+    "water.foam.3.0.3",
+    "water.foam.3.0.4",
+    "water.foam.3.0.5",
+    "water.foam.3.0.6",
+    "water.foam.3.0.7",
+    "water.foam.3.1.0",
+    "water.foam.3.1.1",
+    "water.foam.3.1.2",
+    "water.foam.3.1.3",
+    "water.foam.3.1.4",
+    "water.foam.3.1.5",
+    "water.foam.3.1.6",
+    "water.foam.3.1.7",
+    "water.foam.3.2.0",
+    "water.foam.3.2.1",
+    "water.foam.3.2.2",
+    "water.foam.3.2.3",
+    "water.foam.3.2.4",
+    "water.foam.3.2.5",
+    "water.foam.3.2.6",
+    "water.foam.3.2.7",
+    "water.foam.4.0.0",
+    "water.foam.4.0.1",
+    "water.foam.4.0.2",
+    "water.foam.4.0.3",
+    "water.foam.4.0.4",
+    "water.foam.4.0.5",
+    "water.foam.4.0.6",
+    "water.foam.4.0.7",
+    "water.foam.4.1.0",
+    "water.foam.4.1.1",
+    "water.foam.4.1.2",
+    "water.foam.4.1.3",
+    "water.foam.4.1.4",
+    "water.foam.4.1.5",
+    "water.foam.4.1.6",
+    "water.foam.4.1.7",
+    "water.foam.4.2.0",
+    "water.foam.4.2.1",
+    "water.foam.4.2.2",
+    "water.foam.4.2.3",
+    "water.foam.4.2.4",
+    "water.foam.4.2.5",
+    "water.foam.4.2.6",
+    "water.foam.4.2.7",
+    "water.foam.5.0.0",
+    "water.foam.5.0.1",
+    "water.foam.5.0.2",
+    "water.foam.5.0.3",
+    "water.foam.5.0.4",
+    "water.foam.5.0.5",
+    "water.foam.5.0.6",
+    "water.foam.5.0.7",
+    "water.foam.5.1.0",
+    "water.foam.5.1.1",
+    "water.foam.5.1.2",
+    "water.foam.5.1.3",
+    "water.foam.5.1.4",
+    "water.foam.5.1.5",
+    "water.foam.5.1.6",
+    "water.foam.5.1.7",
+    "water.foam.5.2.0",
+    "water.foam.5.2.1",
+    "water.foam.5.2.2",
+    "water.foam.5.2.3",
+    "water.foam.5.2.4",
+    "water.foam.5.2.5",
+    "water.foam.5.2.6",
+    "water.foam.5.2.7",
+    "water.foam.6.0.0",
+    "water.foam.6.0.1",
+    "water.foam.6.0.2",
+    "water.foam.6.0.3",
+    "water.foam.6.0.4",
+    "water.foam.6.0.5",
+    "water.foam.6.0.6",
+    "water.foam.6.0.7",
+    "water.foam.6.1.0",
+    "water.foam.6.1.1",
+    "water.foam.6.1.2",
+    "water.foam.6.1.3",
+    "water.foam.6.1.4",
+    "water.foam.6.1.5",
+    "water.foam.6.1.6",
+    "water.foam.6.1.7",
+    "water.foam.6.2.0",
+    "water.foam.6.2.1",
+    "water.foam.6.2.2",
+    "water.foam.6.2.3",
+    "water.foam.6.2.4",
+    "water.foam.6.2.5",
+    "water.foam.6.2.6",
+    "water.foam.6.2.7",
+    "water.foam.7.0.0",
+    "water.foam.7.0.1",
+    "water.foam.7.0.2",
+    "water.foam.7.0.3",
+    "water.foam.7.0.4",
+    "water.foam.7.0.5",
+    "water.foam.7.0.6",
+    "water.foam.7.0.7",
+    "water.foam.7.1.0",
+    "water.foam.7.1.1",
+    "water.foam.7.1.2",
+    "water.foam.7.1.3",
+    "water.foam.7.1.4",
+    "water.foam.7.1.5",
+    "water.foam.7.1.6",
+    "water.foam.7.1.7",
+    "water.foam.7.2.0",
+    "water.foam.7.2.1",
+    "water.foam.7.2.2",
+    "water.foam.7.2.3",
+    "water.foam.7.2.4",
+    "water.foam.7.2.5",
+    "water.foam.7.2.6",
+    "water.foam.7.2.7",
+    "water.foam.8.0.0",
+    "water.foam.8.0.1",
+    "water.foam.8.0.2",
+    "water.foam.8.0.3",
+    "water.foam.8.0.4",
+    "water.foam.8.0.5",
+    "water.foam.8.0.6",
+    "water.foam.8.0.7",
+    "water.foam.8.1.0",
+    "water.foam.8.1.1",
+    "water.foam.8.1.2",
+    "water.foam.8.1.3",
+    "water.foam.8.1.4",
+    "water.foam.8.1.5",
+    "water.foam.8.1.6",
+    "water.foam.8.1.7",
+    "water.foam.8.2.0",
+    "water.foam.8.2.1",
+    "water.foam.8.2.2",
+    "water.foam.8.2.3",
+    "water.foam.8.2.4",
+    "water.foam.8.2.5",
+    "water.foam.8.2.6",
+    "water.foam.8.2.7",
+    "water.foam.9.0.0",
+    "water.foam.9.0.1",
+    "water.foam.9.0.2",
+    "water.foam.9.0.3",
+    "water.foam.9.0.4",
+    "water.foam.9.0.5",
+    "water.foam.9.0.6",
+    "water.foam.9.0.7",
+    "water.foam.9.1.0",
+    "water.foam.9.1.1",
+    "water.foam.9.1.2",
+    "water.foam.9.1.3",
+    "water.foam.9.1.4",
+    "water.foam.9.1.5",
+    "water.foam.9.1.6",
+    "water.foam.9.1.7",
+    "water.foam.9.2.0",
+    "water.foam.9.2.1",
+    "water.foam.9.2.2",
+    "water.foam.9.2.3",
+    "water.foam.9.2.4",
+    "water.foam.9.2.5",
+    "water.foam.9.2.6",
+    "water.foam.9.2.7",
+    "water.foam.10.0.0",
+    "water.foam.10.0.1",
+    "water.foam.10.0.2",
+    "water.foam.10.0.3",
+    "water.foam.10.0.4",
+    "water.foam.10.0.5",
+    "water.foam.10.0.6",
+    "water.foam.10.0.7",
+    "water.foam.10.1.0",
+    "water.foam.10.1.1",
+    "water.foam.10.1.2",
+    "water.foam.10.1.3",
+    "water.foam.10.1.4",
+    "water.foam.10.1.5",
+    "water.foam.10.1.6",
+    "water.foam.10.1.7",
+    "water.foam.10.2.0",
+    "water.foam.10.2.1",
+    "water.foam.10.2.2",
+    "water.foam.10.2.3",
+    "water.foam.10.2.4",
+    "water.foam.10.2.5",
+    "water.foam.10.2.6",
+    "water.foam.10.2.7",
+    "water.foam.11.0.0",
+    "water.foam.11.0.1",
+    "water.foam.11.0.2",
+    "water.foam.11.0.3",
+    "water.foam.11.0.4",
+    "water.foam.11.0.5",
+    "water.foam.11.0.6",
+    "water.foam.11.0.7",
+    "water.foam.11.1.0",
+    "water.foam.11.1.1",
+    "water.foam.11.1.2",
+    "water.foam.11.1.3",
+    "water.foam.11.1.4",
+    "water.foam.11.1.5",
+    "water.foam.11.1.6",
+    "water.foam.11.1.7",
+    "water.foam.11.2.0",
+    "water.foam.11.2.1",
+    "water.foam.11.2.2",
+    "water.foam.11.2.3",
+    "water.foam.11.2.4",
+    "water.foam.11.2.5",
+    "water.foam.11.2.6",
+    "water.foam.11.2.7",
+    "water.foam.12.0.0",
+    "water.foam.12.0.1",
+    "water.foam.12.0.2",
+    "water.foam.12.0.3",
+    "water.foam.12.0.4",
+    "water.foam.12.0.5",
+    "water.foam.12.0.6",
+    "water.foam.12.0.7",
+    "water.foam.12.1.0",
+    "water.foam.12.1.1",
+    "water.foam.12.1.2",
+    "water.foam.12.1.3",
+    "water.foam.12.1.4",
+    "water.foam.12.1.5",
+    "water.foam.12.1.6",
+    "water.foam.12.1.7",
+    "water.foam.12.2.0",
+    "water.foam.12.2.1",
+    "water.foam.12.2.2",
+    "water.foam.12.2.3",
+    "water.foam.12.2.4",
+    "water.foam.12.2.5",
+    "water.foam.12.2.6",
+    "water.foam.12.2.7",
+    "water.foam.13.0.0",
+    "water.foam.13.0.1",
+    "water.foam.13.0.2",
+    "water.foam.13.0.3",
+    "water.foam.13.0.4",
+    "water.foam.13.0.5",
+    "water.foam.13.0.6",
+    "water.foam.13.0.7",
+    "water.foam.13.1.0",
+    "water.foam.13.1.1",
+    "water.foam.13.1.2",
+    "water.foam.13.1.3",
+    "water.foam.13.1.4",
+    "water.foam.13.1.5",
+    "water.foam.13.1.6",
+    "water.foam.13.1.7",
+    "water.foam.13.2.0",
+    "water.foam.13.2.1",
+    "water.foam.13.2.2",
+    "water.foam.13.2.3",
+    "water.foam.13.2.4",
+    "water.foam.13.2.5",
+    "water.foam.13.2.6",
+    "water.foam.13.2.7",
+    "water.foam.14.0.0",
+    "water.foam.14.0.1",
+    "water.foam.14.0.2",
+    "water.foam.14.0.3",
+    "water.foam.14.0.4",
+    "water.foam.14.0.5",
+    "water.foam.14.0.6",
+    "water.foam.14.0.7",
+    "water.foam.14.1.0",
+    "water.foam.14.1.1",
+    "water.foam.14.1.2",
+    "water.foam.14.1.3",
+    "water.foam.14.1.4",
+    "water.foam.14.1.5",
+    "water.foam.14.1.6",
+    "water.foam.14.1.7",
+    "water.foam.14.2.0",
+    "water.foam.14.2.1",
+    "water.foam.14.2.2",
+    "water.foam.14.2.3",
+    "water.foam.14.2.4",
+    "water.foam.14.2.5",
+    "water.foam.14.2.6",
+    "water.foam.14.2.7"
    ]
   }
  },
@@ -3203,6 +3660,246 @@
    "group": "decals",
    "frames": [
     "decal.tuft.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.concrete.0": {
+   "group": "decals",
+   "frames": [
+    "floor.concrete.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.concrete.1": {
+   "group": "decals",
+   "frames": [
+    "floor.concrete.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.concrete.2": {
+   "group": "decals",
+   "frames": [
+    "floor.concrete.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.concrete.3": {
+   "group": "decals",
+   "frames": [
+    "floor.concrete.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.hazard.0": {
+   "group": "decals",
+   "frames": [
+    "floor.hazard.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.hazard.1": {
+   "group": "decals",
+   "frames": [
+    "floor.hazard.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.hazard.2": {
+   "group": "decals",
+   "frames": [
+    "floor.hazard.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.hazard.3": {
+   "group": "decals",
+   "frames": [
+    "floor.hazard.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined-hazard.0": {
+   "group": "decals",
+   "frames": [
+    "floor.refined-hazard.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined-hazard.1": {
+   "group": "decals",
+   "frames": [
+    "floor.refined-hazard.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined-hazard.2": {
+   "group": "decals",
+   "frames": [
+    "floor.refined-hazard.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined-hazard.3": {
+   "group": "decals",
+   "frames": [
+    "floor.refined-hazard.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined.0": {
+   "group": "decals",
+   "frames": [
+    "floor.refined.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined.1": {
+   "group": "decals",
+   "frames": [
+    "floor.refined.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined.2": {
+   "group": "decals",
+   "frames": [
+    "floor.refined.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.refined.3": {
+   "group": "decals",
+   "frames": [
+    "floor.refined.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.stone.0": {
+   "group": "decals",
+   "frames": [
+    "floor.stone.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.stone.1": {
+   "group": "decals",
+   "frames": [
+    "floor.stone.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.stone.2": {
+   "group": "decals",
+   "frames": [
+    "floor.stone.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "floor.stone.3": {
+   "group": "decals",
+   "frames": [
+    "floor.stone.3#0"
    ],
    "w": 64,
    "h": 64,
@@ -9163,6 +9860,198 @@
     0.17500000000000002
    ]
   },
+  "cliff.0": {
+   "group": "flora",
+   "frames": [
+    "cliff.0#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.0.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.1": {
+   "group": "flora",
+   "frames": [
+    "cliff.1#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.1.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.2": {
+   "group": "flora",
+   "frames": [
+    "cliff.2#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.2.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.3": {
+   "group": "flora",
+   "frames": [
+    "cliff.3#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.3.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.4": {
+   "group": "flora",
+   "frames": [
+    "cliff.4#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.4.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.4.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.5": {
+   "group": "flora",
+   "frames": [
+    "cliff.5#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.5.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.5.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.6": {
+   "group": "flora",
+   "frames": [
+    "cliff.6#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.6.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.6.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
+  "cliff.7": {
+   "group": "flora",
+   "frames": [
+    "cliff.7#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "cliff.7.shadow": {
+   "group": "flora",
+   "frames": [
+    "cliff.7.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.2545454545454545,
+    0.2545454545454545
+   ]
+  },
   "flora.boulder.0": {
    "group": "flora",
    "frames": [
@@ -10231,6 +11120,18 @@
     0.5
    ]
   },
+  "item.cliff-explosives": {
+   "group": "items",
+   "frames": [
+    "item.cliff-explosives#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.coal": {
    "group": "items",
    "frames": [
@@ -10423,6 +11324,18 @@
     0.5
    ]
   },
+  "item.empty-barrel": {
+   "group": "items",
+   "frames": [
+    "item.empty-barrel#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.engine-unit": {
    "group": "items",
    "frames": [
@@ -10555,10 +11468,34 @@
     0.5
    ]
   },
+  "item.grenade": {
+   "group": "items",
+   "frames": [
+    "item.grenade#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.gun-turret": {
    "group": "items",
    "frames": [
     "item.gun-turret#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.hazard-concrete": {
+   "group": "items",
+   "frames": [
+    "item.hazard-concrete#0"
    ],
    "w": 64,
    "h": 64,
@@ -10991,6 +11928,30 @@
    "group": "items",
    "frames": [
     "item.rail#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.refined-concrete": {
+   "group": "items",
+   "frames": [
+    "item.refined-concrete#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.refined-hazard-concrete": {
+   "group": "items",
+   "frames": [
+    "item.refined-hazard-concrete#0"
    ],
    "w": 64,
    "h": 64,
@@ -16499,6 +17460,4806 @@
    "group": "water",
    "frames": [
     "water.9.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.1.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.1.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.10.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.10.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.11.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.11.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.12.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.12.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.13.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.13.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.14.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.14.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.2.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.2.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.3.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.3.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.4.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.4.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.5.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.5.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.6.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.6.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.7.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.7.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.8.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.8.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.0.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.1.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.0": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.1": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.2": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.3": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.4": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.5": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.6": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.foam.9.2.7": {
+   "group": "water",
+   "frames": [
+    "water.foam.9.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.0": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.1": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.10": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.10#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.11": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.11#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.12": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.12#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.13": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.13#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.14": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.14#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.15": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.15#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.2": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.3": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.4": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.5": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.6": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.7": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.8": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.8#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.0.9": {
+   "group": "water",
+   "frames": [
+    "water.glint.0.9#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.0": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.1": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.10": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.10#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.11": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.11#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.12": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.12#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.13": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.13#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.14": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.14#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.15": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.15#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.2": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.3": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.4": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.5": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.6": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.7": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.8": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.8#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.1.9": {
+   "group": "water",
+   "frames": [
+    "water.glint.1.9#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.0": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.1": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.10": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.10#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.11": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.11#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.12": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.12#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.13": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.13#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.14": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.14#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.15": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.15#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.2": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.3": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.4": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.5": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.6": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.7": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.8": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.8#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.2.9": {
+   "group": "water",
+   "frames": [
+    "water.glint.2.9#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.0": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.1": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.10": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.10#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.11": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.11#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.12": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.12#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.13": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.13#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.14": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.14#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.15": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.15#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.2": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.3": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.3#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.4": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.4#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.5": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.5#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.6": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.6#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.7": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.7#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.8": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.8#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "water.glint.3.9": {
+   "group": "water",
+   "frames": [
+    "water.glint.3.9#0"
    ],
    "w": 64,
    "h": 64,

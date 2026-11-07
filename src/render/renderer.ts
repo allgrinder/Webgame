@@ -468,20 +468,60 @@ export class GameRenderer {
       }
     }
     pool.end();
-    // Lichtreflexe auf offenem Wasser (Feld und seine vier Nachbarn sind Wasser)
+    // Lichtschimmer auf dem Wasser, zum Ufer hin über drei Felder ausgeblendet (keine harten Kanten)
     const glint = this.glintTex;
     if (glint.length === 4 && glint[0].length) {
       const fr = Math.floor(t / GLINT_TICKS) % glint[0].length;
-      for (let y = v.y0; y <= v.y1; y++) {
-        for (let x = v.x0; x <= v.x1; x++) {
-          if (!m.isWater(x, y) || !m.isWater(x - 1, y) || !m.isWater(x + 1, y) || !m.isWater(x, y - 1) || !m.isWater(x, y + 1)) continue;
-          const sp = fx.get(glint[(x & 1) + 2 * (y & 1)][fr]);
-          sp.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
-          sp.blendMode = 'add';
+      for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor(v.y1 / CS); cy++) {
+        for (let cx = Math.floor(v.x0 / CS); cx <= Math.floor(v.x1 / CS); cx++) {
+          const c = m.getChunk(cx, cy);
+          if (!c.hasWater) continue;
+          const dist = this.shoreDistance(world, cx, cy);
+          for (let y = Math.max(v.y0, cy * CS); y <= Math.min(v.y1, cy * CS + CS - 1); y++) {
+            for (let x = Math.max(v.x0, cx * CS); x <= Math.min(v.x1, cx * CS + CS - 1); x++) {
+              const d = dist[(y - cy * CS) * CS + (x - cx * CS)];
+              if (!d) continue;
+              const sp = fx.get(glint[(x & 1) + 2 * (y & 1)][fr]);
+              sp.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+              sp.blendMode = 'add';
+              sp.alpha = Math.min(1, (d - 0.5) / 3);
+            }
+          }
         }
       }
     }
     fx.end();
+  }
+
+  /** Je Wasserfeld eines Chunks: Abstand zum nächsten Land (1 … 4, 0 = Land), zwischengespeichert je Chunk-Version. */
+  private readonly shoreCache = new Map<number, { version: number; d: Uint8Array }>();
+  private shoreDistance(world: World, cx: number, cy: number): Uint8Array {
+    const CS = MAPGEN.chunkSize;
+    const m = world.map;
+    const c = m.getChunk(cx, cy);
+    const key = cx * 100003 + cy;
+    const hit = this.shoreCache.get(key);
+    if (hit && hit.version === c.version) return hit.d;
+    const d = new Uint8Array(CS * CS);
+    const R = 4;
+    for (let j = 0; j < CS; j++) {
+      for (let i = 0; i < CS; i++) {
+        const x = cx * CS + i;
+        const y = cy * CS + j;
+        if (!m.isWater(x, y)) continue;
+        let best = R;
+        for (let dy = -R + 1; dy < R && best > 1; dy++) {
+          for (let dx = -R + 1; dx < R && best > 1; dx++) {
+            const k = Math.max(Math.abs(dx), Math.abs(dy));
+            if (k < best && !m.isWater(x + dx, y + dy)) best = k;
+          }
+        }
+        d[j * CS + i] = best;
+      }
+    }
+    if (this.shoreCache.size > 400) this.shoreCache.clear();
+    this.shoreCache.set(key, { version: c.version, d });
+    return d;
   }
 
   // ------------------------------------------------------------------ Dekoration

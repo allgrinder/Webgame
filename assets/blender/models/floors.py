@@ -64,9 +64,9 @@ def concrete(v, hazard=False, refined=False):
         o.append(eisen.box('jmy', (0.006, 1.06, 0.004), (0, 0, 0.001), joint))
     elif not hazard:
         # Flecken und feine Risse
-        stain = eisen.material('fl_stain', eisen.srgb('#5f5c55'), rough=0.95)
+        stain = eisen.material('fl_stain', eisen.srgb('#74716a'), rough=0.95)
         for i in range(rnd.randint(1, 3)):
-            o.append(eisen.cylinder(f'stain{i}', rnd.uniform(0.05, 0.14), 0.002, (rnd.uniform(-0.35, 0.35), rnd.uniform(-0.35, 0.35), 0.001),
+            o.append(eisen.cylinder(f'stain{i}', rnd.uniform(0.04, 0.09), 0.002, (rnd.uniform(-0.35, 0.35), rnd.uniform(-0.35, 0.35), 0.001),
                                     stain, segments=12))
         if v % 2 == 0:
             x, y = rnd.uniform(-0.3, 0.3), rnd.uniform(-0.3, 0.3)

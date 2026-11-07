@@ -14,7 +14,7 @@ lin = gw_ground.lin
 VARIANTS = 8
 CANVAS = (2.5, 2.75)
 ANCHOR = (0.5, 1.55 / 2.75)
-TONES = ('#6f675a', '#7b7263', '#625b50', '#857a69', '#5a544a')
+TONES = ('#5a4d3e', '#64564a', '#4c4136', '#6d5f4e', '#453b31')
 
 
 def slab(name, rx, ry, h, loc, mat, rnd, rot):
@@ -34,21 +34,32 @@ def slab(name, rx, ry, h, loc, mat, rnd, rot):
 
 def cliff(seed):
     rnd = random.Random(seed)
-    mats = [gw_ground.pmat(f'cl{seed}{i}', lin(t), 0.9, 0.38, 0.85, 7 + i) for i, t in enumerate(TONES)]
+    mats = [gw_ground.pmat(f'cl{seed}{i}', lin(t), 0.92, 0.45, 0.9, 7 + i, spec=0.15) for i, t in enumerate(TONES)]
+    face = gw_ground.pmat(f'clf{seed}', lin('#2f2821'), 0.95, 0.4, 0.9, 11, spec=0.1)
     o = []
     rot = rnd.uniform(-0.4, 0.4)
-    # Schichten: unten breit, nach oben schmaler und nach Norden versetzt (Stufe zeigt nach Süden)
-    layers = 4 + rnd.randint(0, 1)
+    # Flache Felsbank: wenige breite Schichten, nach oben schmaler und nach Norden versetzt (Stufe zeigt nach Süden)
+    layers = 3
     for k in range(layers):
         t = k / layers
-        rx = 0.82 - 0.3 * t + rnd.uniform(-0.05, 0.05)
-        ry = 0.55 - 0.25 * t + rnd.uniform(-0.04, 0.04)
-        z = 0.08 + k * 0.17
-        y = 0.05 + t * 0.32
-        for j in range(2):
-            ox = rnd.uniform(-0.25, 0.25)
-            o.append(slab(f's{k}{j}', rx * rnd.uniform(0.6, 0.85), ry * rnd.uniform(0.7, 1.0), 0.12 + rnd.uniform(0, 0.05),
-                          (ox, y + rnd.uniform(-0.05, 0.05), z), mats[(k + j + seed) % len(mats)], rnd, rot + rnd.uniform(-0.3, 0.3)))
+        rx = 0.98 - 0.25 * t + rnd.uniform(-0.05, 0.05)
+        ry = 0.78 - 0.25 * t + rnd.uniform(-0.04, 0.04)
+        z = 0.05 + k * 0.11
+        y = 0.04 + t * 0.22
+        for j in range(3):
+            ox = rnd.uniform(-0.35, 0.35)
+            o.append(slab(f's{k}{j}', rx * rnd.uniform(0.55, 0.75), ry * rnd.uniform(0.65, 0.95), 0.08 + rnd.uniform(0, 0.04),
+                          (ox, y + rnd.uniform(-0.08, 0.08), z), mats[(k + j + seed) % len(mats)], rnd, rot + rnd.uniform(-0.4, 0.4)))
+    # dunkle, zerklüftete Felswand auf der Südseite (Stufe), aus mehreren hohen, schmalen Brocken
+    for i in range(5):
+        x = -0.75 + i * 0.37 + rnd.uniform(-0.06, 0.06)
+        h = rnd.uniform(0.22, 0.32)
+        o.append(slab(f'face{i}', 0.24, 0.12, h, (x, -0.28 + rnd.uniform(-0.05, 0.05), h * 0.55), face, rnd, rot + rnd.uniform(-0.3, 0.3)))
+    # einzelne große Blöcke an der Kante
+    for i in range(2):
+        a = rnd.uniform(-math.pi * 0.8, -math.pi * 0.2)
+        s_ = rnd.uniform(0.16, 0.24)
+        o.append(eisen.rock(f'blk{i}', s_, (math.cos(a) * 0.55, math.sin(a) * 0.45, s_ * 0.45), mats[(i + 2) % len(mats)], seed * 17 + i, squash=0.6))
     # Geröll am Fuß (Süden) und an den Seiten
     for i in range(7):
         a = rnd.uniform(-math.pi * 0.95, -math.pi * 0.05)

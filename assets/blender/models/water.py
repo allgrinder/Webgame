@@ -254,20 +254,20 @@ def fx_material(name, color, strength, mask_socket_fn):
 
 
 def glints(out):
-    """Lichtreflexe auf den Wellenkämmen: zwei gegeneinander wandernde Wellenmuster (Periode 2 Felder),
-    nur die hellsten Stellen sichtbar. 4 Viertel (Feldparität) × 16 Bilder."""
+    """Lichtschimmer: zwei gegeneinander wandernde, weiche Muster (Periode 2 Felder) hellen das Wasser
+    stellenweise leicht auf (Himmelsspiegelung auf bewegter Oberfläche). 4 Viertel (Feldparität) × 16 Bilder."""
     for f in range(GLINT_FRAMES):
-        eisen.reset(samples=16, ground=False)
+        eisen.reset(samples=160, ground=False)
         ea, eb = drift_empty('ga'), drift_empty('gb')
         ea.location = (2.0 * f / GLINT_FRAMES, 0, 0)
         eb.location = (0, -2.0 * f / GLINT_FRAMES, 0)
 
         def mask(nt):
             before = set(nt.nodes)
-            a = seamless.noise4(nt, 5.0, (1, 2, 3, 4), detail=3, scale=1.6, period=2.0)
+            a = seamless.noise4(nt, 1.2, (1, 2, 3, 4), detail=0.0, roughness=0.4, scale=1.0, period=2.0)
             bind_coords(nt, before, ea)
             before = set(nt.nodes)
-            b = seamless.noise4(nt, 5.0, (4, 1, 2, 3), detail=3, scale=2.1, period=2.0)
+            b = seamless.noise4(nt, 1.6, (4, 1, 2, 3), detail=0.0, roughness=0.4, scale=1.0, period=2.0)
             bind_coords(nt, before, eb)
             mul = nt.nodes.new('ShaderNodeMath')
             mul.operation = 'MULTIPLY'
@@ -275,12 +275,12 @@ def glints(out):
             nt.links.new(b.outputs['Fac'], mul.inputs[1])
             mr = nt.nodes.new('ShaderNodeMapRange')
             nt.links.new(mul.outputs[0], mr.inputs['Value'])
-            mr.inputs['From Min'].default_value = 0.33
+            mr.inputs['From Min'].default_value = 0.22
             mr.inputs['From Max'].default_value = 0.42
-            mr.inputs['To Max'].default_value = 0.55
+            mr.inputs['To Max'].default_value = 0.14
             return mr.outputs['Result']
 
-        mat = fx_material('glint', lin('#d6e9ee'), 1.2, mask)
+        mat = fx_material('glint', lin('#cfe2e6'), 0.9, mask)
         bpy.ops.mesh.primitive_plane_add(size=2.0, location=(0, 0, 0))
         pl = bpy.context.active_object
         pl.data.materials.append(mat)
@@ -298,7 +298,7 @@ def foam(out):
         for v in range(VARIANTS):
             seed = case * 7 + v * 31 + 1
             for f in range(FOAM_FRAMES):
-                eisen.reset(samples=12, ground=False)
+                eisen.reset(samples=64, ground=False)
                 e = drift_empty('fa')
                 e.location = (1.0 * f / FOAM_FRAMES, 1.0 * f / FOAM_FRAMES, 0)
                 wide = 0.045 + 0.03 * math.sin(f / FOAM_FRAMES * math.tau)

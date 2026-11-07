@@ -12,8 +12,14 @@ export class Inventory {
   readonly slots: (Stack | null)[];
   /** Höchstmenge je Slot (z. B. 1 für Modulplätze). */
   maxPerSlot = Infinity;
+  /**
+   * Begrenzung (Vorbild: „rotes X“ der Kisten): nur die ersten bar Slots werden befüllt; dahinter liegende
+   * Items bleiben und können entnommen werden.
+   */
+  bar: number;
   constructor(size: number, readonly filter?: (item: string) => boolean) {
     this.slots = new Array(size).fill(null);
+    this.bar = size;
   }
 
   get size(): number {
@@ -39,7 +45,8 @@ export class Inventory {
     if (!this.accepts(item)) return 0;
     const stack = Math.min(ITEMS[item]?.stackSize ?? 1, this.maxPerSlot);
     let n = 0;
-    for (const s of this.slots) {
+    for (let i = 0; i < this.bar; i++) {
+      const s = this.slots[i];
       if (!s) n += stack;
       else if (s.item === item) n += stack - s.count;
     }
@@ -51,7 +58,8 @@ export class Inventory {
     if (amount <= 0 || !this.accepts(item)) return 0;
     const stack = Math.min(ITEMS[item]?.stackSize ?? 1, this.maxPerSlot);
     let left = amount;
-    for (const s of this.slots) {
+    for (let i = 0; i < this.bar; i++) {
+      const s = this.slots[i];
       if (left === 0) break;
       if (s && s.item === item && s.count < stack) {
         const t = Math.min(left, stack - s.count);
@@ -59,7 +67,7 @@ export class Inventory {
         left -= t;
       }
     }
-    for (let i = 0; i < this.slots.length && left > 0; i++) {
+    for (let i = 0; i < this.bar && left > 0; i++) {
       if (!this.slots[i]) {
         const t = Math.min(left, stack);
         this.slots[i] = { item, count: t };

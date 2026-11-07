@@ -89,7 +89,8 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await slots.first().click({ modifiers: ['Control'] });
   expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBe(0);
 
-  // Zahnrad herstellen
+  // Zahnrad herstellen (wie im Original: Gebäudefenster schließen, dann ist das Handwerk wieder sichtbar)
+  await page.locator('.window.entity .close').click();
   await page.locator('.inventory .craft-tab[title="Zwischenprodukte"]').click();
   await page.locator('.inventory .recipe[data-recipe="iron-gear-wheel"]').click();
   await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel') >= 1, null, { timeout: 15_000 });

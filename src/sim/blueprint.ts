@@ -5,7 +5,7 @@ import type { Entity } from './machines';
 import type { World } from './world';
 
 /** Einstellungen eines Gebäudes, die eine Blaupause mitnimmt (Rezept, Splitter, Untergrund-Richtung). */
-export type Settings = { recipe?: string; out?: boolean; ip?: number; op?: number; fi?: string | null };
+export type Settings = { recipe?: string; out?: boolean; ip?: number; op?: number; fi?: string | null; bar?: number };
 
 export interface BlueprintEntity {
   readonly name: string;
@@ -35,6 +35,7 @@ export interface GhostEntity {
 export function settingsOf(e: Entity): Settings | undefined {
   if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipe.id };
   if (e.kind === 'underground') return { out: e.output };
+  if (e.kind === 'container' && e.inventory.bar < e.inventory.size) return { bar: e.inventory.bar };
   if (e.kind === 'splitter') {
     const st = e.state;
     if (st.inputPriority < 0 && st.outputPriority < 0 && st.filter < 0) return undefined;
@@ -47,6 +48,7 @@ export function applySettings(e: Entity, s: Settings | undefined): void {
   if (!s) return;
   if (e.kind === 'assembler' && s.recipe) e.setRecipe(s.recipe);
   if (e.kind === 'underground' && s.out !== undefined && e.output !== s.out) e.load({ out: s.out });
+  if (e.kind === 'container' && s.bar !== undefined) e.inventory.bar = Math.max(0, Math.min(e.inventory.size, s.bar));
   if (e.kind === 'splitter') {
     e.state.inputPriority = s.ip ?? -1;
     e.state.outputPriority = s.op ?? -1;

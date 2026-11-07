@@ -379,10 +379,15 @@ export class ContainerEntity extends EntityBase {
     return [{ label: 'Inhalt', inv: this.inventory }];
   }
   override save() {
-    return { inv: this.inventory.serialize(), ...(this.requests.length ? { rq: this.requests.map((r) => [r.item, r.count]) } : {}) };
+    return {
+      inv: this.inventory.serialize(),
+      ...(this.requests.length ? { rq: this.requests.map((r) => [r.item, r.count]) } : {}),
+      ...(this.inventory.bar < this.inventory.size ? { bar: this.inventory.bar } : {}),
+    };
   }
   override load(d: Record<string, unknown>): void {
     this.inventory.load(d.inv as InvData);
+    this.inventory.bar = typeof d.bar === 'number' ? Math.max(0, Math.min(this.inventory.size, d.bar)) : this.inventory.size;
     this.requests.length = 0;
     for (const [item, count] of (d.rq as [string, number][] | undefined) ?? []) this.requests.push({ item, count });
   }

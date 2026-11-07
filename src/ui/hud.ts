@@ -337,7 +337,7 @@ export class Hud {
       this.tip.attach(s, () => (s.dataset.item ? this.tip.item(s.dataset.item, Number(s.dataset.count)) : null));
       return s;
     });
-    const right = el('div', 'col', body);
+    const right = el('div', 'col craft-col', body);
     el('div', 'sub-head', right).textContent = 'Handwerk (Klick: 1, Umschalt: 5, Strg: alle)';
     // Reiter wie im Original: Logistik, Produktion, Zwischenprodukte, Kampf
     const tabs = el('div', 'craft-tabs', right);
@@ -475,6 +475,7 @@ export class Hud {
 
   private closeEntity(): void {
     this.openEntityId = null;
+    this.barMode = false;
     this.entWin.classList.add('hidden');
   }
 
@@ -497,17 +498,37 @@ export class Hud {
     close.textContent = '×';
     close.onclick = () => this.closeEntity();
     const body = el('div', 'win-body', this.entWin);
-    el('div', `status s${e.status}`, body).textContent = statusText(e);
+    if (e.kind !== 'container') el('div', `status s${e.status}`, body).textContent = statusText(e);
     const row = (label: string, inv: Inventory) => {
-      const r = el('div', 'slot-row', body);
-      el('span', 'label', r).textContent = label;
+      // große Inventare (Kisten, Wagen) als Raster mit 10 Spalten wie im Original, sonst eine Zeile
+      const big = inv.size > 10;
+      let r: HTMLElement;
+      if (big) {
+        const head = el('div', 'slot-head', body);
+        el('span', 'label', head).textContent = label;
+        if (e.kind === 'container') this.barControls(e, inv, head);
+        r = el('div', 'grid inv chest-grid', body);
+      } else {
+        r = el('div', 'slot-row', body);
+        el('span', 'label', r).textContent = label;
+      }
       inv.slots.forEach((st, i) => {
-        const s = el('div', 'slot', r);
+        const s = el('div', `slot${i >= inv.bar ? ' locked' : ''}`, r);
         if (st) {
           s.appendChild(this.icon(`item.${st.item}`));
           el('span', 'count', s).textContent = String(st.count);
         }
-        s.addEventListener('click', (ev) => this.onEntitySlot(e, inv, i, ev.ctrlKey || ev.metaKey ? 'all' : ev.shiftKey ? 'stack' : null));
+        s.addEventListener('click', (ev) => {
+          if (this.barMode && e.kind === 'container') {
+            // Begrenzung setzen: dieser und alle folgenden Plätze gesperrt; Klick auf den ersten gesperrten hebt sie auf
+            inv.bar = i === inv.bar ? inv.size : i;
+            this.barMode = false;
+            this.entWin.dataset.key = '';
+            this.buildEntity();
+            return;
+          }
+          this.onEntitySlot(e, inv, i, ev.ctrlKey || ev.metaKey ? 'all' : ev.shiftKey ? 'stack' : null);
+        });
         s.addEventListener('contextmenu', (ev) => {
           ev.preventDefault();
           this.onEntitySlot(e, inv, i, 'half');
@@ -553,11 +574,37 @@ export class Hud {
     if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
     const burner = e.burner;
     if (burner) bar('Energie', burner.energy / 4e6, 'energy');
-    el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte';
+    el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte' + (e.kind === 'container' ? ' · ✕: Plätze sperren' : '');
+  }
+
+  /** Begrenzungsmodus der Kiste: nächster Klick auf einen Platz setzt die Grenze. */
+  private barMode = false;
+
+  private barControls(e: Entity, inv: Inventory, parent: HTMLElement): void {
+    const b = el('button', `bar-btn${this.barMode ? ' on' : ''}`, parent);
+    b.textContent = '✕';
+    b.title = 'Plätze sperren (wie das rote X im Original): danach auf den ersten Platz klicken, der gesperrt sein soll. Greifarme und Roboter füllen nur die freien Plätze.';
+    b.onclick = () => {
+      this.barMode = !this.barMode;
+      this.entWin.dataset.key = '';
+      this.buildEntity();
+    };
+    const info = el('span', 'dim', parent);
+    info.textContent = this.barMode ? 'Platz anklicken …' : inv.bar < inv.size ? `${inv.bar} von ${inv.size} Plätzen frei` : '';
+    if (inv.bar < inv.size && !this.barMode) {
+      const x = el('button', 'small-btn', parent);
+      x.textContent = 'Aufheben';
+      x.onclick = () => {
+        inv.bar = inv.size;
+        this.entWin.dataset.key = '';
+        this.buildEntity();
+      };
+    }
+    void e;
   }
 
   private entityKey(e: Entity): string {
-    const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots)).join('|');
+    const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
     const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
     const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');

@@ -385,3 +385,10 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 | Veredelter Beton / Gefahrenbeton | 150 %; 20 Beton + 8 Eisenstangen + 1 Stahl + 100 Wasser → 10, 15 s | Wiki „Refined concrete“, „Refined hazard concrete“ |
 | Beläge abbauen | 0,1 s, Belag zurück ins Inventar; Legen auch unter Gebäuden, nicht auf Wasser/Klippen/Bäumen | Wiki „Tile“ |
 | Pinselgröße | Standard 2×2, Tasten + / − (1 … 8) | eigener Wert |
+
+## Kisten-Begrenzung (Wunsch 07.11.2026)
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Begrenzung („rotes X“) | Plätze ab der Grenze werden von Greifarmen, Robotern und beim Einlegen nicht befüllt; vorhandener Inhalt bleibt entnehmbar; gespeichert und in Blaupausen übernommen | Wiki „Wooden chest“/„Inventory“ (Inventarbegrenzung) |
+| Kistenfenster | Raster mit 10 Spalten wie das Spielerinventar; solange ein Gebäude offen ist, ist das Handwerk ausgeblendet | Original-Oberfläche |

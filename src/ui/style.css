@@ -293,3 +293,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .power-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .power-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
 .power-row .icon.small { width: 24px; height: 24px; }
+
+/* Kistenfenster: Raster wie im Original, gesperrte Plätze rot */
+.window.entity:has(.chest-grid) { max-width: 470px; }
+/* Gebäudefenster offen: wie im Original nur Inventar und Gebäude nebeneinander, Handwerk ausgeblendet */
+.window-row:has(.window.entity:not(.hidden)) .craft-col { display: none; }
+.slot-head { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; }
+.chest-grid { margin-bottom: 6px; }
+.slot.locked { background: linear-gradient(180deg, #4a1e18, #3a1712); border-color: #6a2a20; }
+.slot.locked::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, transparent 0 6px, #ff50301a 6px 8px); pointer-events: none; }
+.bar-btn { background: var(--slot); color: #e05a40; border: 1px solid var(--slot-edge); font-weight: 700; padding: 1px 8px; cursor: pointer; }
+.bar-btn.on { background: #6a2a20; color: #ffd0c0; }

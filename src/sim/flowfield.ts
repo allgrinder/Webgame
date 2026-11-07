@@ -7,7 +7,7 @@ const DIAG = Math.SQRT2;
 
 /**
  * Flussfeld für Gegner: Entfernung jedes Feldes im Fenster zum Ziel (Dijkstra, 8 Nachbarn).
- * Wasser ist unpassierbar, feste Gebäude kosten OBSTACLE_COST extra (Umweg oder Durchbruch).
+ * Wasser und Klippen sind unpassierbar, feste Gebäude kosten OBSTACLE_COST extra (Umweg oder Durchbruch).
  * Deterministisch aus dem Weltzustand, nicht gespeichert.
  */
 export class FlowField {
@@ -26,7 +26,7 @@ export class FlowField {
         const tx = x0 + i;
         const ty = y0 + j;
         const k = j * w + i;
-        if (world.map.isWater(tx, ty)) cost[k] = Infinity;
+        if (world.map.isBlocked(tx, ty)) cost[k] = Infinity;
         else {
           const e = world.entityAt(tx, ty);
           cost[k] = e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;

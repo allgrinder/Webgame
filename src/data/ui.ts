@@ -9,6 +9,7 @@ export const MINIMAP = {
   every: 8,
   terrainRefresh: 600,
   water: 0x2f5562,
+  cliff: 0x4a3f33,
   waterEdge: 0x3e6a74,
   building: 0xd6cfbf,
   belt: 0xe0aa45,

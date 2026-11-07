@@ -7,6 +7,7 @@ import stufe23
 import eisen
 import stufe1
 import bohrer
+import kleinteile
 import parts
 import stufen
 
@@ -77,8 +78,9 @@ def render(out):
     finish(out, 'item.transport-belt', root, scale=0.95)
 
     m = icon_scene()
-    base = parts.inserter_base(m)
-    arm = parts.inserter_arm(m, 0.55)
+    km = kleinteile.Mats('#5e5548')
+    base = kleinteile.inserter_base(km)
+    arm = kleinteile.inserter_arm(km, 0.55)
     arm.rotation_euler = (0, 0, math.radians(-40))
     root = eisen.parent_all([base, arm])
     finish(out, 'item.burner-inserter', root, scale=0.92, z=-0.1)
@@ -92,7 +94,7 @@ def render(out):
     finish(out, 'item.stone-furnace', root, scale=0.44, z=-0.05)
 
     m = icon_scene()
-    root = parts.iron_chest(m)
+    root = kleinteile.iron_chest(kleinteile.Mats())
     finish(out, 'item.iron-chest', root, scale=0.8, z=-0.05)
 
     render_new(out)
@@ -132,7 +134,7 @@ def render_new(out):
     finish(out, 'item.electronic-circuit', r, scale=1.05)
 
     eisen.reset(samples=48)
-    r = anlagen.pipe_piece(anlagen.Mats(), 5)
+    r = kleinteile.pipe_piece(kleinteile.Mats(), 5)
     r.rotation_euler = (0, 0, math.radians(40))
     finish(out, 'item.pipe', r, scale=1.0, z=-0.1)
 
@@ -144,12 +146,12 @@ def render_new(out):
         ('offshore-pump', lambda m: stufe1.offshore_pump1(None), 0.55),
         ('boiler', lambda m: stufe1.boiler1(None, 0.0), 0.3),
         ('steam-engine', lambda m: stufe1.steam_engine1(None, 0.0), 0.19),
-        ('small-electric-pole', lambda m: anlagen.small_pole(m), 0.5),
+        ('small-electric-pole', lambda m: kleinteile.small_pole(kleinteile.Mats()), 0.5),
         ('electric-mining-drill', lambda m: bohrer.electric_drill(None, 0.0), 0.26),
         ('assembling-machine-1', lambda m: stufen.assembler1(m, 0.0), 0.3),
         ('lab', lambda m: stufe1.lab1(None, 0.0), 0.3),
-        ('splitter', lambda m: anlagen.splitter(m, 0.0), 0.42),
-        ('underground-belt', lambda m: anlagen.underground(m, False), 0.8),
+        ('splitter', lambda m: kleinteile.splitter(kleinteile.Mats('#a8862c', 2), 0.0), 0.42),
+        ('underground-belt', lambda m: kleinteile.underground(kleinteile.Mats('#a8862c', 2), False), 0.8),
     ]
     for item, fn, sc in builds:
         eisen.reset(samples=48)
@@ -160,12 +162,11 @@ def render_new(out):
 
     # Greifarme in ihren Farben, schnelles Band
     import bauten
-    for item, paint, burner in (('inserter', '#5d6a3a', False), ('long-handed-inserter', '#6e3527', False)):
+    for item, paint, burner in (('inserter', '#b08a2a', False), ('long-handed-inserter', '#7a3426', False)):
         eisen.reset(samples=48)
-        m = parts.Mats()
-        m.ochre = bauten.weathered('ins_paint', paint, metal=0.3, rough=0.55, rust=0.4, dust=0.45, edge=0.7, streaks=0.5)
-        base = parts.inserter_base(m, burner)
-        arm = parts.inserter_arm(m, 0.55 if item == 'inserter' else 0.75)
+        m = kleinteile.Mats(paint, 2)
+        base = kleinteile.inserter_base(m, burner)
+        arm = kleinteile.inserter_arm(m, 0.55 if item == 'inserter' else 0.75)
         arm.rotation_euler = (0, 0, math.radians(-40))
         finish(out, f'item.{item}', eisen.parent_all([base, arm]), scale=0.92 if item == 'inserter' else 0.8, z=-0.1)
 
@@ -197,12 +198,12 @@ def render_early(out):
         ('steel-plate', steel_ingots, 1.0),
         ('engine-unit', lambda m: anlagen.engine_unit(m), 1.15),
         ('landfill', lambda m: anlagen.landfill_pile(m), 1.1),
-        ('wooden-chest', lambda m: anlagen.wooden_chest(m), 0.8),
-        ('steel-chest', lambda m: anlagen.steel_chest(m), 0.78),
+        ('wooden-chest', lambda m: kleinteile.wooden_chest(kleinteile.Mats()), 0.8),
+        ('steel-chest', lambda m: kleinteile.steel_chest(kleinteile.Mats()), 0.78),
         ('pipe-to-ground', lambda m: anlagen.pipe_ground(m), 0.95),
         ('lamp', lambda m: anlagen.lamp(m, 0.0), 0.9),
-        ('medium-electric-pole', lambda m: anlagen.medium_pole(m), 0.42),
-        ('big-electric-pole', lambda m: anlagen.big_pole(m), 0.26),
+        ('medium-electric-pole', lambda m: kleinteile.medium_pole(kleinteile.Mats('#5d6e78', 2)), 0.42),
+        ('big-electric-pole', lambda m: kleinteile.big_pole(kleinteile.Mats('#5d6e78', 2)), 0.26),
         ('steel-furnace', lambda m: stufe23.steel_furnace2(m, 0.0), 0.42),
         ('pump', lambda m: anlagen.fluid_pump(m, 0.0), 0.5),
         ('storage-tank', lambda m: stufe23.storage_tank2(m), 0.3),
@@ -215,16 +216,13 @@ def render_early(out):
         finish(out, f'item.{item}', root, scale=sc, z=-0.05)
     eisen.reset(samples=48)
     finish(out, 'item.assembling-machine-2', stufen.assembler2(None, 0.0), scale=0.3, z=-0.05)
-    for item, fn, sc in (('fast-splitter', lambda m: anlagen.splitter(m, 0.0), 0.42), ('fast-underground-belt', lambda m: anlagen.underground(m, False), 0.8)):
+    for item, fn, sc in (('fast-splitter', lambda m: kleinteile.splitter(m, 0.0), 0.42), ('fast-underground-belt', lambda m: kleinteile.underground(m, False), 0.8)):
         eisen.reset(samples=48)
-        m = anlagen.Mats()
-        m.paint = anlagen.paint('#7a3a28', 'a_fastpaint')
-        finish(out, f'item.{item}', fn(m), scale=sc, z=-0.05)
+        finish(out, f'item.{item}', fn(kleinteile.Mats('#7a3a28', 2)), scale=sc, z=-0.05)
     eisen.reset(samples=48)
-    m = parts.Mats()
-    m.ochre = bauten.weathered('ins_paint', '#3f5d80', metal=0.3, rough=0.55, rust=0.4, dust=0.45, edge=0.7, streaks=0.5)
-    base = parts.inserter_base(m, False)
-    arm = parts.inserter_arm(m, 0.55)
+    m = kleinteile.Mats('#3f5d80', 2)
+    base = kleinteile.inserter_base(m, False)
+    arm = kleinteile.inserter_arm(m, 0.55)
     arm.rotation_euler = (0, 0, math.radians(-40))
     finish(out, 'item.fast-inserter', eisen.parent_all([base, arm]), scale=0.92, z=-0.1)
 

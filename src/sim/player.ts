@@ -1,3 +1,4 @@
+import { FLOOR, FLOOR_BY_ID } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
@@ -25,7 +26,8 @@ export interface CraftJob {
 export type MineTarget =
   | { kind: 'resource'; x: number; y: number; /** Rohstoff-Index: gleicher Rohstoff → Fortschritt bleibt. */ res?: number }
   | { kind: 'entity'; id: number }
-  | { kind: 'tree'; cx: number; cy: number; i: number; x: number; y: number };
+  | { kind: 'tree'; cx: number; cy: number; i: number; x: number; y: number }
+  | { kind: 'floor'; x: number; y: number };
 
 export class Player {
   /** Mittelpunkt in 1/256 Feldern. */
@@ -250,7 +252,10 @@ export class Player {
     this.walking = mx !== 0 || my !== 0;
     if (!this.walking) return;
     if (mx !== 0 || my !== 0) this.facing = my < 0 ? 0 : my > 0 ? 2 : mx > 0 ? 1 : 3;
-    const speed = Math.round(PLAYER.runningSpeed * SUB * (this.god ? GOD.runningFactor : 1));
+    // Bodenbelag unter der Figur beschleunigt (Wiki: Steinpflaster 130 %, Beton 140 %, veredelter Beton 150 %)
+    const floor = world.map.floorAt(Math.floor(this.x), Math.floor(this.y));
+    const fs = floor ? FLOOR_BY_ID[floor].speed : 1;
+    const speed = Math.round(PLAYER.runningSpeed * SUB * fs * (this.god ? GOD.runningFactor : 1));
     // Diagonal: 181/256 ≈ 1/√2
     const diag = mx !== 0 && my !== 0;
     const step = diag ? Math.round((speed * 181) / 256) : speed;
@@ -272,7 +277,7 @@ export class Player {
     const y = py / SUB;
     for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++) {
       for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
-        if (world.map.isWater(tx, ty) || world.enemies.nestAt(tx, ty)) return true;
+        if (world.map.isBlocked(tx, ty) || world.enemies.nestAt(tx, ty)) return true;
         const e = world.entityAt(tx, ty);
         if (e && entityDef(e.name).solid) {
           // Spieler, die bereits darin stehen (z. B. nach dem Bauen), dürfen hinaus
@@ -294,7 +299,9 @@ export class Player {
         ? this.mineTarget.kind === 'resource' && t.x === this.mineTarget.x && t.y === this.mineTarget.y
         : t.kind === 'tree'
           ? this.mineTarget.kind === 'tree' && t.cx === this.mineTarget.cx && t.cy === this.mineTarget.cy && t.i === this.mineTarget.i
-          : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
+          : t.kind === 'floor'
+            ? this.mineTarget.kind === 'floor' && t.x === this.mineTarget.x && t.y === this.mineTarget.y
+            : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
     if (same) return;
     // Zeiger rutscht auf ein Nachbarfeld desselben Rohstoffs: Fortschritt behalten (kein Neustart des Balkens)
     if (t?.kind === 'resource' && this.mineTarget?.kind === 'resource' && t.res !== undefined && t.res === this.mineTarget.res) {
@@ -352,6 +359,26 @@ export class Player {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
         }
+        this.mineTarget = null;
+      }
+      return;
+    }
+    if (t.kind === 'floor') {
+      const id = world.map.floorAt(t.x, t.y);
+      if (!id || !this.canReach(t.x + 0.5, t.y + 0.5)) {
+        this.mineProgress = 0;
+        if (!id) this.mineTarget = null;
+        return;
+      }
+      const item = FLOOR_BY_ID[id].item;
+      if (this.inventory.space(item) < 1) {
+        this.note('Inventar voll');
+        return;
+      }
+      this.mineTotal = this.mineTicks(FLOOR.mineTime);
+      if (++this.mineProgress >= this.mineTotal) {
+        this.mineProgress = 0;
+        if (world.removeFloor(t.x, t.y)) this.inventory.add(item, 1);
         this.mineTarget = null;
       }
       return;

@@ -1,4 +1,5 @@
-import { Application, Container, Graphics, type Texture } from 'pixi.js';
+import { FLOOR_BY_ID } from '../data/floors';
+import { Application, Container, Graphics, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
@@ -25,6 +26,9 @@ import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
 export const TILE = 64;
+/** Bewegtes Wasser: Ticks je Bild der Lichtreflexe (16 Bilder) und des Uferschaums (8 Bilder). */
+const GLINT_TICKS = 6;
+const FOAM_TICKS = 9;
 
 export interface Ghost {
   name: string;
@@ -48,6 +52,10 @@ export interface RenderUi {
   drill?: Ghost | null;
   /** Greifarm im Cursor oder unter der Maus: woher er nimmt (grün) und wohin er legt (gelb). */
   inserter?: Ghost | null;
+  /** Bodenbelag in der Hand: Pinselquadrat (Felder). */
+  floorBrush?: { x: number; y: number; n: number } | null;
+  /** Wurfgegenstand in der Hand: Reichweite um die Figur, Zielkreis (Wirkradius) an der Maus. */
+  throwAim?: { px: number; py: number; range: number; radius: number; x: number; y: number } | null;
   /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
   wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
@@ -97,7 +105,13 @@ export class GameRenderer {
   private res!: ParticlePool;
   private water: ParticlePool | null = null;
   private waterTex: Texture[][] = [];
+  /** Bewegtes Wasser: Lichtreflexe (je Feldparität × Bild) und Uferschaum (je Fall × Variante × Bild). */
+  private readonly waterFx = new SpritePool();
+  private glintTex: Texture[][] = [];
+  private foamTex = new Map<string, Texture[]>();
   private readonly decals = new SpritePool();
+  /** Bodenbeläge (Steinpflaster, Beton …) über Boden und Decals, unter Erz und Gebäuden. */
+  private readonly floorPool = new SpritePool();
   private readonly groundItems = new SpritePool();
   private decor: DecorField | null = null;
   private decorMap: unknown = null;
@@ -215,6 +229,18 @@ export class GameRenderer {
         this.waterTex.push(list);
       }
     }
+    for (let q = 0; q < 4; q++) {
+      const list: Texture[] = [];
+      for (let f = 0; s.has(`water.glint.${q}.${f}`); f++) list.push(s.frame(`water.glint.${q}.${f}`));
+      this.glintTex.push(list);
+    }
+    for (let c = 1; c < 15; c++) {
+      for (let v = 0; s.has(`water.foam.${c}.${v}.0`); v++) {
+        const list: Texture[] = [];
+        for (let f = 0; s.has(`water.foam.${c}.${v}.${f}`); f++) list.push(s.frame(`water.foam.${c}.${v}.${f}`));
+        this.foamTex.set(`${c}.${v}`, list);
+      }
+    }
     this.belts = new ParticlePool(s.frame('belt.s.0'));
     this.items = new ParticlePool(s.frame('item.iron-ore'));
     this.glow.container.blendMode = 'add';
@@ -227,8 +253,9 @@ export class GameRenderer {
     // Bodenebenen in eigener Gruppe (eigene Farbabstimmung, data/look.ts)
     this.groundLayer.addChild(
       this.ground.container,
-      ...(this.water ? [this.water.container] : []),
+      ...(this.water ? [this.water.container, this.waterFx.container] : []),
       this.decals.container,
+      this.floorPool.container,
       this.res.container,
     );
     if (lookEnabled()) {
@@ -367,6 +394,7 @@ export class GameRenderer {
     this.stats.ground = g.count + rp.count;
     this.drawWater(world, v);
     this.drawDecals(world, v);
+    this.drawFloors(world, v);
     this.drawGroundItems(world, v);
   }
 
@@ -403,6 +431,9 @@ export class GameRenderer {
     const pool = this.water;
     if (!pool) return;
     pool.begin();
+    const fx = this.waterFx;
+    fx.begin();
+    const t = world.tick;
     const CS = MAPGEN.chunkSize;
     const m = world.map;
     for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor((v.y1 + 1) / CS); cy++) {
@@ -419,12 +450,38 @@ export class GameRenderer {
             if (c === 0) continue;
             const list = this.waterTex[c];
             if (!list.length) continue;
-            pool.push(list[(((x * 7 + y * 13) % list.length) + list.length) % list.length], x * TILE, y * TILE);
+            const vi = (((x * 7 + y * 13) % list.length) + list.length) % list.length;
+            pool.push(list[vi], x * TILE, y * TILE);
+            // Uferschaum auf der Uferlinie (gleiche Variante wie das Ufer), Brandung im eigenen Takt je Ort
+            if (c !== 15) {
+              const foam = this.foamTex.get(`${c}.${vi}`);
+              if (foam?.length) {
+                const ph = ((x * 5 + y * 3) & 7);
+                const fr = Math.floor(t / FOAM_TICKS + ph) % foam.length;
+                const sp = fx.get(foam[fr]);
+                sp.position.set(x * TILE, y * TILE);
+                sp.blendMode = 'normal';
+              }
+            }
           }
         }
       }
     }
     pool.end();
+    // Lichtreflexe auf offenem Wasser (Feld und seine vier Nachbarn sind Wasser)
+    const glint = this.glintTex;
+    if (glint.length === 4 && glint[0].length) {
+      const fr = Math.floor(t / GLINT_TICKS) % glint[0].length;
+      for (let y = v.y0; y <= v.y1; y++) {
+        for (let x = v.x0; x <= v.x1; x++) {
+          if (!m.isWater(x, y) || !m.isWater(x - 1, y) || !m.isWater(x + 1, y) || !m.isWater(x, y - 1) || !m.isWater(x, y + 1)) continue;
+          const sp = fx.get(glint[(x & 1) + 2 * (y & 1)][fr]);
+          sp.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+          sp.blendMode = 'add';
+        }
+      }
+    }
+    fx.end();
   }
 
   // ------------------------------------------------------------------ Dekoration
@@ -459,6 +516,30 @@ export class GameRenderer {
           if (d.x < v.x0 - margin || d.x > v.x1 + margin || d.y < v.y0 - margin || d.y > v.y1 + margin) continue;
           yield d;
         }
+  }
+
+  private drawFloors(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const p = this.floorPool;
+    p.begin();
+    const s = this.sprites;
+    world.map.floorsIn(v.x0 - 1, v.y0 - 1, v.x1 + 1, v.y1 + 1, (x, y, id) => {
+      const def = FLOOR_BY_ID[id];
+      if (!def) return;
+      const h = (Math.imul(x * 73856093 ^ y * 19349663, 0x9e3779b1) >>> 0) % 4;
+      const name = `${def.sprite}.${h}`;
+      if (!s.has(name)) {
+        // ohne Grafik: Farbfläche aus der Minimap-Farbe
+        const sp = p.get(Texture.WHITE);
+        sp.tint = def.mapColor;
+        sp.anchor.set(0.5);
+        sp.width = TILE;
+        sp.height = TILE;
+        sp.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+        return;
+      }
+      p.get(s.frame(name)).position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+    });
+    p.end();
   }
 
   private drawDecals(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
@@ -505,6 +586,7 @@ export class GameRenderer {
     const s = this.sprites;
     for (const d of this.visibleDecor(world, v, 7)) {
       if (d.kind.layer !== 'flora') continue;
+      if (world.map.isCliff(d.tx, d.ty) || world.map.floorAt(d.tx, d.ty)) continue;
       // Bäume halten Abstand zu Gebäuden (Krone), kleinere Pflanzen nur zum eigenen Feld
       const r = d.kind.id === 'tree' || d.kind.id === 'conifer' ? 2 : d.kind.id === 'rocks' ? 1 : 0;
       let blocked = false;
@@ -537,6 +619,40 @@ export class GameRenderer {
           const sp = this.ents.get(s.frame(name));
           sp.position.set(t.x * TILE, t.y * TILE);
           sp.zIndex = t.y * TILE;
+        }
+      }
+    }
+    this.drawCliffs(world, v);
+  }
+
+  private cliffCount = -1;
+  /** Klippen: je Klippenfeld eine Felsstufe (Variante und kleiner Versatz aus der Lage), nach Tiefe sortiert. */
+  private drawCliffs(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const s = this.sprites;
+    if (this.cliffCount < 0) this.cliffCount = s.countPrefix('cliff.');
+    const n = this.cliffCount;
+    if (n <= 0) return;
+    const CS = MAPGEN.chunkSize;
+    for (let cy = Math.floor((v.y0 - 1) / CS); cy <= Math.floor((v.y1 + 2) / CS); cy++) {
+      for (let cx = Math.floor((v.x0 - 1) / CS); cx <= Math.floor((v.x1 + 1) / CS); cx++) {
+        const c = world.map.getChunk(cx, cy);
+        if (!c.hasCliff) continue;
+        const ty0 = Math.max(cy * CS, v.y0 - 1);
+        const ty1 = Math.min(cy * CS + CS - 1, v.y1 + 2);
+        const tx0 = Math.max(cx * CS, v.x0 - 1);
+        const tx1 = Math.min(cx * CS + CS - 1, v.x1 + 1);
+        for (let ty = ty0; ty <= ty1; ty++) {
+          for (let tx = tx0; tx <= tx1; tx++) {
+            if (!c.cliff[(ty - cy * CS) * CS + (tx - cx * CS)]) continue;
+            const h = ((tx * 73856093) ^ (ty * 19349663)) >>> 0;
+            const name = `cliff.${h % n}`;
+            const x = (tx + 0.5 + (((h >>> 8) & 15) / 15 - 0.5) * 0.2) * TILE;
+            const y = (ty + 0.5 + (((h >>> 12) & 15) / 15 - 0.5) * 0.2) * TILE;
+            if (s.has(`${name}.shadow`)) this.shadows.get(s.frame(`${name}.shadow`)).position.set(x, y);
+            const sp = this.ents.get(s.frame(name));
+            sp.position.set(x, y);
+            sp.zIndex = y;
+          }
         }
       }
     }
@@ -1275,6 +1391,16 @@ export class GameRenderer {
     if (ui.power) this.drawPowerAreas(world, ui.power.pole, g);
     if (ui.drill) this.drawDrillArea(world, ui.drill, g);
     if (ui.inserter) this.drawInserterReach(world, ui.inserter, g);
+    if (ui.floorBrush) {
+      const b = ui.floorBrush;
+      g.rect(b.x * TILE, b.y * TILE, b.n * TILE, b.n * TILE).fill({ color: 0x7dff8a, alpha: 0.12 }).stroke({ width: 2 / z, color: 0x7dff8a, alpha: 0.9 });
+    }
+    if (ui.throwAim) {
+      const a = ui.throwAim;
+      const ok = Math.hypot(a.x - a.px, a.y - a.py) <= a.range;
+      g.circle(a.px * TILE, a.py * TILE, a.range * TILE).stroke({ width: 1.5 / z, color: 0xffd23a, alpha: 0.5 });
+      g.circle(a.x * TILE, a.y * TILE, a.radius * TILE).fill({ color: ok ? 0xff7a3a : 0xff3a3a, alpha: 0.15 }).stroke({ width: 2 / z, color: ok ? 0xffb03a : 0xff4a3a, alpha: 0.9 });
+    }
     // zum Abriss markiert: rotes Kreuz
     for (const id of world.robots.marked) {
       const e = world.entities.get(id);
@@ -1342,6 +1468,15 @@ export class GameRenderer {
       g.circle(x0 * TILE, y0 * TILE, 7).fill({ color: 0xffc040, alpha: 0.85 });
       g.circle(x1 * TILE, y1 * TILE, 4).fill({ color: 0xffa040, alpha: 0.7 });
     };
+    // Wurfgegenstände im Flug (Bogen: Höhe nach Parabel)
+    for (const c of world.capsules.flying) {
+      const f = c.t / c.total;
+      const x = c.x0 + (c.tx - c.x0) * f;
+      const y = c.y0 + (c.ty - c.y0) * f;
+      const lift = Math.sin(f * Math.PI) * Math.min(3, c.total * 0.04);
+      g.circle(x * TILE, y * TILE, 6).fill({ color: 0x000000, alpha: 0.25 });
+      g.circle(x * TILE, (y - lift) * TILE, 7).fill({ color: c.item === 'grenade' ? 0x4f5a3e : 0x8a2f22 }).stroke({ width: 1.5 / z, color: 0x111111 });
+    }
     const bar = (x: number, y: number, w: number, f: number) => {
       g.rect(x * TILE, y * TILE, w * TILE, 5).fill({ color: 0x111111, alpha: 0.8 });
       g.rect(x * TILE, y * TILE, w * TILE * Math.max(0, f), 5).fill({ color: f > 0.5 ? 0x5fd35f : f > 0.25 ? 0xe0c040 : 0xe05040 });

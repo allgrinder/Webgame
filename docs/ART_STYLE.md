@@ -76,3 +76,16 @@ Gegner `lib/kampf.py`.
 
 ![Gesamtbild](img/gesamt-neu.png)
 ![Gegner](img/gegner.png)
+
+## Kleinteile, Klippen, Beläge, Wasser (Phase J)
+
+- Kleinteile in `lib/kleinteile.py`: gleiche Formsprache wie die Gebäude, aber sparsamer, weil sie zu Hunderten
+  nebeneinander stehen – Warnstreifen nur als schmale Kante (Greifarm-Drehkranz, Untergrund-Wangen, Splitter-Pfeiler),
+  Schrauben- und Schweißdetails, Schläuche und Kabel als Kurven. Erkennungsfarben: Brennstoff-Greifarm rostbraun,
+  Greifarm gelb, langer Greifarm rot, schneller blau; Bandstufen gelb/rot/blau.
+- Klippen (`models/cliffs.py`): geschichtete Felsplatten, zur Kamera abgetreppt, Geröll und Gras am Fuß; Varianten
+  überlappen sich im Spiel zu durchgehenden Kanten.
+- Beläge (`models/floors.py`): flache 1×1-Kacheln, Fugen halb in jedem Feld (Kacheln setzen sich nahtlos fort),
+  Gefahrenstreifen mit einer Periode, die die Feldbreite teilt.
+- Wasser (`models/water.py`): Lichtreflexe als zwei gegeneinander wandernde periodische Muster (nahtlos in Raum und Zeit),
+  Uferschaum aus demselben Uferfeld wie die Uferlinie, Bandbreite pulsiert.

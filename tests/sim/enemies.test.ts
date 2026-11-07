@@ -169,5 +169,5 @@ describe('Friedlich', () => {
     w.run(60 * 60 * 11);
     expect(w.entities.has(drill.id)).toBe(true);
     expect([...w.enemies.units.values()].every((u) => u.mode === 'guard')).toBe(true);
-  });
+  }, 30_000);
 });

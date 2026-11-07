@@ -86,7 +86,7 @@ export class InserterEntity extends EntityBase {
     const dstRaw = w.entityAt(drop[0], drop[1]);
     const dst = dstRaw?.kind === 'rail' ? undefined : dstRaw;
     // Ziel: Gebäude (außer Greifarm) oder freier Boden
-    const groundTarget = !dst && !w.map.isWater(Math.floor(drop[0]), Math.floor(drop[1]));
+    const groundTarget = !dst && !w.map.isBlocked(Math.floor(drop[0]), Math.floor(drop[1]));
     this.targetKind = dst?.kind;
     const half = this.halfSwingEnergy;
     const burner = this.burner;

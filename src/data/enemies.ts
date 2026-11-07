@@ -139,5 +139,15 @@ export const PLAYER_COMBAT = {
 /** Reparaturset (Wiki „Repair pack“): Haltbarkeit 300, Tempo 2 → 2 Lebenspunkte je Tick (Messvorschlag). */
 export const REPAIR = { durability: 300, perTick: 2 } as const;
 
+/**
+ * Wurfgegenstände (Wiki „Grenade“, „Cliff explosives“): Reichweite (Felder), Wirkradius, Schaden (Explosion),
+ * Abklingzeit (2 Würfe/s) und Flugzeit (eigener Wert: Felder je Tick).
+ */
+export const CAPSULES: Readonly<Record<string, { range: number; radius: number; damage: number; cooldown: number }>> = {
+  grenade: { range: 15, radius: 6.5, damage: 35, cooldown: 30 },
+  'cliff-explosives': { range: 10, radius: 1.5, damage: 0, cooldown: 30 },
+};
+export const CAPSULE_SPEED = 0.3;
+
 /** Wegsuche der Gegner: Flussfeld im Fenster ±window Felder um das Ziel (eigener Wert; Original: Wegsuche je Gruppe). */
 export const PATH = { window: 48 } as const;

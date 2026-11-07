@@ -70,6 +70,9 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Phase I: Geräusche `src/audio/sound.ts` (ZzFX, Ereignisse `src/sim/events.ts`), Spielstände gzip (`src/game/packing.ts`),
   Bloom (pixi-filters, Menü/`?bloom=0`), Partikel-Ausbrüche (`render/effects.ts`), Flussfeld-Wegsuche (`src/sim/flowfield.ts`),
   Eigenschafts-Tests (fast-check). Wiki ist direkt erreichbar (Umgebung „Webgame“).
+- Phase J: Kleinteile neu (`lib/kleinteile.py`), Klippen (`GameMap.isCliff`, `models/cliffs.py`), Wurfgegenstände
+  (`src/sim/capsules.ts`), Bodenbeläge (`src/data/floors.ts`, `GameMap.floorAt`, `models/floors.py`), bewegtes Wasser
+  (Reflexe und Uferschaum in `models/water.py`). Klippen nur in neuen Karten (Einstellung `cliffs`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

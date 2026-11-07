@@ -5,10 +5,13 @@
  */
 export type ResourceSetting = 'leicht' | 'mittel' | 'schwer';
 export type EnemySetting = 'aus' | 'friedlich' | 'normal' | 'stark';
+export type CliffSetting = 'aus' | 'wenig' | 'normal';
 export interface MapSettings {
   readonly resources: ResourceSetting;
   readonly size: number;
   readonly enemies: EnemySetting;
+  /** Klippen (fehlt bei älteren Spielständen: keine Klippen, damit gebaute Fabriken nicht im Fels stehen). */
+  readonly cliffs?: CliffSetting;
 }
 
 export const RESOURCE_SETTINGS: Readonly<Record<ResourceSetting, { label: string; richness: number; hint: string }>> = {
@@ -24,9 +27,15 @@ export const ENEMY_SETTINGS: Readonly<Record<EnemySetting, { label: string; hint
   stark: { label: 'Stark', hint: 'mehr Nester, schnellere Entwicklung' },
 };
 
+export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint: string }>> = {
+  aus: { label: 'Aus', hint: 'keine Klippen' },
+  wenig: { label: 'Wenig', hint: 'vereinzelte Felsstufen mit breiten Durchgängen' },
+  normal: { label: 'Normal', hint: 'Felsstufen wie im Original, Durchgänge alle paar Dutzend Felder' },
+};
+
 /** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
-export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 1.8, enemies: 'normal' };
-export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus' };
+export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 1.8, enemies: 'normal', cliffs: 'normal' };
+export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus', cliffs: 'aus' };
 
 /** Parameter der Kartengenerierung (eigene Werte, keine Vorlage). */
 export const MAPGEN = {
@@ -75,6 +84,18 @@ export const MAPGEN = {
    * Flüsse: Nulllinie eines verzerrten Rauschens (|n − 0,5| < Breite). Breite schwankt entlang des Laufs;
    * wo sie unter fordBelow fällt, entsteht eine Furt (Land), damit die Karte begehbar bleibt.
    */
+  /**
+   * Klippen (eigenes Modell, Vorbild: Klippen entlang von Höhenlinien): Höhenfeld (fbm, scale), in levels Stufen
+   * geteilt; ein Feld ist Klippe, wenn ein Nachbar eine Stufe tiefer liegt. Lücken, wo das Lückenrauschen unter gap
+   * liegt (Durchgänge). Keine Klippen im Startgebiet (startFree), an Wasser oder auf Erz.
+   */
+  cliffs: {
+    scale: 75,
+    gapScale: 14,
+    startFree: 42,
+    wenig: { levels: 4, gap: 0.42 },
+    normal: { levels: 7, gap: 0.3 },
+  },
   rivers: { scale: 380, warp: 60, warpScale: 90, width: 0.009, widthScale: 45, fordBelow: 0.38 },
   /**
    * Ölfelder: Gruppen einzelner Quellen (Wiki: Pumpjack fördert 10 × Ergiebigkeit/s). Ergiebigkeit in Prozent,

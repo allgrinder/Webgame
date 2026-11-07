@@ -6,6 +6,7 @@ import anlagen
 import stufe23
 import bauten
 import eisen
+import kleinteile
 import parts
 
 FLUIDS = {
@@ -61,12 +62,10 @@ def render(out):
         eisen.reset(samples=48)
         finish(out, f'item.{fluid}', anlagen.fluid_barrel(anlagen.Mats(), eisen.srgb(hex_)), scale=1.25, z=-0.1)
     # Express-Logistik in Blau
-    for item, fn, sc in (('express-splitter', lambda m: anlagen.splitter(m, 0.0), 0.42),
-                         ('express-underground-belt', lambda m: anlagen.underground(m, False), 0.8)):
+    for item, fn, sc in (('express-splitter', lambda m: kleinteile.splitter(m, 0.0), 0.42),
+                         ('express-underground-belt', lambda m: kleinteile.underground(m, False), 0.8)):
         eisen.reset(samples=48)
-        m = anlagen.Mats()
-        m.paint = anlagen.paint(EXPRESS, 'a_expresspaint')
-        finish(out, f'item.{item}', fn(m), scale=sc, z=-0.05)
+        finish(out, f'item.{item}', fn(kleinteile.Mats(EXPRESS, 2)), scale=sc, z=-0.05)
     eisen.reset(samples=48)
     m = parts.Mats()
     m.ochre = bauten.weathered('eb_paint', EXPRESS, metal=0.3, rough=0.55, rust=0.4, dust=0.45, edge=0.7, streaks=0.5)

@@ -1,7 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { PLAYER_COMBAT } from '../data/enemies';
-import { DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
+import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID } from '../data/tech';
 import type { Game } from '../game/game';
@@ -1419,7 +1419,7 @@ export class Hud {
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
-        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
+        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
@@ -1522,6 +1522,8 @@ export class Hud {
     let enemies: EnemySetting = (localStorage.getItem('eisenwerk.enemies') as EnemySetting | null) ?? DEFAULT_MAP_SETTINGS.enemies;
     if (!(res in RESOURCE_SETTINGS)) res = DEFAULT_MAP_SETTINGS.resources;
     if (!(enemies in ENEMY_SETTINGS)) enemies = DEFAULT_MAP_SETTINGS.enemies;
+    let cliffs: CliffSetting = (localStorage.getItem('eisenwerk.cliffs') as CliffSetting | null) ?? DEFAULT_MAP_SETTINGS.cliffs ?? 'normal';
+    if (!(cliffs in CLIFF_SETTINGS)) cliffs = 'normal';
     this.menu.replaceChildren();
     const head = el('div', 'win-head', this.menu);
     head.textContent = 'Neues Spiel';
@@ -1544,6 +1546,7 @@ export class Hud {
     };
     group('Rohstoffe', RESOURCE_SETTINGS, () => res, (k) => (res = k));
     group('Gegner', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
+    group('Klippen', CLIFF_SETTINGS, () => cliffs, (k) => (cliffs = k));
     el('div', 'hint', body).textContent = 'Rohstofffelder sind in neuen Runden deutlich größer als früher.';
     const go = el('button', 'menu-btn primary', body);
     go.textContent = 'Starten (neue Karte)';
@@ -1551,8 +1554,9 @@ export class Hud {
       try {
         localStorage.setItem('eisenwerk.res', res);
         localStorage.setItem('eisenwerk.enemies', enemies);
+        localStorage.setItem('eisenwerk.cliffs', cliffs);
       } catch { /* privat */ }
-      location.search = `?new&res=${res}&enemies=${enemies}${this.game.world.player?.god ? '&god' : ''}`;
+      location.search = `?new&res=${res}&enemies=${enemies}&cliffs=${cliffs}${this.game.world.player?.god ? '&god' : ''}`;
     };
     const back = el('button', 'menu-btn', body);
     back.textContent = 'Zurück';

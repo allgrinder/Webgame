@@ -118,6 +118,13 @@ const list: RecipeDef[] = [
     id: 'repair-pack', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'electronic-circuit', amount: 2 }, { item: 'iron-gear-wheel', amount: 2 }], results: [{ item: 'repair-pack', amount: 1 }],
   },
+  { id: 'grenade', category: 'crafting', time: 8, ingredients: [{ item: 'coal', amount: 10 }, { item: 'iron-plate', amount: 5 }], results: [{ item: 'grenade', amount: 1 }] },
+  {
+    id: 'cliff-explosives', category: 'crafting', time: 8,
+    ingredients: [{ item: 'explosives', amount: 10 }, { item: 'grenade', amount: 1 }, { item: 'empty-barrel', amount: 1 }],
+    results: [{ item: 'cliff-explosives', amount: 1 }],
+  },
+  { id: 'empty-barrel', category: 'crafting', time: 1, ingredients: [{ item: 'steel-plate', amount: 1 }], results: [{ item: 'empty-barrel', amount: 1 }] },
   { id: 'stone-wall', category: 'crafting', time: 0.5, ingredients: [{ item: 'stone-brick', amount: 5 }], results: [{ item: 'stone-wall', amount: 1 }] },
   {
     id: 'lamp', category: 'crafting', time: 0.5,
@@ -353,6 +360,13 @@ const list: RecipeDef[] = [
     id: 'concrete', category: 'crafting-with-fluid', time: 10,
     ingredients: [{ item: 'iron-ore', amount: 1 }, { item: 'stone-brick', amount: 5 }, { item: 'water', amount: 100 }], results: [{ item: 'concrete', amount: 10 }],
   },
+  { id: 'hazard-concrete', category: 'crafting', time: 0.25, ingredients: [{ item: 'concrete', amount: 10 }], results: [{ item: 'hazard-concrete', amount: 10 }] },
+  {
+    id: 'refined-concrete', category: 'crafting-with-fluid', time: 15,
+    ingredients: [{ item: 'concrete', amount: 20 }, { item: 'iron-stick', amount: 8 }, { item: 'steel-plate', amount: 1 }, { item: 'water', amount: 100 }],
+    results: [{ item: 'refined-concrete', amount: 10 }],
+  },
+  { id: 'refined-hazard-concrete', category: 'crafting', time: 0.25, ingredients: [{ item: 'refined-concrete', amount: 10 }], results: [{ item: 'refined-hazard-concrete', amount: 10 }] },
   {
     id: 'roboport', category: 'crafting', time: 5,
     ingredients: [{ item: 'advanced-circuit', amount: 45 }, { item: 'iron-gear-wheel', amount: 45 }, { item: 'steel-plate', amount: 45 }],

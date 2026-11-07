@@ -16,7 +16,10 @@ export class Chunk {
   readonly water0 = new Uint8Array(CS * CS);
   readonly resource0 = new Uint8Array(CS * CS);
   readonly amount0 = new Uint32Array(CS * CS);
+  /** 1 = Klippe (nicht begehbar, nicht bebaubar; mit Klippensprengstoff entfernbar). */
+  readonly cliff = new Uint8Array(CS * CS);
   hasWater = false;
+  hasCliff = false;
   /** Wird erhöht, wenn sich die sichtbare Darstellung ändert (Renderer-Cache). */
   version = 0;
   constructor(readonly cx: number, readonly cy: number) {}
@@ -124,7 +127,7 @@ export class GameMap {
     const lr = SL.radiusMin + hash01(seed, 78) * (SL.radiusMax - SL.radiusMin);
     this.trees = new TreeField({
       seed,
-      isWater: (x, y) => this.naturalWater(x, y),
+      isWater: (x, y) => this.naturalWater(x, y) || this.isCliff(x, y),
       moistureAt: (x, y) => this.moistureAt(x, y),
       resourceAt: (x, y) => ({ res: 0, amount: this.naturalResource(x, y) ? 1 : 0 }),
     });
@@ -383,6 +386,89 @@ export class GameMap {
     return this.getChunk(cx, cy).resource0[(Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS)] !== 0;
   }
 
+  isCliff(x: number, y: number): boolean {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    const c = this.getChunk(cx, cy);
+    return c.hasCliff && c.cliff[(Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS)] === 1;
+  }
+
+  /** Weder Wasser noch Klippe (begehbar, bebaubar soweit kein Gebäude). */
+  isBlocked(x: number, y: number): boolean {
+    return this.isWater(x, y) || this.isCliff(x, y);
+  }
+
+  /** Bodenbeläge (Feldschlüssel -> Belag-ID, siehe src/data/floors.ts), werden gespeichert. */
+  private readonly floors = new Map<number, number>();
+  /** Erhöht bei jeder Änderung der Beläge (Darstellung). */
+  floorVersion = 0;
+
+  floorAt(x: number, y: number): number {
+    return this.floors.get(tileKey(Math.floor(x), Math.floor(y))) ?? 0;
+  }
+
+  /** Belag setzen (0 entfernt ihn); liefert den vorherigen Belag. */
+  setFloor(x: number, y: number, id: number): number {
+    const k = tileKey(Math.floor(x), Math.floor(y));
+    const old = this.floors.get(k) ?? 0;
+    if (old === id) return old;
+    if (id) this.floors.set(k, id);
+    else this.floors.delete(k);
+    this.floorVersion++;
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    this.getChunk(cx, cy).version++;
+    return old;
+  }
+
+  /** Beläge in einem Rechteck (Darstellung). */
+  floorsIn(x0: number, y0: number, x1: number, y1: number, out: (x: number, y: number, id: number) => void): void {
+    if ((x1 - x0 + 1) * (y1 - y0 + 1) > this.floors.size) {
+      for (const [k, id] of this.floors) {
+        const x = Math.floor(k / 65536) - 32768;
+        const y = (k % 65536) - 32768;
+        if (x >= x0 && x <= x1 && y >= y0 && y <= y1) out(x, y, id);
+      }
+      return;
+    }
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const id = this.floors.get(tileKey(x, y));
+      if (id) out(x, y, id);
+    }
+  }
+
+  serializeFloors(): [number, number, number][] {
+    return [...this.floors].sort((a, b) => a[0] - b[0]).map(([k, id]) => [Math.floor(k / 65536) - 32768, (k % 65536) - 32768, id]);
+  }
+
+  loadFloors(list: [number, number, number][] | undefined): void {
+    for (const [x, y, id] of list ?? []) this.setFloor(x, y, id);
+  }
+
+  /** Entfernte Klippen (Feldschlüssel), werden gespeichert. */
+  private readonly cliffMods = new Set<number>();
+
+  /** Klippe entfernen (Klippensprengstoff); true, wenn dort eine war. */
+  removeCliff(x: number, y: number): boolean {
+    const cx = Math.floor(x / CS);
+    const cy = Math.floor(y / CS);
+    const c = this.getChunk(cx, cy);
+    const i = (Math.floor(y) - cy * CS) * CS + (Math.floor(x) - cx * CS);
+    if (!c.cliff[i]) return false;
+    c.cliff[i] = 0;
+    c.version++;
+    this.cliffMods.add(tileKey(Math.floor(x), Math.floor(y)));
+    return true;
+  }
+
+  serializeCliffs(): [number, number][] {
+    return [...this.cliffMods].sort((a, b) => a - b).map((k) => [Math.floor(k / 65536) - 32768, (k % 65536) - 32768]);
+  }
+
+  loadCliffs(list: [number, number][] | undefined): void {
+    for (const [x, y] of list ?? []) this.removeCliff(x, y);
+  }
+
   isWater(x: number, y: number): boolean {
     const cx = Math.floor(x / CS);
     const cy = Math.floor(y / CS);
@@ -407,7 +493,48 @@ export class GameMap {
     }
     this.placeOil(c, x0, y0);
     const patches = this.patchesNear(x0, y0, x0 + CS, y0 + CS);
-    if (patches.length === 0) return c;
+    if (patches.length) this.placeOre(c, x0, y0, patches);
+    this.placeCliffs(c, x0, y0, ponds);
+    return c;
+  }
+
+  /** Höhenstufe für Klippen (nur Kartengenerierung). */
+  private cliffLevel(x: number, y: number, levels: number): number {
+    const C = MAPGEN.cliffs;
+    return Math.floor(fbm(this.seed + 900, x / C.scale, y / C.scale, 3) * levels);
+  }
+
+  /** Klippen eines Chunks: Feld höher als ein Nachbar (4er-Nachbarschaft), außer in Lücken, Start, Wasser, Erz. */
+  private placeCliffs(c: Chunk, x0: number, y0: number, ponds: ReturnType<GameMap['pondsNear']>): void {
+    const setting = this.settings.cliffs ?? 'aus';
+    if (setting === 'aus') return;
+    const C = MAPGEN.cliffs;
+    const { levels, gap } = C[setting];
+    for (let i = 0; i < CS * CS; i++) {
+      if (c.water[i] || c.resource[i]) continue;
+      const x = x0 + (i % CS);
+      const y = y0 + Math.floor(i / CS);
+      if (x * x + y * y < C.startFree * C.startFree) continue;
+      const l = this.cliffLevel(x + 0.5, y + 0.5, levels);
+      let edge = false;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        if (this.cliffLevel(x + dx + 0.5, y + dy + 0.5, levels) < l) {
+          edge = true;
+          break;
+        }
+      }
+      if (!edge) continue;
+      if (valueNoise(this.seed + 901, x / C.gapScale, y / C.gapScale) < gap) continue;
+      // nicht direkt am Wasser (Ufer bleiben begehbar)
+      let wet = false;
+      for (let dy = -1; dy <= 1 && !wet; dy++) for (let dx = -1; dx <= 1 && !wet; dx++) if (this.waterAt(x + dx, y + dy, ponds)) wet = true;
+      if (wet) continue;
+      c.cliff[i] = 1;
+      c.hasCliff = true;
+    }
+  }
+
+  private placeOre(c: Chunk, x0: number, y0: number, patches: Patch[]): void {
     const fringe = MAPGEN.patchFringe;
     for (let i = 0; i < CS * CS; i++) {
       if (c.water[i] || c.resource[i]) continue;
@@ -437,7 +564,6 @@ export class GameMap {
       c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich * this.richness));
       c.amount0[i] = c.amount[i];
     }
-    return c;
   }
 
   /** Ölquellen eines Chunks (deterministisch je Feldzelle, unabhängig von der Erzeugungsreihenfolge). */

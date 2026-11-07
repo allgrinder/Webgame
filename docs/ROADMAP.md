@@ -197,3 +197,15 @@ Wissenschaft; Zug-Signale, Diagonalen und Selbstfahren; Kernkraft und Dampfturbi
   Bildbudgets); großer Umbau ohne spürbaren Gewinn.
 - CC0-Texturen (Poly Haven): getestet (vollflächig und nur als Rost-/Schmutzschicht) und verworfen – kaum Gewinn,
   in SD praktisch unsichtbar; Grafik bleibt vollständig aus eigenen Blender-Skripten.
+
+## Phase J – Feinschliff Welt (Wunsch 07.11.2026: „1, 2, 3, 4 umsetzen“)
+
+1. Kleinteile im Endzeit-Stil neu modelliert (`lib/kleinteile.py`): Greifarme (Drehkranz mit Zahnkranz, Kastenträger,
+   Hydraulik, Greifer; elektrischer Greifarm jetzt gelb), Kisten (Holz aus ungleichen Brettern, geschweißte Eisenkiste,
+   Stahlkiste mit Sicken), Rohre (Flansche mit Schraubenkranz, Schweißringe, Rohrschelle), Masten (Holzpfahl, Stahl-
+   Gittermast, Fachwerkturm), Untergrundband und Splitter mit Warnstreifen, Motor und Kabel. Bänder blieben (schon detailliert).
+2. Klippen (`src/sim/map.ts`, Grafik `models/cliffs.py`): blockieren Bauen, Laufen und Gegner; Klippensprengstoff und
+   Granate als Wurfgegenstände (`src/sim/capsules.ts`). Einstellung im Dialog „Neues Spiel“.
+3. Bodenbeläge (`src/data/floors.ts`, Grafik `models/floors.py`): Steinpflaster, Beton, Gefahrenbeton, veredelter
+   Beton (+ Gefahr) mit höherer Laufgeschwindigkeit; Pinsel + / −.
+4. Lebendiges Wasser (`models/water.py`): wandernde Lichtreflexe auf offenem Wasser, Uferschaum mit Brandung.

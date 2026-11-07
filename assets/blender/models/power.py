@@ -1,6 +1,7 @@
 """Strom: Uferpumpe, Kessel (mit Feuerschein), Dampfmaschine (Animation) und kleiner Strommast."""
 import anlagen
 import eisen
+import kleinteile
 import stufe1
 
 ALL = (0, 1, 2, 3)
@@ -22,6 +23,6 @@ def render(out):
                      glow=((0.7, 1.0, 0.8, 0.95), stufe1.boiler1))
     anlagen.building(out, 'steam-engine', stufe1.steam_engine1, (5.75, 6.5), (0.5, 3.6 / 6.5),
                      (6.75, 6.75), (3.0 / 6.75, 3.0 / 6.75), dirs=ALL, frames=8, samples=36)
-    anlagen.building(out, 'small-electric-pole', lambda m, ph: anlagen.small_pole(m), (1.25, 2.75), (0.5, 2.25 / 2.75),
+    anlagen.building(out, 'small-electric-pole', lambda m, ph: kleinteile.small_pole(kleinteile.Mats()), (1.25, 2.75), (0.5, 2.25 / 2.75),
                      (2.5, 2.5), (0.6 / 2.5, 0.6 / 2.5), frames=1, samples=40,
                      meta={'wireLift': round(anlagen.POLE_TOP * 0.5773, 4)})

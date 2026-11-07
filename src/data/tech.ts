@@ -60,7 +60,7 @@ export const TECHS: readonly TechDef[] = [
   { id: 'stone-wall', name: 'Steinmauer', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall'] },
   {
     id: 'military-2', name: 'Militär 2', count: 20, time: 15, packs: RED_GREEN,
-    prerequisites: ['military', 'steel-processing', 'logistic-science-pack'], unlocks: ['piercing-rounds-magazine'],
+    prerequisites: ['military', 'steel-processing', 'logistic-science-pack'], unlocks: ['piercing-rounds-magazine', 'grenade'],
   },
   {
     id: 'electric-energy-distribution-1', name: 'Elektrische Energieverteilung 1', count: 120, time: 30, packs: RED_GREEN,
@@ -78,7 +78,7 @@ export const TECHS: readonly TechDef[] = [
   { id: 'engine', name: 'Motor', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['engine-unit'] },
   {
     id: 'fluid-handling', name: 'Flüssigkeitshandhabung', count: 50, time: 15, packs: RED_GREEN,
-    prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank'],
+    prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank', 'empty-barrel'],
   },
   { id: 'oil-gathering', name: 'Ölförderung', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['fluid-handling'], unlocks: ['pumpjack'] },
   {
@@ -99,6 +99,8 @@ export const TECHS: readonly TechDef[] = [
     prerequisites: ['battery', 'electric-energy-distribution-1'], unlocks: ['accumulator'],
   },
   { id: 'explosives', name: 'Sprengstoff', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['sulfur-processing'], unlocks: ['explosives'] },
+  // Wiki „Cliff explosives (research)“: 200 × (rot, grün), 15 s
+  { id: 'cliff-explosives', name: 'Klippensprengstoff', count: 200, time: 15, packs: RED_GREEN, prerequisites: ['explosives', 'military-2'], unlocks: ['cliff-explosives'] },
   {
     id: 'chemical-science-pack', name: 'Chemie-Wissenschaft', count: 75, time: 10, packs: RED_GREEN,
     prerequisites: ['advanced-circuit', 'sulfur-processing'], unlocks: ['chemical-science-pack'],
@@ -188,7 +190,7 @@ export const TECHS: readonly TechDef[] = [
     ],
     unlocks: ['cargo-landing-pad', 'rocket-part', 'rocket-silo', 'satellite'],
   },
-  { id: 'concrete', name: 'Beton', count: 250, time: 30, packs: RED_GREEN, prerequisites: ['advanced-material-processing', 'automation-2'], unlocks: ['concrete', 'iron-stick'] },
+  { id: 'concrete', name: 'Beton', count: 250, time: 30, packs: RED_GREEN, prerequisites: ['advanced-material-processing', 'automation-2'], unlocks: ['concrete', 'iron-stick', 'hazard-concrete', 'refined-concrete', 'refined-hazard-concrete'] },
 ];
 
 export const TECH_BY_ID: Readonly<Record<string, TechDef>> = Object.fromEntries(TECHS.map((t) => [t.id, t]));

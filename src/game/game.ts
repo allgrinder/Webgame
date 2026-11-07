@@ -1,3 +1,5 @@
+import { FLOOR, FLOOR_BY_ITEM } from '../data/floors';
+import { CAPSULES } from '../data/enemies';
 import { SoundSystem } from '../audio/sound';
 import { entityDef, sizeOf } from '../data/entities';
 import { ITEMS } from '../data/items';
@@ -254,6 +256,7 @@ export class Game {
         else {
           const r = this.world.map.resourceAt(tx, ty);
           if (r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid) p.setMineTarget({ kind: 'resource', x: tx, y: ty, res: r.res });
+          else if (this.world.map.floorAt(tx, ty)) p.setMineTarget({ kind: 'floor', x: tx, y: ty });
           // leeres Feld unter dem Zeiger: bisheriges Ziel weiter abbauen, solange die Taste gehalten wird
           else if (this.input.rightPressed) p.setMineTarget(null);
         }
@@ -334,6 +337,8 @@ export class Game {
       case 'f3': this.hud.toggleDebug(); break;
       case 'p': this.hud.toggleStats(); break;
       case 'o': this.hud.togglePower(); break;
+      case '+': case '=': this.floorBrush = Math.min(FLOOR.brushMax, this.floorBrush + 1); break;
+      case '-': this.floorBrush = Math.max(FLOOR.brushMin, this.floorBrush - 1); break;
       case 'f4': if (this.debug) this.paused = !this.paused; break;
       case 'h': this.hud.toggleHelp(); break;
       case 'z':
@@ -565,6 +570,19 @@ export class Game {
     const item = this.cursorItem;
     const placeable = item ? ITEMS[item]?.placeResult : undefined;
     const ctrl = this.clickMods.ctrl;
+    if (item && FLOOR_BY_ITEM[item] && !(ctrl && target)) {
+      this.placeFloorBrush(item, tx, ty);
+      this.dragLast = { x: tx, y: ty };
+      return;
+    }
+    if (item === 'grenade' || item === 'cliff-explosives') {
+      // Wurf auf die Mausposition (Wiki: Reichweite 15 bzw. 10 Felder)
+      const err = this.world.capsules.throw(this.world, item, at.x, at.y);
+      if (err) p?.note(err);
+      else if (item === 'cliff-explosives' && !this.world.map.isCliff(at.x, at.y)) p?.note('Klippensprengstoff wirkt nur auf Klippen');
+      if (p && p.inventory.count(item) === 0 && !this.creative) this.cursorItem = null;
+      return;
+    }
     if (item === 'repair-pack') {
       if (p && target && target.hp < target.def.health) p.repairTarget = target.id;
       else if (p && target) p.note('Nicht beschädigt');
@@ -620,6 +638,39 @@ export class Game {
   }
 
   /** Landaufschüttung auf ein Wasserfeld (verbraucht 1 Stück, außer im Sandkasten). */
+  /** Pinselgröße beim Legen von Bodenbelägen (Tasten + und −). */
+  floorBrush: number = FLOOR.brushDefault;
+
+  /** Linke obere Ecke des Pinsels um das Feld unter der Maus. */
+  floorBrushOrigin(tx: number, ty: number): { x: number; y: number } {
+    const o = Math.floor((this.floorBrush - 1) / 2);
+    return { x: tx - o, y: ty - o };
+  }
+
+  /** Belag im Pinselquadrat legen (Wiki: auch unter Gebäuden); ersetzte Beläge kommen ins Inventar zurück. */
+  private placeFloorBrush(item: string, tx: number, ty: number): void {
+    const p = this.world.player;
+    const o = this.floorBrushOrigin(tx, ty);
+    let placed = 0;
+    for (let y = o.y; y < o.y + this.floorBrush; y++) {
+      for (let x = o.x; x < o.x + this.floorBrush; x++) {
+        if (p && !this.creative) {
+          if (p.inventory.count(item) < 1) break;
+          if (!p.canReach(x + 0.5, y + 0.5)) continue;
+        }
+        const old = this.world.placeFloor(item, x, y);
+        if (old === null) continue;
+        placed++;
+        if (p && !this.creative) {
+          p.inventory.remove(item, 1);
+          if (old) p.inventory.add(old, 1);
+        }
+      }
+    }
+    if (placed) this.sound.play('build', 0.35, 0, 80);
+    if (p && !this.creative && p.inventory.count(item) === 0) this.cursorItem = null;
+  }
+
   private placeLandfill(tx: number, ty: number): void {
     const p = this.world.player;
     if (p && !this.creative) {
@@ -633,6 +684,11 @@ export class Game {
   }
 
   private onDrag(tx: number, ty: number): void {
+    if (this.cursorItem && FLOOR_BY_ITEM[this.cursorItem]) {
+      this.placeFloorBrush(this.cursorItem, tx, ty);
+      this.dragLast = { x: tx, y: ty };
+      return;
+    }
     if (this.cursorItem === 'landfill') {
       this.placeLandfill(tx, ty);
       this.dragLast = { x: tx, y: ty };
@@ -760,6 +816,16 @@ export class Game {
     else if (cursorPlace && entityDef(cursorPlace).kind === 'inserter' && this.input.overCanvas) {
       inserter = { name: cursorPlace, x: Math.floor(m.x), y: Math.floor(m.y), dir: this.buildDir, ok: true };
     } else if (!this.cursorItem && under?.kind === 'inserter') inserter = { name: under.name, x: under.x, y: under.y, dir: under.dir, ok: true };
+    // Wurfgegenstand: Reichweite und Wirkradius
+    const cap = this.cursorItem ? CAPSULES[this.cursorItem] : undefined;
+    const pl = this.world.player;
+    const throwAim: RenderUi['throwAim'] = cap && pl && this.input.overCanvas ? { px: pl.x, py: pl.y, range: cap.range, radius: cap.radius, x: m.x, y: m.y } : null;
+    // Bodenbelag: Pinselquadrat unter der Maus
+    let floorBrush: RenderUi['floorBrush'] = null;
+    if (this.cursorItem && FLOOR_BY_ITEM[this.cursorItem] && this.input.overCanvas) {
+      const o = this.floorBrushOrigin(Math.floor(m.x), Math.floor(m.y));
+      floorBrush = { x: o.x, y: o.y, n: this.floorBrush };
+    }
     let wire: RenderUi['wire'] = null;
     if (this.wireTool) {
       const from = this.wireFrom ? this.world.entities.get(this.wireFrom.id) : undefined;
@@ -767,7 +833,7 @@ export class Game {
       wire = { color: this.wireTool, from: p, to: m };
     }
     return {
-      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power, drill, inserter,
+      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power, drill, inserter, throwAim, floorBrush,
       selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
     };
   }

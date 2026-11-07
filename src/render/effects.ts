@@ -83,7 +83,7 @@ export class Effects {
         const key = 'mine';
         let a = (this.acc.get(key) ?? 0) + FX.mineDustRate * dt;
         const mt = p.mineTarget;
-        const target = mt.kind === 'resource' ? { x: mt.x + 0.5, y: mt.y + 0.5 } : mt.kind === 'tree' ? { x: mt.x, y: mt.y - 0.3 } : (() => {
+        const target = mt.kind === 'resource' || mt.kind === 'floor' ? { x: mt.x + 0.5, y: mt.y + 0.5 } : mt.kind === 'tree' ? { x: mt.x, y: mt.y - 0.3 } : (() => {
           const e = world.entities.get(mt.id);
           return e ? { x: e.cx, y: e.cy } : null;
         })();

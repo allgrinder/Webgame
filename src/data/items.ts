@@ -103,6 +103,9 @@ const list: ItemDef[] = [
   { id: 'utility-science-pack', name: 'Hightech-Wissenschaftspaket', stackSize: 200, order: 64 },
   { id: 'space-science-pack', name: 'Weltraum-Wissenschaftspaket', stackSize: 2000, order: 65 },
   { id: 'concrete', name: 'Beton', stackSize: 100, order: 16 },
+  { id: 'hazard-concrete', name: 'Gefahrenbeton', stackSize: 100, order: 17 },
+  { id: 'refined-concrete', name: 'Veredelter Beton', stackSize: 100, order: 18 },
+  { id: 'refined-hazard-concrete', name: 'Veredelter Gefahrenbeton', stackSize: 100, order: 19 },
   { id: 'rail', name: 'Schiene', stackSize: 100, placeResult: 'straight-rail', order: 120 },
   { id: 'roboport', name: 'Roboterhangar', stackSize: 10, placeResult: 'roboport', order: 110 },
   { id: 'construction-robot', name: 'Bauroboter', stackSize: 50, order: 111 },
@@ -131,6 +134,10 @@ const list: ItemDef[] = [
   { id: 'gun-turret', name: 'Geschützturm', stackSize: 50, placeResult: 'gun-turret', order: 134 },
   { id: 'stone-wall', name: 'Steinmauer', stackSize: 100, placeResult: 'stone-wall', order: 135 },
   { id: 'repair-pack', name: 'Reparaturset', stackSize: 100, order: 136 },
+  // Wurfgegenstände (Wiki „Grenade“, „Cliff explosives“) und Fass (Wiki „Barrel“)
+  { id: 'grenade', name: 'Granate', stackSize: 100, order: 137 },
+  { id: 'cliff-explosives', name: 'Klippensprengstoff', stackSize: 20, order: 138 },
+  { id: 'empty-barrel', name: 'Fass', stackSize: 10, order: 85 },
 ];
 
 export const ITEMS: Readonly<Record<string, ItemDef>> = Object.freeze(

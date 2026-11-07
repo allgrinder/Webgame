@@ -208,3 +208,136 @@ def render(out):
             eisen.camera(1, 1, target=(0, 0, -0.035))
             name = f'water.{case}.{v}'
             out.add(name, 'water', [out.render_frame(name, 0)], (0.5, 0.5))
+    glints(out)
+    foam(out)
+
+
+# --------------------------------------------------------------------------- Bewegtes Wasser
+
+GLINT_FRAMES = 16
+FOAM_FRAMES = 8
+
+
+def drift_empty(name):
+    """Leeres Objekt als Bezug der Texturkoordinaten: verschieben = Muster wandern lassen (nahtlos,
+    solange die Verschiebung nach allen Bildern ein Vielfaches der Periode ist)."""
+    e = bpy.data.objects.new(name, None)
+    eisen.link(e)
+    return e
+
+
+def bind_coords(nt, nodes_before, empty):
+    for n in nt.nodes:
+        if n not in nodes_before and n.type == 'TEX_COORD':
+            n.object = empty
+
+
+def fx_material(name, color, strength, mask_socket_fn):
+    """Leuchtender, teiltransparenter Belag: Emission mit Alpha aus der Maske."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        if n.type != 'OUTPUT_MATERIAL':
+            nt.nodes.remove(n)
+    out = nt.nodes['Material Output']
+    em = nt.nodes.new('ShaderNodeEmission')
+    em.inputs['Color'].default_value = (*color, 1)
+    em.inputs['Strength'].default_value = strength
+    tr = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(mask_socket_fn(nt), mix.inputs['Fac'])
+    nt.links.new(tr.outputs[0], mix.inputs[1])
+    nt.links.new(em.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def glints(out):
+    """Lichtreflexe auf den Wellenkämmen: zwei gegeneinander wandernde Wellenmuster (Periode 2 Felder),
+    nur die hellsten Stellen sichtbar. 4 Viertel (Feldparität) × 16 Bilder."""
+    for f in range(GLINT_FRAMES):
+        eisen.reset(samples=16, ground=False)
+        ea, eb = drift_empty('ga'), drift_empty('gb')
+        ea.location = (2.0 * f / GLINT_FRAMES, 0, 0)
+        eb.location = (0, -2.0 * f / GLINT_FRAMES, 0)
+
+        def mask(nt):
+            before = set(nt.nodes)
+            a = seamless.noise4(nt, 5.0, (1, 2, 3, 4), detail=3, scale=1.6, period=2.0)
+            bind_coords(nt, before, ea)
+            before = set(nt.nodes)
+            b = seamless.noise4(nt, 5.0, (4, 1, 2, 3), detail=3, scale=2.1, period=2.0)
+            bind_coords(nt, before, eb)
+            mul = nt.nodes.new('ShaderNodeMath')
+            mul.operation = 'MULTIPLY'
+            nt.links.new(a.outputs['Fac'], mul.inputs[0])
+            nt.links.new(b.outputs['Fac'], mul.inputs[1])
+            mr = nt.nodes.new('ShaderNodeMapRange')
+            nt.links.new(mul.outputs[0], mr.inputs['Value'])
+            mr.inputs['From Min'].default_value = 0.33
+            mr.inputs['From Max'].default_value = 0.42
+            mr.inputs['To Max'].default_value = 0.55
+            return mr.outputs['Result']
+
+        mat = fx_material('glint', lin('#d6e9ee'), 1.2, mask)
+        bpy.ops.mesh.primitive_plane_add(size=2.0, location=(0, 0, 0))
+        pl = bpy.context.active_object
+        pl.data.materials.append(mat)
+        for q in range(4):
+            qx, qy = q & 1, q >> 1
+            eisen.camera(1, 1, target=(-0.5 + qx, 0.5 - qy, 0))
+            name = f'water.glint.{q}.{f}'
+            out.add(name, 'water', [out.render_frame(name, 0)], (0.5, 0.5))
+
+
+def foam(out):
+    """Uferschaum: schmales Band knapp im Wasser entlang der Uferlinie (gleiches Feld wie das Ufer, damit es
+    passt), aufgelockert durch wanderndes, periodisches Rauschen; Bandbreite pulsiert (Brandung)."""
+    for case in range(1, 15):
+        for v in range(VARIANTS):
+            seed = case * 7 + v * 31 + 1
+            for f in range(FOAM_FRAMES):
+                eisen.reset(samples=12, ground=False)
+                e = drift_empty('fa')
+                e.location = (1.0 * f / FOAM_FRAMES, 1.0 * f / FOAM_FRAMES, 0)
+                wide = 0.045 + 0.03 * math.sin(f / FOAM_FRAMES * math.tau)
+
+                def mask(nt):
+                    fa = attr_node(nt, 'f')
+                    band = nt.nodes.new('ShaderNodeMapRange')
+                    band.interpolation_type = 'SMOOTHSTEP'
+                    nt.links.new(fa, band.inputs['Value'])
+                    band.inputs['From Min'].default_value = wide + 0.03
+                    band.inputs['From Max'].default_value = 0.0
+                    before = set(nt.nodes)
+                    nz = seamless.noise4(nt, 6.0, (3, 1, 4, 1), detail=4, scale=3.0, period=1.0)
+                    bind_coords(nt, before, e)
+                    nm = nt.nodes.new('ShaderNodeMapRange')
+                    nt.links.new(nz.outputs['Fac'], nm.inputs['Value'])
+                    nm.inputs['From Min'].default_value = 0.42
+                    nm.inputs['From Max'].default_value = 0.6
+                    mul = nt.nodes.new('ShaderNodeMath')
+                    mul.operation = 'MULTIPLY'
+                    nt.links.new(band.outputs['Result'], mul.inputs[0])
+                    nt.links.new(nm.outputs['Result'], mul.inputs[1])
+                    # nicht aufs Land (f < 0)
+                    land = nt.nodes.new('ShaderNodeMath')
+                    land.operation = 'GREATER_THAN'
+                    nt.links.new(fa, land.inputs[0])
+                    land.inputs[1].default_value = -0.005
+                    m2 = nt.nodes.new('ShaderNodeMath')
+                    m2.operation = 'MULTIPLY'
+                    nt.links.new(mul.outputs[0], m2.inputs[0])
+                    nt.links.new(land.outputs[0], m2.inputs[1])
+                    sc = nt.nodes.new('ShaderNodeMath')
+                    sc.operation = 'MULTIPLY'
+                    nt.links.new(m2.outputs[0], sc.inputs[0])
+                    sc.inputs[1].default_value = 0.75
+                    return sc.outputs[0]
+
+                o = grid_mesh('foam', case, seed, lambda fv: -0.03, 'f')
+                o.data.materials.append(fx_material('foam', lin('#e9ece4'), 0.9, mask))
+                eisen.camera(1, 1, target=(0, 0, -0.035))
+                name = f'water.foam.{case}.{v}.{f}'
+                out.add(name, 'water', [out.render_frame(name, 0)], (0.5, 0.5))

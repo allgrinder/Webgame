@@ -1,6 +1,7 @@
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
-import { AMMO, POLLUTION_PER_MINUTE } from '../data/enemies';
+import { AMMO, CAPSULES, POLLUTION_PER_MINUTE } from '../data/enemies';
+import { FLOOR_BY_ITEM } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { TECHS } from '../data/tech';
 import { MJ } from '../data/time';
@@ -80,6 +81,16 @@ export class Tooltip {
     if (smelt) {
       const src = smelt.ingredients.map((g) => `${g.amount} × ${nameOf(g.item)}`).join(' + ');
       section('Herstellung', [`Im Ofen: ${src} → ${nameOf(id)}`, 'Nicht von Hand: Ofen bauen, Erz und Brennstoff einlegen']);
+    }
+    const floor = FLOOR_BY_ITEM[id];
+    if (floor) {
+      section('Bodenbelag', [`${floor.name}: Laufgeschwindigkeit ${Math.round(floor.speed * 100)} %`,
+        'In der Hand: Klicken/Ziehen legt den Belag (+/− Pinselgröße), Rechtsklick nimmt ihn wieder auf']);
+    }
+    const cap = CAPSULES[id];
+    if (cap) {
+      section('Wurf', [`Reichweite ${cap.range} · Wirkradius ${String(cap.radius).replace('.', ',')}`,
+        cap.damage ? `Schaden ${cap.damage} (Explosion)` : 'Entfernt Klippen', 'In der Hand: Klick wirft auf die Mausposition']);
     }
     // Gebäudedaten (wie die Infobox im Original)
     if (def?.placeResult) {

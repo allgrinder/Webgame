@@ -168,7 +168,7 @@ export class EnemySystem {
     const S = NEST.size;
     for (let j = 0; j < S; j++) {
       for (let i = 0; i < S; i++) {
-        if (w.map.isWater(x + i, y + j) || w.entityAt(x + i, y + j) || this.occ.has(cellKey(x + i, y + j))) return false;
+        if (w.map.isBlocked(x + i, y + j) || w.entityAt(x + i, y + j) || this.occ.has(cellKey(x + i, y + j))) return false;
       }
     }
     return true;
@@ -520,7 +520,7 @@ export class EnemySystem {
       const b = a + off * (u.id % 2 ? 1 : -1);
       const nx = u.x + Math.cos(b) * s;
       const ny = u.y + Math.sin(b) * s;
-      if (w.map.isWater(Math.floor(nx), Math.floor(ny))) continue;
+      if (w.map.isBlocked(Math.floor(nx), Math.floor(ny))) continue;
       const blocker = w.entityAt(nx, ny);
       if (blocker && entityDef(blocker.name).solid && blocker.kind !== 'rail') {
         if (off === 0) first = blocker.id;

@@ -366,3 +366,22 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 | Start | Pistole + 10 Magazine | W „Freeplay“ |
 | Wegsuche | Flussfeld (Dijkstra, 8 Nachbarn) im Fenster ±48 Felder ums Ziel; Wasser unpassierbar, feste Gebäude +8 Kosten (Umweg oder Durchbruch), keine Ecken schneiden; neu bei jeder Bauänderung | M (Original: Wegsuche je Gruppe) |
 | Nester auf der Karte | Raster 96 Felder, 35 % je Zelle, 2–5 Nester je Basis, frei im Umkreis 140 um den Start (stark: 80/50 %/3–7/110) | M |
+
+
+## Klippen, Wurfgegenstände, Bodenbeläge (Wunsch 07.11.2026)
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Klippen | entlang Höhenlinien eines Höhenfelds (fbm, Maßstab 75), 7 Stufen (Normal) bzw. 4 (Wenig), Lücken wo Lückenrauschen < 0,3/0,42 | eigenes Modell (Vorbild: Klippen entlang Höhenlinien mit Durchgängen) |
+| Klippen-freier Bereich | 42 Felder um den Start, nicht am Wasser, nicht auf Erz | eigener Wert |
+| Alte Spielstände | ohne Klippen (Einstellung fehlt → Aus) | – |
+| Klippensprengstoff | Reichweite 10, Wirkradius 1,5, 2 Würfe/s; Rezept 10 Sprengstoff + 1 Granate + 1 Fass, 8 s | Wiki „Cliff explosives“ |
+| Forschung Klippensprengstoff | 200 × (rot, grün), 15 s; Voraussetzung Sprengstoff, Militär 2 | Wiki „Cliff explosives (research)“ |
+| Granate | Reichweite 15, Wirkradius 6,5, 35 Explosionsschaden, 2 Würfe/s; 10 Kohle + 5 Eisenblech, 8 s; Militär 2 | Wiki „Grenade“ |
+| Fass | 1 Stahl, 1 s; Flüssigkeitshandhabung; Stapel 10 | Wiki „Barrel“ |
+| Flugzeit Wurf | 0,3 Felder je Tick | eigener Wert |
+| Steinpflaster | aus Steinziegeln, Laufgeschwindigkeit 130 % | Wiki „Stone brick“ |
+| Beton / Gefahrenbeton | 140 %; Gefahrenbeton: 10 Beton → 10, 0,25 s | Wiki „Concrete“, „Hazard concrete“ |
+| Veredelter Beton / Gefahrenbeton | 150 %; 20 Beton + 8 Eisenstangen + 1 Stahl + 100 Wasser → 10, 15 s | Wiki „Refined concrete“, „Refined hazard concrete“ |
+| Beläge abbauen | 0,1 s, Belag zurück ins Inventar; Legen auch unter Gebäuden, nicht auf Wasser/Klippen/Bäumen | Wiki „Tile“ |
+| Pinselgröße | Standard 2×2, Tasten + / − (1 … 8) | eigener Wert |

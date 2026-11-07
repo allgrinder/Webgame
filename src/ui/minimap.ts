@@ -1,3 +1,4 @@
+import { FLOOR_BY_ID } from '../data/floors';
 import { PollutionSystem } from '../sim/pollution';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -95,6 +96,10 @@ export class Minimap {
       let col: number;
       if (chunk.water[i]) {
         col = MINIMAP.water;
+      } else if (chunk.cliff[i]) {
+        col = MINIMAP.cliff;
+      } else if (world.map.floorAt(tx, ty) && !chunk.amount[i]) {
+        col = FLOOR_BY_ID[world.map.floorAt(tx, ty)].mapColor;
       } else if (chunk.amount[i] > 0) {
         col = RESOURCE_BY_INDEX[chunk.resource[i]]?.mapColor ?? MINIMAP.groundBase;
       } else {

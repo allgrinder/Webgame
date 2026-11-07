@@ -1,3 +1,5 @@
+import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
+import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
 import { PollutionSystem } from './pollution';
@@ -66,6 +68,8 @@ export class World {
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
   readonly events = new EventQueue();
   readonly enemies = new EnemySystem();
+  /** Geworfene Granaten und Klippensprengstoff. */
+  readonly capsules = new CapsuleSystem();
   readonly entities = new Map<number, Entity>();
   private readonly occupancy = new Map<number, number>();
   /** Items auf dem Boden je Feld. */
@@ -122,6 +126,23 @@ export class World {
     return true;
   }
 
+  /** Bodenbelag legen (Wiki: Fliesen unter Gebäuden erlaubt, nicht auf Wasser, Klippen, Bäumen). Liefert das
+   * Item des ersetzten Belags (oder ''), bzw. null, wenn nicht möglich. */
+  placeFloor(item: string, x: number, y: number): string | null {
+    const def = FLOOR_BY_ITEM[item];
+    if (!def || this.map.isBlocked(x, y) || this.map.trees.treeAt(x, y) || this.enemies.nestAt(x, y)) return null;
+    const old = this.map.floorAt(x, y);
+    if (old === def.id) return null;
+    this.map.setFloor(x, y, def.id);
+    return old ? FLOOR_BY_ID[old].item : '';
+  }
+
+  /** Belag aufnehmen; liefert sein Item oder null. */
+  removeFloor(x: number, y: number): string | null {
+    const old = this.map.setFloor(x, y, 0);
+    return old ? FLOOR_BY_ID[old].item : null;
+  }
+
   /** Felder der Uferpumpe: vorn (Ausgang, an Land) und hinten (im Wasser), abhängig von der Richtung. */
   static pumpTiles(x: number, y: number, dir: Dir): { front: [number, number]; back: [number, number] } {
     switch (dir) {
@@ -152,6 +173,7 @@ export class World {
         continue;
       }
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
+      if (this.map.isCliff(tx, ty)) return { ok: false, reason: 'Klippe im Weg' };
       if (this.map.trees.treeAt(tx, ty)) return { ok: false, reason: 'Baum im Weg' };
       if (this.enemies.nestAt(tx, ty)) return { ok: false, reason: 'Gegnernest im Weg' };
     }
@@ -261,6 +283,7 @@ export class World {
     for (const e of this.entities.values()) e.update(this);
     this.robots.update(this);
     this.enemies.update(this);
+    this.capsules.update(this);
     this.player?.update(this);
     this.pollution.update(this);
     this.tick++;
@@ -343,7 +366,7 @@ export class World {
   dropGround(px: number, py: number, item: string): boolean {
     const tx = Math.floor(px);
     const ty = Math.floor(py);
-    if (this.map.isWater(tx, ty) || this.entityAt(tx, ty)) return false;
+    if (this.map.isBlocked(tx, ty) || this.entityAt(tx, ty)) return false;
     const k = tileKey(tx, ty);
     const list = this.ground.get(k) ?? [];
     const x = Math.round(px * 256);

@@ -54,6 +54,11 @@ export interface SaveData {
   map: [number, number, number, number, number][];
   /** geänderte Wasserfelder [x, y, 1/0] */
   water?: [number, number, number][];
+  /** Entfernte Klippen (Klippensprengstoff). */
+  cliffs?: [number, number][];
+  /** Bodenbeläge [x, y, Belag-ID]. */
+  floors?: [number, number, number][];
+  capsules?: ReturnType<World['capsules']['serialize']>;
   /** gefällte Bäume [Chunk-x, Chunk-y, Index] */
   trees?: [number, number, number][];
   /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
@@ -114,6 +119,9 @@ export function serializeWorld(w: World): SaveData {
     beltItems,
     map: w.map.serializeModifications(),
     water: w.map.serializeWater(),
+    cliffs: w.map.serializeCliffs(),
+    floors: w.map.serializeFloors(),
+    capsules: w.capsules.serialize(),
     trees: w.map.trees.serialize(),
     research: w.research.serialize(),
     ghosts: w.ghosts.serialize(),
@@ -155,6 +163,9 @@ export function deserializeWorld(d: SaveData): World {
   w.tick = d.tick;
   w.map.loadModifications(d.map);
   if (d.water) w.map.loadWater(d.water);
+  w.map.loadCliffs(d.cliffs);
+  w.map.loadFloors(d.floors);
+  w.capsules.load(d.capsules);
   if (d.trees) w.map.trees.load(d.trees);
   if (d.research) w.research.load(d.research);
   w.circuit.load(d.circuit);

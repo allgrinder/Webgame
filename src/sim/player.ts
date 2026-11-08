@@ -420,6 +420,12 @@ export class Player {
         return;
       }
       const def = RESOURCE_BY_INDEX[r.res]!;
+      if (def.requiresFluid) {
+        // Wiki „Uranium ore“: nicht von Hand, nur elektrischer Bohrer mit Schwefelsäure
+        this.note(`${def.name}: nur mit elektrischem Bohrer und Schwefelsäure abbaubar`);
+        this.mineTarget = null;
+        return;
+      }
       if (this.inventory.space(def.result) < 1) {
         this.note('Inventar voll');
         return;

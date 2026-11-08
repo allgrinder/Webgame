@@ -89,6 +89,8 @@ export const MAPGEN = {
    * geteilt; ein Feld ist Klippe, wenn ein Nachbar eine Stufe tiefer liegt. Lücken, wo das Lückenrauschen unter gap
    * liegt (Durchgänge). Keine Klippen im Startgebiet (startFree), an Wasser oder auf Erz.
    */
+  /** Uranvorkommen (Wiki: selten, weit vom Start): eigenes Raster, Mindestabstand, Radius, Reichtum. */
+  uranium: { cell: 240, chance: 0.45, minDistance: 250, radiusMin: 5, radiusMax: 9, richness: 400, richnessPerTile: 1 },
   cliffs: {
     scale: 75,
     gapScale: 14,

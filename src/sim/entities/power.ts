@@ -211,7 +211,7 @@ export class GeneratorEntity extends EntityBase implements FluidHolder, Generato
   }
   /** Energie je Tausendstel Einheit Dampf (J). */
   get energyPerMilli(): number {
-    return steamEnergyPerUnit(165) / FLUID_UNIT;
+    return steamEnergyPerUnit(this.def.temperature ?? 165) / FLUID_UNIT;
   }
   get maxPerTick(): number {
     return wattsToJoulesPerTick(this.def.maxPower);

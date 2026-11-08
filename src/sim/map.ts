@@ -494,8 +494,45 @@ export class GameMap {
     this.placeOil(c, x0, y0);
     const patches = this.patchesNear(x0, y0, x0 + CS, y0 + CS);
     if (patches.length) this.placeOre(c, x0, y0, patches);
+    this.placeUranium(c, x0, y0);
     this.placeCliffs(c, x0, y0, ponds);
     return c;
+  }
+
+  /** Uranvorkommen (eigenes Raster, weit draußen; ändert vorhandene Erzfelder nicht). */
+  private placeUranium(c: Chunk, x0: number, y0: number): void {
+    const U = MAPGEN.uranium;
+    const res = resourceById('uranium-ore').index;
+    const size = this.settings.size;
+    const reach = U.radiusMax * size * 2.3;
+    const patches: Patch[] = [];
+    for (let gy = Math.floor((y0 - reach) / U.cell); gy <= Math.floor((y0 + CS + reach) / U.cell); gy++) {
+      for (let gx = Math.floor((x0 - reach) / U.cell); gx <= Math.floor((x0 + CS + reach) / U.cell); gx++) {
+        if (hash01(this.seed, gx, gy, 901) >= U.chance) continue;
+        const px = (gx + 0.2 + hash01(this.seed, gx, gy, 902) * 0.6) * U.cell;
+        const py = (gy + 0.2 + hash01(this.seed, gx, gy, 903) * 0.6) * U.cell;
+        const dist = Math.hypot(px, py);
+        if (dist < U.minDistance) continue;
+        const radius = (U.radiusMin + hash01(this.seed, gx, gy, 904) * (U.radiusMax - U.radiusMin)) * size;
+        patches.push({ res, x: px, y: py, radius, richness: U.richness + dist * U.richnessPerTile, lobes: makeLobes(this.seed, gx + 7000, gy, radius), reach: radius * 2.3 });
+      }
+    }
+    if (!patches.length) return;
+    for (let i = 0; i < CS * CS; i++) {
+      if (c.water[i] || c.resource[i]) continue;
+      const x = x0 + (i % CS);
+      const y = y0 + Math.floor(i / CS);
+      for (const p of patches) {
+        if (Math.abs(x - p.x) > p.reach || Math.abs(y - p.y) > p.reach) continue;
+        const v = this.patchValue(p, x + 0.5, y + 0.5);
+        if (v <= 0) continue;
+        c.resource[i] = res;
+        c.resource0[i] = res;
+        c.amount[i] = Math.max(10, Math.round(p.richness * (0.3 + v * 0.9) * this.richness));
+        c.amount0[i] = c.amount[i];
+        break;
+      }
+    }
   }
 
   /** Höhenstufe für Klippen (nur Kartengenerierung). */

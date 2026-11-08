@@ -1,3 +1,4 @@
+import { HeatSystem } from './heat';
 import { CorpseSystem } from './corpses';
 import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
@@ -71,6 +72,8 @@ export class World {
   readonly enemies = new EnemySystem();
   /** Bänder, die im nächsten Tick durch ihre Schaltbedingung angehalten sind (gespeichert). */
   readonly beltStopped = new Set<number>();
+  /** Wärmenetz (Kernkraft). */
+  readonly heat = new HeatSystem();
   /** Leichen der Spielfigur mit Inventar. */
   readonly corpses = new CorpseSystem();
   /** Geworfene Granaten und Klippensprengstoff. */
@@ -297,7 +300,9 @@ export class World {
     this.beltStopped.clear();
     for (const id of stop) if (!this.circuit.enabled(id)) this.beltStopped.add(id);
     this.trains.update(this);
+    this.heat.prepare(this);
     for (const e of this.entities.values()) e.update(this);
+    this.heat.update();
     this.robots.update(this);
     this.enemies.update(this);
     this.capsules.update(this);

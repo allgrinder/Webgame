@@ -14,6 +14,8 @@ export interface FluidDef {
 export const FLUIDS: Readonly<Record<string, FluidDef>> = {
   water: { id: 'water', name: 'Wasser', heatCapacity: 200, defaultTemperature: 15, color: 0x3a6f9a },
   steam: { id: 'steam', name: 'Dampf', heatCapacity: 200, defaultTemperature: 165, color: 0xd8d8d8 },
+  // Dampf aus Wärmetauschern (500 °C). Im Original derselbe Dampf mit Temperatur; hier eigene Flüssigkeit (Vereinfachung)
+  'steam-hot': { id: 'steam-hot', name: 'Heißdampf (500 °C)', heatCapacity: 200, defaultTemperature: 500, color: 0xf0e8e0 },
   'crude-oil': { id: 'crude-oil', name: 'Rohöl', heatCapacity: 100, defaultTemperature: 25, color: 0x2a2018 },
   'heavy-oil': { id: 'heavy-oil', name: 'Schweröl', heatCapacity: 100, defaultTemperature: 25, color: 0xa04a18 },
   'light-oil': { id: 'light-oil', name: 'Leichtöl', heatCapacity: 100, defaultTemperature: 25, color: 0xc8a020 },

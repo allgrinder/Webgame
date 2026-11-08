@@ -9,11 +9,13 @@ import { BARRELED } from './items';
  * crafting-with-fluid: Montagemaschine 2/3 mit Flüssigkeit (z. B. Schmiermittel), oil-processing: Raffinerie,
  * chemistry: Chemiefabrik. Flüssigkeiten in Zutaten/Ergebnissen erkennt man an FLUIDS (src/data/fluids.ts).
  */
-export type RecipeCategory = 'rocket-building' | 'crafting' | 'advanced-crafting' | 'crafting-with-fluid' | 'oil-processing' | 'chemistry' | 'smelting';
+export type RecipeCategory = 'rocket-building' | 'crafting' | 'advanced-crafting' | 'crafting-with-fluid' | 'oil-processing' | 'chemistry' | 'smelting' | 'centrifuging';
 
 export interface ItemAmount {
   readonly item: string;
   readonly amount: number;
+  /** Wahrscheinlichkeit des Ergebnisses (Urananreicherung, Wiki); fehlt = immer. */
+  readonly probability?: number;
 }
 
 export interface RecipeDef {
@@ -136,6 +138,43 @@ const list: RecipeDef[] = [
     results: [{ item: 'cliff-explosives', amount: 1 }],
   },
   { id: 'empty-barrel', category: 'crafting', time: 1, ingredients: [{ item: 'steel-plate', amount: 1 }], results: [{ item: 'empty-barrel', amount: 1 }] },
+  // Kernkraft (Wiki-Infoboxen der jeweiligen Gegenstände)
+  {
+    id: 'centrifuge', category: 'crafting', time: 4,
+    ingredients: [{ item: 'advanced-circuit', amount: 100 }, { item: 'concrete', amount: 100 }, { item: 'iron-gear-wheel', amount: 100 }, { item: 'steel-plate', amount: 50 }],
+    results: [{ item: 'centrifuge', amount: 1 }],
+  },
+  {
+    id: 'uranium-processing', category: 'centrifuging', time: 12, ingredients: [{ item: 'uranium-ore', amount: 10 }],
+    results: [{ item: 'uranium-235', amount: 1, probability: 0.007 }, { item: 'uranium-238', amount: 1, probability: 0.993 }],
+  },
+  {
+    id: 'uranium-fuel-cell', category: 'crafting', time: 10,
+    ingredients: [{ item: 'iron-plate', amount: 10 }, { item: 'uranium-235', amount: 1 }, { item: 'uranium-238', amount: 19 }],
+    results: [{ item: 'uranium-fuel-cell', amount: 10 }],
+  },
+  {
+    id: 'nuclear-reactor', category: 'crafting', time: 8,
+    ingredients: [{ item: 'advanced-circuit', amount: 500 }, { item: 'concrete', amount: 500 }, { item: 'copper-plate', amount: 500 }, { item: 'steel-plate', amount: 500 }],
+    results: [{ item: 'nuclear-reactor', amount: 1 }],
+  },
+  { id: 'heat-pipe', category: 'crafting', time: 1, ingredients: [{ item: 'copper-plate', amount: 20 }, { item: 'steel-plate', amount: 10 }], results: [{ item: 'heat-pipe', amount: 1 }] },
+  {
+    id: 'heat-exchanger', category: 'crafting', time: 3,
+    ingredients: [{ item: 'copper-plate', amount: 100 }, { item: 'pipe', amount: 10 }, { item: 'steel-plate', amount: 10 }], results: [{ item: 'heat-exchanger', amount: 1 }],
+  },
+  {
+    id: 'steam-turbine', category: 'crafting', time: 3,
+    ingredients: [{ item: 'copper-plate', amount: 50 }, { item: 'iron-gear-wheel', amount: 50 }, { item: 'pipe', amount: 20 }], results: [{ item: 'steam-turbine', amount: 1 }],
+  },
+  {
+    id: 'nuclear-fuel-reprocessing', category: 'centrifuging', time: 60,
+    ingredients: [{ item: 'depleted-uranium-fuel-cell', amount: 5 }], results: [{ item: 'uranium-238', amount: 3 }],
+  },
+  {
+    id: 'kovarex-enrichment-process', category: 'centrifuging', time: 60,
+    ingredients: [{ item: 'uranium-235', amount: 40 }, { item: 'uranium-238', amount: 5 }], results: [{ item: 'uranium-235', amount: 41 }, { item: 'uranium-238', amount: 2 }],
+  },
   // Fässer füllen und leeren (Wiki „Barrel“: 0,2 s, 50 Einheiten, Montagemaschine 2/3)
   ...BARRELED.flatMap((f): RecipeDef[] => [
     {

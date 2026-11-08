@@ -11,6 +11,8 @@ export interface ItemDef {
   readonly stackSize: number;
   /** Brennwert in Joule (nur Brennstoffe). */
   readonly fuelValue?: number;
+  /** Brennstoffart: nuklear nur für den Kernreaktor (Wiki), sonst chemisch. */
+  readonly fuelCategory?: 'nuclear';
   /** Gebäude, das dieses Item platziert. */
   readonly placeResult?: string;
   /** Sortierreihenfolge im Inventar. */
@@ -18,7 +20,7 @@ export interface ItemDef {
 }
 
 /** Flüssigkeiten, die in Fässer passen (Wiki: alle außer Dampf). */
-export const BARRELED = Object.values(FLUIDS).filter((f) => f.id !== 'steam');
+export const BARRELED = Object.values(FLUIDS).filter((f) => f.id !== 'steam' && f.id !== 'steam-hot');
 
 const list: ItemDef[] = [
   { id: 'iron-ore', name: 'Eisenerz', stackSize: 50, order: 10 },
@@ -144,6 +146,17 @@ const list: ItemDef[] = [
   { id: 'grenade', name: 'Granate', stackSize: 100, order: 137 },
   { id: 'cliff-explosives', name: 'Klippensprengstoff', stackSize: 20, order: 138 },
   { id: 'empty-barrel', name: 'Fass', stackSize: 10, order: 85 },
+  // Kernkraft (Wiki „Uranium ore“, „Uranium-235/238“, „Uranium fuel cell“, „Nuclear reactor“ …)
+  { id: 'uranium-ore', name: 'Uranerz', stackSize: 50, order: 14 },
+  { id: 'uranium-235', name: 'Uran-235', stackSize: 100, order: 86 },
+  { id: 'uranium-238', name: 'Uran-238', stackSize: 100, order: 87 },
+  { id: 'uranium-fuel-cell', name: 'Uran-Brennstab', stackSize: 50, fuelValue: 8000 * MJ, fuelCategory: 'nuclear', order: 88 },
+  { id: 'depleted-uranium-fuel-cell', name: 'Abgebrannter Brennstab', stackSize: 50, order: 89 },
+  { id: 'centrifuge', name: 'Zentrifuge', stackSize: 10, placeResult: 'centrifuge', order: 90 },
+  { id: 'nuclear-reactor', name: 'Kernreaktor', stackSize: 10, placeResult: 'nuclear-reactor', order: 91 },
+  { id: 'heat-pipe', name: 'Wärmerohr', stackSize: 50, placeResult: 'heat-pipe', order: 92 },
+  { id: 'heat-exchanger', name: 'Wärmetauscher', stackSize: 50, placeResult: 'heat-exchanger', order: 93 },
+  { id: 'steam-turbine', name: 'Dampfturbine', stackSize: 10, placeResult: 'steam-turbine', order: 94 },
   // Gefüllte Fässer (Wiki „Barrel“: 50 Einheiten, Stapel 10; kein Dampf)
   ...BARRELED.map((f, i) => ({ id: `${f.id}-barrel`, name: `${f.name}fass`, stackSize: 10, order: 85.1 + i * 0.01 })),
 ];
@@ -161,5 +174,5 @@ export function item(id: string): ItemDef {
 }
 
 export function isFuel(id: string): boolean {
-  return (ITEMS[id]?.fuelValue ?? 0) > 0;
+  return (ITEMS[id]?.fuelValue ?? 0) > 0 && !ITEMS[id]?.fuelCategory;
 }

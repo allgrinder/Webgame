@@ -55,6 +55,8 @@ export interface DrillDef extends EntityBase {
   /** Ausgabepunkt relativ zur Gebäudemitte bei Richtung Nord, in Feldern. */
   readonly outputVector: readonly [number, number];
   readonly fuelSlots: number;
+  /** Flüssigkeitseingang (Schwefelsäure für Uranerz, Wiki „Electric mining drill“: links, rechts, hinten). */
+  readonly fluidInput?: MachineFluidBox;
 }
 
 export interface FurnaceDef extends EntityBase {
@@ -186,6 +188,37 @@ export interface GeneratorDef extends EntityBase {
   readonly fluidPerTick: number;
   readonly fluid: string;
   readonly capacity: number;
+  /** Dampftemperatur (°C) für die Energie je Einheit; Standard 165 (Dampfmaschine), Turbine 500. */
+  readonly temperature?: number;
+}
+
+/** Kernreaktor (Wiki „Nuclear reactor“): 40 MW Wärme, +100 % je benachbartem laufendem Reaktor, 10 MJ/°C, bis 1000 °C. */
+export interface ReactorDef extends EntityBase {
+  readonly kind: 'reactor';
+  readonly consumption: number;
+  readonly heatCapacity: number;
+  readonly maxTemperature: number;
+}
+
+/** Wärmerohr (Wiki „Heat pipe“): 1 MJ/°C, bis 1000 °C. */
+export interface HeatPipeDef extends EntityBase {
+  readonly kind: 'heat-pipe';
+  readonly heatCapacity: number;
+  readonly maxTemperature: number;
+}
+
+/** Wärmetauscher (Wiki „Heat exchanger“): 10 MW, braucht ≥ 500 °C, macht 500-°C-Dampf, 1 MJ/°C. */
+export interface HeatExchangerDef extends EntityBase {
+  readonly kind: 'heat-exchanger';
+  readonly energyUsage: number;
+  readonly heatCapacity: number;
+  readonly maxTemperature: number;
+  readonly minTemperature: number;
+  readonly inputFluid: string;
+  readonly outputFluid: string;
+  readonly targetTemperature: number;
+  readonly steamPerWater: number;
+  readonly capacity: number;
 }
 
 export interface PoleDef extends EntityBase {
@@ -284,7 +317,7 @@ export interface AccumulatorDef extends EntityBase {
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
   | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef
-  | TurretDef | WallDef;
+  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef;
 
 const list: EntityDef[] = [
   {
@@ -332,6 +365,7 @@ const list: EntityDef[] = [
     kind: 'drill', id: 'electric-mining-drill', name: 'Elektrischer Bohrer', width: 3, height: 3, health: 300,
     item: 'electric-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'electric',
     miningSpeed: 0.5, energyUsage: 90_000, miningAreaSize: 5, outputVector: [0, -1.85], fuelSlots: 0, moduleSlots: 3,
+    fluidInput: { type: 'input', volume: 200, ports: [[0, 1, 3], [2, 1, 1], [1, 2, 2]] },
   },
   {
     kind: 'inserter', id: 'inserter', name: 'Greifarm', width: 1, height: 1, health: 150,
@@ -366,6 +400,32 @@ const list: EntityDef[] = [
     kind: 'generator', id: 'steam-engine', name: 'Dampfmaschine', width: 3, height: 5, health: 400,
     item: 'steam-engine', mineTime: 0.3, solid: true, rotatable: true, maxPower: 900_000, fluidPerTick: 0.5,
     fluid: 'steam', capacity: 200,
+  },
+  {
+    // Wiki „Steam turbine“: 5,82 MW, 60 Einheiten 500-°C-Dampf je Sekunde, 3×5
+    kind: 'generator', id: 'steam-turbine', name: 'Dampfturbine', width: 3, height: 5, health: 300,
+    item: 'steam-turbine', mineTime: 0.3, solid: true, rotatable: true, maxPower: 5_820_000, fluidPerTick: 1,
+    fluid: 'steam-hot', capacity: 200, temperature: 500,
+  },
+  {
+    kind: 'reactor', id: 'nuclear-reactor', name: 'Kernreaktor', width: 5, height: 5, health: 500,
+    item: 'nuclear-reactor', mineTime: 0.5, solid: true, rotatable: false, consumption: 40_000_000, heatCapacity: 10_000_000, maxTemperature: 1000,
+  },
+  {
+    kind: 'heat-pipe', id: 'heat-pipe', name: 'Wärmerohr', width: 1, height: 1, health: 200,
+    item: 'heat-pipe', mineTime: 0.1, solid: true, rotatable: false, heatCapacity: 1_000_000, maxTemperature: 1000,
+  },
+  {
+    // Wiki: 10 MW, 103 Einheiten 500-°C-Dampf/s, Wasser 1:10 wie beim Kessel; Wärmeeingang hinten (gegenüber dem Dampfausgang)
+    kind: 'heat-exchanger', id: 'heat-exchanger', name: 'Wärmetauscher', width: 3, height: 2, health: 200,
+    item: 'heat-exchanger', mineTime: 0.1, solid: true, rotatable: true, energyUsage: 10_000_000, heatCapacity: 1_000_000,
+    maxTemperature: 1000, minTemperature: 500, inputFluid: 'water', outputFluid: 'steam-hot', targetTemperature: 500, steamPerWater: 10, capacity: 200,
+  },
+  {
+    // Wiki „Centrifuge“: 3×3, 350 kW, Grundlast 11,6 kW, Tempo 1, 2 Modulplätze
+    kind: 'assembler', id: 'centrifuge', name: 'Zentrifuge', width: 3, height: 3, health: 350,
+    item: 'centrifuge', mineTime: 0.1, solid: true, rotatable: false, craftingSpeed: 1, energyUsage: 350_000, drain: 11_600,
+    categories: ['centrifuging'], moduleSlots: 2,
   },
   {
     kind: 'pole', id: 'small-electric-pole', name: 'Kleiner Strommast', width: 1, height: 1, health: 100,

@@ -9,6 +9,7 @@ import { AssemblerEntity, BeaconEntity, LabEntity } from './production';
 import { RoboportEntity } from './robots';
 import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './rocket';
 import { TurretEntity, WallEntity } from './military';
+import { HeatExchangerEntity, HeatPipeEntity, ReactorEntity } from './nuclear';
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './power';
 
 type Ctor = new (id: number, name: string, x: number, y: number, dir: Dir) => EntityBase;
@@ -45,4 +46,7 @@ export const ENTITY_CLASSES: Record<EntityDef['kind'], Ctor> = {
   'train-stop': TrainStopEntity,
   turret: TurretEntity,
   wall: WallEntity,
+  reactor: ReactorEntity,
+  'heat-pipe': HeatPipeEntity,
+  'heat-exchanger': HeatExchangerEntity,
 };

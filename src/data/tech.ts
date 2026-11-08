@@ -236,6 +236,24 @@ export const TECHS: readonly TechDef[] = [
     unlocks: ['cargo-landing-pad', 'rocket-part', 'rocket-silo', 'satellite'],
   },
   { id: 'concrete', name: 'Beton', count: 250, time: 30, packs: RED_GREEN, prerequisites: ['advanced-material-processing', 'automation-2'], unlocks: ['concrete', 'iron-stick', 'hazard-concrete', 'refined-concrete', 'refined-hazard-concrete'] },
+  // Kernkraft (Wiki „Uranium mining/processing (research)“, „Nuclear power (research)“ …)
+  { id: 'uranium-mining', name: 'Uranabbau', count: 100, time: 30, packs: RGB, prerequisites: ['chemical-science-pack', 'concrete'], unlocks: [] },
+  {
+    id: 'uranium-processing', name: 'Uranverarbeitung', count: 0, time: 0, packs: [], prerequisites: ['uranium-mining'],
+    unlocks: ['centrifuge', 'uranium-processing'], trigger: { type: 'mine-entity', item: 'uranium-ore', count: 1 },
+  },
+  {
+    id: 'nuclear-power', name: 'Kernkraft', count: 800, time: 30, packs: RGB, prerequisites: ['uranium-processing'],
+    unlocks: ['heat-exchanger', 'heat-pipe', 'nuclear-reactor', 'steam-turbine', 'uranium-fuel-cell'],
+  },
+  {
+    id: 'nuclear-fuel-reprocessing', name: 'Brennstab-Wiederaufbereitung', count: 50, time: 30, packs: RGBP,
+    prerequisites: ['nuclear-power', 'production-science-pack'], unlocks: ['nuclear-fuel-reprocessing'],
+  },
+  {
+    id: 'kovarex-enrichment-process', name: 'Kovarex-Anreicherung', count: 1500, time: 30, packs: RGBP,
+    prerequisites: ['production-science-pack', 'rocket-fuel', 'uranium-processing'], unlocks: ['kovarex-enrichment-process'],
+  },
   // Forschungs-Boni (Wiki-Tabellen der jeweiligen „… (research)“-Seiten, Stand 2.0 Grundspiel)
   {
     id: 'military-science-pack', name: 'Militär-Wissenschaft', count: 30, time: 15, packs: RED_GREEN,

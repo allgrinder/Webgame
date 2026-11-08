@@ -415,3 +415,19 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 | Montagemaschine 2/3 | zusätzlich ein Flüssigkeitsausgang (links/rechts Mitte; Lage eigene Wahl, Eingang unverändert) | Wiki 2.0 |
 | Leiche | Inventar bleibt am Todesort, Rechtsklick (0,5 s) holt es zurück | Wiki „Character corpse“ |
 | Band im Schaltungsnetz | liest Inhalt (Halten), Bedingung hält das Band an; ein Tick Verzögerung | Wiki „Transport belt“ |
+
+## Kernkraft (Wunsch 08.11.2026)
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Uranerz | Abbauzeit 2, 1 Schwefelsäure je Erz, nur elektrischer Bohrer (3 Flüssigkeitsanschlüsse: links, rechts, hinten), Forschung „Uranabbau“ (100 × rgb) | Wiki „Uranium ore“, „Uranium mining (research)“ |
+| Uranvorkommen | eigenes Raster 240, Chance 0,45, ab 250 Feldern vom Start, Radius 5–9 | eigener Wert (Vorbild: selten, weit draußen) |
+| Uranverarbeitung | Zentrifuge, 12 s, 10 Erz → U-235 (0,7 %), U-238 (99,3 %); Auslöser: 1 Uranerz abbauen | Wiki „Uranium processing“ |
+| Zentrifuge | 3×3, 350 kW, 11,6 kW Grundlast, Tempo 1, 2 Module | Wiki „Centrifuge“ |
+| Brennstab | 10 Eisen + 1 U-235 + 19 U-238 → 10, 10 s; 8 GJ | Wiki „Uranium fuel cell“ |
+| Kernreaktor | 5×5, 40 MW Wärme, +100 % je laufendem Nachbarreaktor, 10 MJ/°C, bis 1000 °C, brennt unabhängig vom Bedarf | Wiki „Nuclear reactor“ |
+| Wärmerohr | 1 MJ/°C; Fluss je Verbindung (ΔT − 1) × 250 kJ/Tick (entspricht 1 + P/15 °C Abfall je Rohr) | Wiki „Heat pipe“ |
+| Wärmetauscher | 3×2 (wie Kessel), 10 MW, ab 500 °C, 103 Einheiten 500-°C-Dampf/s, Wasser 1:10, Wärmeeingang hinten Mitte | Wiki „Heat exchanger“ |
+| Dampfturbine | 3×5, 5,82 MW, 60 Einheiten/s | Wiki „Steam turbine“ |
+| Heißdampf | eigene Flüssigkeit „Heißdampf (500 °C)“ statt Temperatur je Dampf (Vereinfachung) | – |
+| Wiederaufbereitung / Kovarex | 5 abgebrannte → 3 U-238 (60 s); 40 U-235 + 5 U-238 → 41 + 2 (60 s) | Wiki |

@@ -1,3 +1,6 @@
+import { FLUID_UNIT } from '../../data/fluids';
+import { FluidBox, type FluidPort } from '../fluids';
+import { rotateLocal } from './power';
 import { type BeltDef, type ContainerDef, type DrillDef, type FurnaceDef, type InserterDef, insertionLimitCrafts } from '../../data/entities';
 import { entityDef } from '../../data/entities';
 import { isFuel } from '../../data/items';
@@ -7,7 +10,7 @@ import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
 import { Burner } from '../burner';
 import { ElectricSource } from '../energy';
 import { Status } from '../entity';
-import { type Dir, rotateVec } from '../geom';
+import { type Dir, rotCW, rotateVec } from '../geom';
 import { Inventory, type Stack } from '../inventory';
 import type { World } from '../world';
 import { EntityBase, type GuiSlots, type InsertMode, invContents } from './base';
@@ -53,9 +56,12 @@ export class DrillEntity extends EntityBase {
   readonly effects: Effects = { speed: 0, productivity: 0, consumption: 0 };
   /** Produktivitätsbalken (Bergbau). */
   bonus = 0;
+  /** Flüssigkeitseingang (Schwefelsäure für Uranerz), nur beim elektrischen Bohrer. */
+  readonly acid: FluidBox | null;
 
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
+    this.acid = this.def.fluidInput ? new FluidBox(this.def.fluidInput.volume * FLUID_UNIT, 'sulfuric-acid') : null;
     const jpt = wattsToJoulesPerTick(this.def.energyUsage);
     this.energy = this.def.energy === 'electric' ? new ElectricSource(jpt, 0, jpt * 2) : new Burner(this.def.fuelSlots);
     this.modules = moduleInventory(this.def.moduleSlots ?? 0);
@@ -92,16 +98,28 @@ export class DrillEntity extends EntityBase {
     }
     const area = this.areaTiles();
     let idx = -1;
+    let needsFluid = false;
     for (let k = 0; k < area.length; k++) {
       const c = (this.cursor + k) % area.length;
       const r = w.map.resourceAt(area[c][0], area[c][1]);
-      if (r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid) {
+      const rd = RESOURCE_BY_INDEX[r.res];
+      if (r.amount > 0 && !rd?.fluid) {
+        // Uranerz: nur mit Flüssigkeitseingang und erforschtem Uranabbau (Wiki „Uranium ore“)
+        if (rd?.requiresFluid && (!this.acid || !w.research.done.has(rd.requiresFluid.tech))) {
+          needsFluid = true;
+          continue;
+        }
         idx = c;
         break;
       }
     }
     if (idx < 0) {
-      this.status = Status.Depleted;
+      this.status = needsFluid ? Status.NoInput : Status.Depleted;
+      return;
+    }
+    const need0 = RESOURCE_BY_INDEX[w.map.resourceAt(area[idx][0], area[idx][1]).res]?.requiresFluid;
+    if (need0 && (!this.acid?.net || this.acid.net.fluid !== need0.fluid || this.acid.net.amount < need0.amount * FLUID_UNIT)) {
+      this.status = Status.NoInput;
       return;
     }
     if (!this.energy.consume(this.energy instanceof ElectricSource ? this.energy.usagePerTick : this.joulesPerTick)) {
@@ -119,8 +137,10 @@ export class DrillEntity extends EntityBase {
       const mined = w.map.mineOne(tx, ty);
       this.cursor = (idx + 1) % area.length;
       if (mined) {
+        const rf = RESOURCE_BY_INDEX[mined]!.requiresFluid;
+        if (rf) this.acid?.net?.take(rf.fluid, rf.amount * FLUID_UNIT);
         this.output = RESOURCE_BY_INDEX[mined]!.result;
-        w.stats.made(this.output, 1);
+        w.crafted(this.output, 1);
         const [px, py] = this.outputPoint();
         if (w.deliverAt(px, py, this.output, 'machine', false)) this.output = null;
         // Produktivität (Module + Forschung „Bergbau-Produktivität“): zusätzliches Erz ohne Abbau des Feldes
@@ -157,11 +177,24 @@ export class DrillEntity extends EntityBase {
     const b = this.burner;
     return [...(b ? [{ label: 'Brennstoff', inv: b.fuel }] : []), ...(this.modules ? [{ label: 'Module', inv: this.modules }] : [])];
   }
+  fluidBoxes(): FluidBox[] {
+    return this.acid ? [this.acid] : [];
+  }
+  fluidPorts(): FluidPort[] {
+    const box = this.acid;
+    const fi = this.def.fluidInput;
+    if (!box || !fi) return [];
+    return fi.ports.map(([lx, ly, d]) => {
+      const [rx, ry] = rotateLocal(lx, ly, this.def.width, this.def.height, this.dir);
+      return { box, tx: this.x + rx, ty: this.y + ry, dir: rotCW(d, this.dir) };
+    });
+  }
   override save() {
     const en = this.energy instanceof Burner ? { b: this.energy.serialize() } : this.energy.serialize();
     return {
       ...en, progress: this.progress, output: this.output, cursor: this.cursor, work: this.workTicks,
       ...(this.modules ? { mod: this.modules.serialize(), bo: this.bonus } : {}),
+      ...(this.acid && this.acid.amount ? { ac: [this.acid.amount, this.acid.fluid] } : {}),
     };
   }
   override load(d: Record<string, unknown>): void {
@@ -173,6 +206,10 @@ export class DrillEntity extends EntityBase {
     this.output = (d.output as string | null) ?? null;
     this.cursor = d.cursor as number;
     this.workTicks = (d.work as number) ?? 0;
+    if (this.acid && Array.isArray(d.ac)) {
+      this.acid.amount = d.ac[0] as number;
+      this.acid.fluid = d.ac[1] as string | null;
+    }
   }
 }
 

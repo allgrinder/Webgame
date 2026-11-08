@@ -1,3 +1,4 @@
+import type { HeatExchangerEntity, HeatPipeEntity, ReactorEntity } from './entities/nuclear';
 /**
  * Schnittstelle zu den Gebäudeklassen (src/sim/entities/) für Welt, Renderer, HUD und Tests.
  */
@@ -22,7 +23,7 @@ export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
   | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RocketSiloEntity | RadarEntity | CombinatorEntity | RailEntity | TrainStopEntity
-  | TurretEntity | WallEntity;
+  | TurretEntity | WallEntity | ReactorEntity | HeatPipeEntity | HeatExchangerEntity;
 
 export function itemIndex(id: string): number {
   const i = ITEM_IDS.indexOf(id);

@@ -1,3 +1,4 @@
+import { hash01 } from '../rng';
 import { type AssemblerDef, type BeaconDef, type LabDef, insertionLimitCrafts } from '../../data/entities';
 import { BEACON, MODULES, PRODUCTIVITY_RECIPES, isModule } from '../../data/modules';
 import { ITEMS } from '../../data/items';
@@ -36,6 +37,8 @@ function electric(usageW: number, drainW: number): ElectricSource {
  * das Ergebnis holt ein Greifarm ab. Elektrisch; bei Strommangel anteilig langsamer.
  */
 export class AssemblerEntity extends EntityBase implements FluidHolder {
+  /** Anzahl abgeschlossener Durchläufe (Zufall der Wahrscheinlichkeits-Ergebnisse). */
+  crafts = 0;
   readonly kind = 'assembler' as const;
   declare readonly def: AssemblerDef;
   readonly energy: ElectricSource;
@@ -213,7 +216,11 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
         }
       }
       for (let k = 0; k < times; k++) {
-        for (const res of r.results) {
+        this.crafts++;
+        for (let ri = 0; ri < r.results.length; ri++) {
+          const res = r.results[ri];
+          // Ergebnisse mit Wahrscheinlichkeit (Urananreicherung): deterministisch je Maschine und Durchlauf
+          if (res.probability !== undefined && hash01(this.id, this.crafts, ri, 77) >= res.probability) continue;
           if (isFluid(res.item)) this.boxFor(r, res.item)?.net?.add(res.item, res.amount * FLUID_UNIT);
           else this.output.add(res.item, res.amount);
           w.crafted(res.item, res.amount);
@@ -262,6 +269,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     return {
       ...this.energy.serialize(), recipe: this.recipe?.id ?? null, in: this.input.serialize(), out: this.output.serialize(),
       cr: this.crafting, progress: this.progress, work: this.workTicks, fb: this.boxes.map((b) => [b.amount, b.fluid]),
+      ...(this.crafts ? { cn: this.crafts } : {}),
       ...(this.modules ? { mod: this.modules.serialize(), bo: this.bonus } : {}),
     };
   }
@@ -271,6 +279,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     this.input.load(d.in as InvData);
     this.output.load(d.out as InvData);
     this.crafting = !!d.cr;
+    this.crafts = (d.cn as number) ?? 0;
     this.progress = (d.progress as number) ?? 0;
     this.workTicks = (d.work as number) ?? 0;
     if (this.modules && d.mod) this.modules.load(d.mod as InvData);

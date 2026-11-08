@@ -26,6 +26,13 @@ export class Inventory {
     return this.slots.length;
   }
 
+  /** Vergrößern (z. B. Werkzeuggürtel); eine volle Begrenzung wächst mit. */
+  resize(size: number): void {
+    const full = this.bar === this.slots.length;
+    while (this.slots.length < size) this.slots.push(null);
+    if (full) this.bar = this.slots.length;
+  }
+
   accepts(item: string): boolean {
     return !this.filter || this.filter(item);
   }
@@ -119,6 +126,7 @@ export class Inventory {
   }
 
   load(data: ([string, number] | null)[]): void {
+    if (data.length > this.slots.length) this.resize(data.length);
     for (let i = 0; i < this.slots.length; i++) {
       const d = data[i];
       this.slots[i] = d ? { item: d[0], count: d[1] } : null;

@@ -1,4 +1,4 @@
-import { LOCKED_RECIPES, RESEARCH_QUEUE_MAX, TECHS, TECH_BY_ID, type TechDef } from '../data/tech';
+import { type BonusType, LOCKED_RECIPES, RESEARCH_QUEUE_MAX, TECHS, TECH_BY_ID, type TechDef } from '../data/tech';
 import { secondsToTicks } from '../data/time';
 
 export interface ResearchData {
@@ -10,6 +10,8 @@ export interface ResearchData {
   made?: [string, number][];
   /** Forschungswarteschlange. */
   q?: string[];
+  /** Abschlüsse unendlicher Forschungen. */
+  lv?: [string, number][];
 }
 
 /**
@@ -29,6 +31,43 @@ export class ResearchSystem {
   /** Hergestellte Items (nur die Auslöser-Items werden gezählt). */
   readonly made = new Map<string, number>();
   private static readonly triggerItems = new Set(TECHS.flatMap((t) => (t.trigger ? [t.trigger.item] : [])));
+  /** Abschlüsse je unendlicher Forschung. */
+  readonly levels = new Map<string, number>();
+  private bonusCache: Map<BonusType, number> | null = null;
+
+  /** Aktuelle Stufe einer Technologie (unendlich: Startstufe + Abschlüsse). */
+  levelOf(t: TechDef): number {
+    return (t.level ?? 1) + (t.infinite ? this.levels.get(t.id) ?? 0 : 0);
+  }
+  /** Einheiten der nächsten Stufe. */
+  countOf(t: TechDef): number {
+    return t.infinite ? t.infinite.count(this.levelOf(t)) : t.count;
+  }
+  ticksOf(t: TechDef): number {
+    return this.countOf(t) * ResearchSystem.unitTicks(t);
+  }
+  /** Anzeigename mit der Stufe der nächsten unendlichen Forschung. */
+  nameOf(id: string): string {
+    const t = TECH_BY_ID[id];
+    if (!t) return id;
+    return t.infinite && t.level ? t.name.replace(/\d+$/, String(this.levelOf(t))) : t.name;
+  }
+
+  /** Summe eines Forschungsbonus (z. B. 0,3 = +30 % oder Anzahl Plätze). */
+  bonus(type: BonusType): number {
+    if (!this.bonusCache) {
+      const m = new Map<BonusType, number>();
+      const add = (t: TechDef, k: number) => {
+        for (const e of t.effects ?? []) m.set(e.type, (m.get(e.type) ?? 0) + e.value * k);
+      };
+      for (const t of TECHS) {
+        if (this.done.has(t.id)) add(t, 1);
+        else if (t.infinite) add(t, this.levels.get(t.id) ?? 0);
+      }
+      this.bonusCache = m;
+    }
+    return this.bonusCache.get(type) ?? 0;
+  }
 
   static unitTicks(t: TechDef): number {
     return secondsToTicks(t.time);
@@ -135,7 +174,7 @@ export class ResearchSystem {
     if (!t) return 0;
     if (this.done.has(id)) return 1;
     if (t.trigger) return Math.min(1, (this.made.get(t.trigger.item) ?? 0) / t.trigger.count);
-    return (this.progress.get(id) ?? 0) / ResearchSystem.totalTicks(t);
+    return (this.progress.get(id) ?? 0) / this.ticksOf(t);
   }
 
   /** Laborarbeit gutschreiben (Ticks). */
@@ -143,13 +182,23 @@ export class ResearchSystem {
     const t = this.currentTech;
     if (!t) return;
     const p = (this.progress.get(t.id) ?? 0) + n;
-    if (p >= ResearchSystem.totalTicks(t)) this.complete(t.id);
+    if (p >= this.ticksOf(t)) this.complete(t.id);
     else this.progress.set(t.id, p);
   }
 
   complete(id: string): void {
     const t = TECH_BY_ID[id];
     if (!t || this.done.has(id)) return;
+    this.bonusCache = null;
+    if (t.infinite) {
+      // unendlich: Stufe zählt hoch, Technologie bleibt erforschbar
+      this.finished.push(id);
+      this.levels.set(id, (this.levels.get(id) ?? 0) + 1);
+      this.progress.delete(id);
+      if (this.current === id) this.current = null;
+      this.advance();
+      return;
+    }
     this.done.add(id);
     this.progress.delete(id);
     for (const r of t.unlocks) this.unlocked.add(r);
@@ -172,6 +221,7 @@ export class ResearchSystem {
       prog: [...this.progress.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)),
       made: [...this.made.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)),
       q: [...this.queue],
+      ...(this.levels.size ? { lv: [...this.levels.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)) } : {}),
     };
   }
 
@@ -180,6 +230,8 @@ export class ResearchSystem {
     this.finished.length = 0;
     for (const [id, p] of d.prog) this.progress.set(id, p);
     for (const [item, n] of d.made ?? []) this.made.set(item, n);
+    for (const [id, n] of d.lv ?? []) this.levels.set(id, n);
+    this.bonusCache = null;
     this.queue.length = 0;
     this.queue.push(...(d.q ?? []));
     this.current = d.cur;

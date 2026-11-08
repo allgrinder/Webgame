@@ -57,6 +57,8 @@ export class TrainSystem {
   readonly trains: Train[] = [];
   private nextId = 1;
   private readonly reserved = new Map<number, number>();
+  /** Forschung „Bremskraft“ (Bruch, 0,1 = +10 %), je Tick aus der Forschung übernommen. */
+  brakingBonus = 0;
 
   // ------------------------------------------------------------------ Fahrzeuge
 
@@ -376,6 +378,7 @@ export class TrainSystem {
   // ------------------------------------------------------------------ Tick
 
   update(w: World): void {
+    this.brakingBonus = w.research.bonus('braking');
     this.rails.ensure(w);
     // Belegung: Spuren aller Züge
     this.reserved.clear();
@@ -418,7 +421,7 @@ export class TrainSystem {
     let B = 0;
     let F = 0;
     for (const v of t.vehicles) {
-      B += ROLLING_STOCK[v.kind].braking;
+      B += ROLLING_STOCK[v.kind].braking * (1 + this.brakingBonus);
       F += ROLLING_STOCK[v.kind].friction;
     }
     const decel = (B + F) / W;

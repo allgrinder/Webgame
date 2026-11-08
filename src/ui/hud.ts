@@ -3,7 +3,7 @@ import { ITEMS } from '../data/items';
 import { PLAYER_COMBAT } from '../data/enemies';
 import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { RECIPE_LIST } from '../data/recipes';
-import { TECHS, TECH_BY_ID } from '../data/tech';
+import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serialize';
@@ -34,6 +34,25 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.NoPower]: 'Kein Strom',
   [Status.Disabled]: 'Durch Schaltbedingung aus',
 };
+
+/** Wirkung einer Forschungsstufe als Text. */
+function effectText(e: TechEffect): string {
+  const pct = `+${Math.round(e.value * 100)} %`;
+  switch (e.type) {
+    case 'inserter-stack': return `+${e.value} Greifarm-Kapazität`;
+    case 'bulk-stack': return `+${e.value} Massengreifarm-Kapazität`;
+    case 'mining-productivity': return `${pct} Bergbau-Produktivität`;
+    case 'lab-speed': return `${pct} Laborgeschwindigkeit`;
+    case 'toolbelt': return `+${e.value} Inventarplätze`;
+    case 'bullet-damage': return `${pct} Kugelschaden`;
+    case 'turret-damage': return `${pct} Geschützturm-Schaden`;
+    case 'shooting-speed': return `${pct} Feuerrate`;
+    case 'robot-speed': return `${pct} Robotertempo`;
+    case 'robot-cargo': return `+${e.value} Roboterfracht`;
+    case 'braking': return `${pct} Bremskraft`;
+    case 'hand-mining': return `${pct} Abbautempo der Figur`;
+  }
+}
 
 /** Statustext; Leerlauf bei Strom- und Wasserteilen genauer benennen. */
 function statusText(e: Entity): string {
@@ -1395,7 +1414,7 @@ export class Hud {
       for (const id of [...(r.current ? [r.current] : []), ...r.queue]) {
         const q = el('div', `q${id === r.current ? ' cur' : ''}`, qe);
         q.appendChild(this.techIcon(id));
-        el('span', '', q).textContent = TECH_BY_ID[id].name;
+        el('span', '', q).textContent = r.nameOf(id);
         const x = el('button', '', q);
         x.textContent = '×';
         x.title = 'Aus der Warteschlange nehmen';
@@ -1413,7 +1432,7 @@ export class Hud {
       const queued = r.queue.includes(t.id);
       const card = el('div', `tech-card${done ? ' done' : avail || queued ? '' : ' locked'}${r.current === t.id ? ' active' : ''}${queued ? ' queued' : ''}`, body);
       const top = el('div', 'tech-top', card);
-      el('b', '', top).textContent = t.name;
+      el('b', '', top).textContent = r.nameOf(t.id);
       el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : queued ? `Warteschlange ${r.queue.indexOf(t.id) + 1}` : avail ? '' : 'gesperrt';
       const cost = el('div', 'tech-cost', card);
       if (t.trigger) {
@@ -1422,8 +1441,9 @@ export class Hud {
         el('span', '', cost).textContent = ` Auslöser: ${t.trigger.count} × ${ITEMS[t.trigger.item]?.name ?? t.trigger.item} herstellen (${done ? t.trigger.count : made}/${t.trigger.count})`;
       } else {
         for (const pk of t.packs) cost.appendChild(this.icon(`item.${pk}`));
-        el('span', '', cost).textContent = ` × ${t.count} · ${t.time} s je Einheit`;
+        el('span', '', cost).textContent = ` × ${r.countOf(t)} · ${t.time} s je Einheit${t.infinite ? ' · unendlich' : ''}`;
       }
+      if (t.effects?.length) el('div', 'tech-effects', card).textContent = t.effects.map(effectText).join(' · ');
       const un = el('div', 'tech-unlocks', card);
       for (const u of t.unlocks) {
         const ic = this.icon(`item.${u}`);

@@ -11,6 +11,16 @@ export interface TechTrigger {
   readonly count: number;
 }
 
+/** Bonusarten der Forschung (Wiki „Research“, Abschnitt Bonusse). value: Prozent als Bruch (0,1 = +10 %) bzw. Anzahl. */
+export type BonusType =
+  | 'inserter-stack' | 'bulk-stack' | 'mining-productivity' | 'lab-speed' | 'toolbelt'
+  | 'bullet-damage' | 'turret-damage' | 'shooting-speed' | 'robot-speed' | 'robot-cargo' | 'braking' | 'hand-mining';
+
+export interface TechEffect {
+  readonly type: BonusType;
+  readonly value: number;
+}
+
 export interface TechDef {
   readonly id: string;
   readonly name: string;
@@ -21,6 +31,15 @@ export interface TechDef {
   /** Freigeschaltete Rezepte. */
   readonly unlocks: readonly string[];
   readonly trigger?: TechTrigger;
+  /** Boni (Forschungsstufen). */
+  readonly effects?: readonly TechEffect[];
+  /** Stufe (Anzeige „… 3“). */
+  readonly level?: number;
+  /**
+   * Unendliche Forschung: bleibt nach Abschluss erforschbar; Stufe = level + Anzahl Abschlüsse,
+   * Kosten je Stufe aus der Formel (Wiki), effects gelten je Abschluss.
+   */
+  readonly infinite?: { readonly count: (level: number) => number };
 }
 
 const RED = ['automation-science-pack'];
@@ -29,6 +48,29 @@ const RGB = ['automation-science-pack', 'logistic-science-pack', 'chemical-scien
 const RGBP = [...RGB, 'production-science-pack'];
 const RGBU = [...RGB, 'utility-science-pack'];
 const RGBPU = [...RGBP, 'utility-science-pack'];
+const RGBPUS = [...RGBPU, 'space-science-pack'];
+const RGM = [...RED_GREEN, 'military-science-pack'];
+const RGMC = [...RGM, 'chemical-science-pack'];
+const RGMCU = [...RGMC, 'utility-science-pack'];
+const RGMCUS = [...RGMCU, 'space-science-pack'];
+
+/**
+ * Stufenforschung (Wiki „… (research)“): je Stufe Kosten, Zeit, Pakete, Wirkung. Stufe 1 hängt an pre,
+ * jede weitere an der vorherigen. last.infinite macht die letzte Stufe unendlich.
+ */
+function levels(
+  id: string, name: string, pre: readonly string[], rows: readonly [count: number, time: number, packs: readonly string[], effects: readonly TechEffect[]][],
+  infinite?: { count: (level: number) => number },
+): TechDef[] {
+  return rows.map(([count, time, packs, effects], i) => ({
+    id: `${id}-${i + 1}`, name: `${name} ${i + 1}`, count, time, packs, level: i + 1,
+    prerequisites: i === 0 ? pre : [`${id}-${i}`], unlocks: [], effects,
+    ...(infinite && i === rows.length - 1 ? { infinite } : {}),
+  }));
+}
+const E = (type: BonusType, value: number): TechEffect => ({ type, value });
+/** Physischer Schaden (Wiki): Kugeln und Geschützturm je Stufe. */
+const dmg = (b: number, t: number) => [E('bullet-damage', b), E('turret-damage', t)];
 
 export const TECHS: readonly TechDef[] = [
   {
@@ -191,6 +233,82 @@ export const TECHS: readonly TechDef[] = [
     unlocks: ['cargo-landing-pad', 'rocket-part', 'rocket-silo', 'satellite'],
   },
   { id: 'concrete', name: 'Beton', count: 250, time: 30, packs: RED_GREEN, prerequisites: ['advanced-material-processing', 'automation-2'], unlocks: ['concrete', 'iron-stick', 'hazard-concrete', 'refined-concrete', 'refined-hazard-concrete'] },
+  // Forschungs-Boni (Wiki-Tabellen der jeweiligen „… (research)“-Seiten, Stand 2.0 Grundspiel)
+  {
+    id: 'military-science-pack', name: 'Militär-Wissenschaft', count: 30, time: 15, packs: RED_GREEN,
+    prerequisites: ['military-2', 'stone-wall'], unlocks: ['military-science-pack'],
+  },
+  {
+    id: 'bulk-inserter', name: 'Massengreifarm', count: 150, time: 30, packs: RED_GREEN,
+    prerequisites: ['advanced-circuit', 'fast-inserter', 'logistics-2'], unlocks: ['bulk-inserter'],
+  },
+  ...levels('inserter-capacity-bonus', 'Greifarm-Kapazität', ['bulk-inserter'], [
+    [200, 30, RED_GREEN, [E('bulk-stack', 1)]],
+    [250, 30, RED_GREEN, [E('inserter-stack', 1), E('bulk-stack', 1)]],
+    [250, 30, RGB, [E('bulk-stack', 1)]],
+    [250, 30, RGBP, [E('bulk-stack', 1)]],
+    [300, 30, RGBP, [E('bulk-stack', 2)]],
+    [400, 30, RGBP, [E('bulk-stack', 2)]],
+    [600, 30, RGBPU, [E('inserter-stack', 1), E('bulk-stack', 2)]],
+  ]),
+  ...levels('mining-productivity', 'Bergbau-Produktivität', ['advanced-circuit'], [
+    [250, 60, RED_GREEN, [E('mining-productivity', 0.1)]],
+    [500, 60, RGB, [E('mining-productivity', 0.1)]],
+    [1000, 60, RGBPU, [E('mining-productivity', 0.1)]],
+    [2500, 60, RGBPUS, [E('mining-productivity', 0.1)]],
+  ], { count: (l) => 2500 * (l - 3) }),
+  ...levels('research-speed', 'Laborgeschwindigkeit', ['automation-2'], [
+    [100, 30, RED_GREEN, [E('lab-speed', 0.2)]],
+    [200, 30, RED_GREEN, [E('lab-speed', 0.3)]],
+    [250, 30, RGB, [E('lab-speed', 0.4)]],
+    [500, 30, RGB, [E('lab-speed', 0.5)]],
+    [500, 30, RGBP, [E('lab-speed', 0.5)]],
+    [500, 30, RGBPU, [E('lab-speed', 0.6)]],
+  ]),
+  { id: 'toolbelt', name: 'Werkzeuggürtel', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['logistic-science-pack'], unlocks: [], effects: [E('toolbelt', 10)] },
+  {
+    id: 'steel-axe', name: 'Stahlaxt', count: 0, time: 0, packs: [], prerequisites: ['steel-processing'], unlocks: [],
+    trigger: { type: 'craft-item', item: 'steel-plate', count: 50 }, effects: [E('hand-mining', 1)],
+  },
+  ...levels('physical-projectile-damage', 'Physischer Projektilschaden', ['military'], [
+    [100, 30, RED, dmg(0.1, 0.1)],
+    [200, 30, RED_GREEN, dmg(0.1, 0.1)],
+    [300, 60, RGM, dmg(0.2, 0.2)],
+    [400, 60, RGM, dmg(0.2, 0.2)],
+    [500, 60, RGMC, dmg(0.2, 0.2)],
+    [600, 60, RGMCU, dmg(0.4, 0.4)],
+    [1000, 60, RGMCUS, dmg(0.4, 0.7)],
+  ], { count: (l) => 2 ** (l - 7) * 1000 }),
+  ...levels('weapon-shooting-speed', 'Feuerrate', ['military'], [
+    [100, 30, RED, [E('shooting-speed', 0.1)]],
+    [200, 30, RED_GREEN, [E('shooting-speed', 0.2)]],
+    [300, 60, RGM, [E('shooting-speed', 0.2)]],
+    [400, 60, RGM, [E('shooting-speed', 0.3)]],
+    [500, 60, RGMC, [E('shooting-speed', 0.3)]],
+    [600, 60, RGMCU, [E('shooting-speed', 0.4)]],
+  ]),
+  ...levels('worker-robots-speed', 'Robotergeschwindigkeit', ['robotics'], [
+    [50, 30, RGB, [E('robot-speed', 0.35)]],
+    [100, 30, RGB, [E('robot-speed', 0.4)]],
+    [150, 60, RGBU, [E('robot-speed', 0.45)]],
+    [250, 60, RGBU, [E('robot-speed', 0.55)]],
+    [500, 60, RGBPU, [E('robot-speed', 0.65)]],
+    [1000, 60, RGBPUS, [E('robot-speed', 0.65)]],
+  ], { count: (l) => 2 ** (l - 6) * 1000 }),
+  ...levels('worker-robots-storage', 'Roboter-Frachtgröße', ['robotics'], [
+    [200, 30, RGB, [E('robot-cargo', 1)]],
+    [300, 60, RGBP, [E('robot-cargo', 1)]],
+    [450, 60, RGBPU, [E('robot-cargo', 1)]],
+  ]),
+  ...levels('braking-force', 'Bremskraft', ['chemical-science-pack', 'railway'], [
+    [100, 30, RGB, [E('braking', 0.1)]],
+    [200, 30, RGB, [E('braking', 0.15)]],
+    [250, 30, RGBP, [E('braking', 0.15)]],
+    [350, 30, RGBP, [E('braking', 0.15)]],
+    [450, 35, RGBP, [E('braking', 0.15)]],
+    [550, 45, RGBPU, [E('braking', 0.15)]],
+    [650, 60, RGBPU, [E('braking', 0.15)]],
+  ]),
 ];
 
 export const TECH_BY_ID: Readonly<Record<string, TechDef>> = Object.fromEntries(TECHS.map((t) => [t.id, t]));

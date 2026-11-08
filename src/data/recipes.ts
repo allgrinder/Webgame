@@ -84,6 +84,16 @@ const list: RecipeDef[] = [
     results: [{ item: 'fast-inserter', amount: 1 }],
   },
   {
+    id: 'bulk-inserter', category: 'crafting', time: 0.5,
+    ingredients: [{ item: 'advanced-circuit', amount: 1 }, { item: 'electronic-circuit', amount: 15 }, { item: 'fast-inserter', amount: 1 }, { item: 'iron-gear-wheel', amount: 15 }],
+    results: [{ item: 'bulk-inserter', amount: 1 }],
+  },
+  {
+    id: 'military-science-pack', category: 'crafting', time: 10,
+    ingredients: [{ item: 'grenade', amount: 1 }, { item: 'piercing-rounds-magazine', amount: 1 }, { item: 'stone-wall', amount: 2 }],
+    results: [{ item: 'military-science-pack', amount: 2 }],
+  },
+  {
     id: 'medium-electric-pole', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'copper-cable', amount: 2 }, { item: 'iron-stick', amount: 4 }, { item: 'steel-plate', amount: 2 }],
     results: [{ item: 'medium-electric-pole', amount: 1 }],

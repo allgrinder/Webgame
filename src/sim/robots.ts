@@ -193,7 +193,7 @@ export class RobotSystem {
           if (missing <= 0 || c.inventory.space(rq.item) <= 0) continue;
           const src = this.pickSource(net, rq.item, c.x, c.y, c.id, c.logistic === 'buffer');
           if (!src) continue;
-          const n = Math.min(missing, ROBOTS['logistic-robot'].cargo, this.available(src, rq.item));
+          const n = Math.min(missing, ROBOTS['logistic-robot'].cargo + w.research.bonus('robot-cargo'), this.available(src, rq.item));
           if (this.launch(net, 'logistic-robot', src.x, src.y, { t: 'deliver', from: src.id, to: c.id, item: rq.item, count: n, phase: 0 })) budget--;
           else break;
         }
@@ -426,7 +426,7 @@ export class RobotSystem {
       const dx = tgt.x - r.x;
       const dy = tgt.y - r.y;
       const d = Math.hypot(dx, dy);
-      const sp = def.speed * (r.energy > 0 ? 1 : ROBOT_LOW_POWER_SPEED);
+      const sp = def.speed * (1 + w.research.bonus('robot-speed')) * (r.energy > 0 ? 1 : ROBOT_LOW_POWER_SPEED);
       r.energy = Math.max(0, r.energy - def.flyPerTick);
       if (d <= sp) {
         r.x = tgt.x;

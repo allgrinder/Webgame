@@ -224,7 +224,7 @@ export class PumpjackEntity extends EntityBase implements FluidHolder {
     // Ausgabe je Tick: Ergiebigkeit (Tausendstel %) × 10 Einheiten / 100 % / 60 Ticks, in Tausendstel Einheiten
     const sp = speedFactor(this.effects);
     // Module: Geschwindigkeit verkürzt den Zyklus, Produktivität gibt zusätzliches Öl
-    const perTickNum = Math.round(r.amount * this.def.miningSpeed * sp * (1 + productivityBonus(this.effects))); // Zähler, Nenner 600
+    const perTickNum = Math.round(r.amount * this.def.miningSpeed * sp * (1 + productivityBonus(this.effects) + w.research.bonus('mining-productivity'))); // Zähler, Nenner 600
     if (!net || net.space('crude-oil') < Math.ceil(perTickNum / 600) + 1) {
       this.status = Status.OutputBlocked;
       return;

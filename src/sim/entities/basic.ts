@@ -123,9 +123,10 @@ export class DrillEntity extends EntityBase {
         w.stats.made(this.output, 1);
         const [px, py] = this.outputPoint();
         if (w.deliverAt(px, py, this.output, 'machine', false)) this.output = null;
-        // Produktivität: zusätzliches Erz ohne Abbau des Feldes (wird beim nächsten Tick ausgegeben)
-        if (this.modules && !this.output) {
-          this.bonus += productivityBonus(this.effects);
+        // Produktivität (Module + Forschung „Bergbau-Produktivität“): zusätzliches Erz ohne Abbau des Feldes
+        const prod = (this.modules ? productivityBonus(this.effects) : 0) + w.research.bonus('mining-productivity');
+        if (prod > 0 && !this.output) {
+          this.bonus += prod;
           if (this.bonus >= 1) {
             this.bonus -= 1;
             this.output = RESOURCE_BY_INDEX[mined]!.result;

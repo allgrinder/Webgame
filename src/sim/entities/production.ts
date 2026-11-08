@@ -360,7 +360,8 @@ export class LabEntity extends EntityBase {
     }
     this.status = Status.Working;
     // Gottmodus (Testhilfe): Labore forschen schneller
-    const f = speedFactor(this.effects) * (w.player?.god ? GOD.researchFactor : 1);
+    // Forschung „Laborgeschwindigkeit“ beschleunigt alle Labore
+    const f = speedFactor(this.effects) * (1 + w.research.bonus('lab-speed')) * (w.player?.god ? GOD.researchFactor : 1);
     this.remaining -= f;
     this.workTicks++;
     w.research.addWork(f * (1 + productivityBonus(this.effects)));

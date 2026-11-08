@@ -118,6 +118,10 @@ export class Player {
   update(world: World): void {
     this.prevPx = this.px;
     this.prevPy = this.py;
+    // Forschungs-Boni der Figur: Stahlaxt, Werkzeuggürtel (+10 Inventarplätze)
+    this.miningBonus = world.research.bonus('hand-mining');
+    const slots = PLAYER.inventorySlots + world.research.bonus('toolbelt');
+    if (this.inventory.size < slots) this.inventory.resize(slots);
     this.updateCombat(world);
     this.updateMovement(world);
     this.updateMining(world);
@@ -193,12 +197,12 @@ export class Player {
       this.roundsItem = it;
     }
     this.rounds--;
-    this.gunCd = W.cooldown;
+    this.gunCd = Math.max(1, Math.round(W.cooldown / (1 + world.research.bonus('shooting-speed'))));
     this.lastShot = world.tick;
     this.shotX = t.x;
     this.shotY = t.y;
     world.events.push('shot', this.x, this.y);
-    world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage, { x: this.x, y: this.y });
+    world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage * (1 + world.research.bonus('bullet-damage')), { x: this.x, y: this.y });
     if (this.rounds === 0) this.roundsItem = null;
   }
 
@@ -332,8 +336,10 @@ export class Player {
     return PLAYER.buildDistance * (this.god ? GOD.reachFactor : 1);
   }
   /** Abbautempo: im Gottmodus fast sofort (Bäume, Gebäude). */
+  /** Forschung „Stahlaxt“: +100 % Abbautempo der Figur (Wiki). */
+  miningBonus = 0;
   private mineTicks(seconds: number): number {
-    return this.god ? 1 : Math.max(1, secondsToTicks(seconds / PLAYER.miningSpeed));
+    return this.god ? 1 : Math.max(1, secondsToTicks(seconds / (PLAYER.miningSpeed * (1 + this.miningBonus))));
   }
 
   private updateMining(world: World): void {
@@ -406,7 +412,7 @@ export class Player {
         }
         return;
       }
-      this.mineTotal = secondsToTicks(def.miningTime / (PLAYER.miningSpeed * PLAYER.handMiningFactor));
+      this.mineTotal = secondsToTicks(def.miningTime / (PLAYER.miningSpeed * (1 + this.miningBonus) * PLAYER.handMiningFactor));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         world.events.push('mine', t.x + 0.5, t.y + 0.5);

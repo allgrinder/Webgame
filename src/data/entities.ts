@@ -94,6 +94,10 @@ export interface InserterDef extends EntityBase {
   readonly fuelSlots: number;
   /** Greifarm füllt Brennstoff in fremde Brennstoffslots nur bis zu dieser Anzahl. */
   readonly fuelInsertLimit: number;
+  /** Massengreifarm: Grundkapazität 2 und eigener Forschungsbonus (Wiki „Inserter capacity bonus“). */
+  readonly bulk?: boolean;
+  /** Filterplätze (Wiki 2.0: schneller Greifarm und Massengreifarm haben einen Filtermodus mit 5 Plätzen). */
+  readonly filterSlots?: number;
 }
 
 export interface ContainerDef extends EntityBase {
@@ -375,7 +379,7 @@ const list: EntityDef[] = [
   {
     kind: 'lab', id: 'lab', name: 'Labor', width: 3, height: 3, health: 150,
     item: 'lab', mineTime: 0.2, solid: true, rotatable: false, researchSpeed: 1, energyUsage: 60_000, drain: 2_000, moduleSlots: 2,
-    inputs: ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack', 'production-science-pack', 'utility-science-pack', 'space-science-pack'],
+    inputs: ['automation-science-pack', 'logistic-science-pack', 'military-science-pack', 'chemical-science-pack', 'production-science-pack', 'utility-science-pack', 'space-science-pack'],
   },
   {
     kind: 'container', id: 'steel-chest', name: 'Stahlkiste', width: 1, height: 1, health: 350,
@@ -391,7 +395,16 @@ const list: EntityDef[] = [
     // Wiki „Inserters“: 0,04 U/Tick, 24 Ticks je Zyklus, 8,12 kJ je Zyklus
     rotationSpeed: 0.04, halfTurnTicks: 12, energyPerTransfer: 8.12 * KJ, initialEnergy: 0,
     pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 0,
-    fuelInsertLimit: 5,
+    fuelInsertLimit: 5, filterSlots: 5,
+  },
+  {
+    kind: 'inserter', id: 'bulk-inserter', name: 'Massengreifarm', width: 1, height: 1, health: 160,
+    item: 'bulk-inserter', mineTime: 0.1, solid: true, rotatable: true, energy: 'electric', drain: 1000,
+    // Wiki „Bulk inserter“/„Inserters“: wie der schnelle Greifarm 24 Ticks je Zyklus; Leistungsmodifikator 20 statt 7 kJ
+    // → 8,12 × 20/7 = 23,2 kJ je Zyklus (Messvorschlag); greift bis zu 2 (+ Forschung) Items auf einmal
+    rotationSpeed: 0.04, halfTurnTicks: 12, energyPerTransfer: 23.2 * KJ, initialEnergy: 0,
+    pickupVector: [0, 1], dropVector: [0, -1.2], fuelSlots: 0,
+    fuelInsertLimit: 5, bulk: true, filterSlots: 5,
   },
   {
     kind: 'pole', id: 'medium-electric-pole', name: 'Mittlerer Strommast', width: 1, height: 1, health: 100,

@@ -58,12 +58,14 @@ export class TurretEntity extends EntityBase {
       this.roundsItem = it;
     }
     this.rounds--;
-    this.cooldown = TURRET.cooldown;
+    // Forschung: Feuerrate verkürzt die Abklingzeit, Projektilschaden × Turmschaden (Wiki)
+    this.cooldown = Math.max(1, Math.round(TURRET.cooldown / (1 + w.research.bonus('shooting-speed'))));
     this.lastShot = w.tick;
     this.shotX = target.x;
     this.shotY = target.y;
     w.events.push('turret', this.cx, this.cy);
-    w.enemies.damageTarget(w, target, AMMO[this.roundsItem!].damage);
+    const dmg = AMMO[this.roundsItem!].damage * (1 + w.research.bonus('bullet-damage')) * (1 + w.research.bonus('turret-damage'));
+    w.enemies.damageTarget(w, target, dmg);
     if (this.rounds === 0) this.roundsItem = null;
     this.status = Status.Working;
   }

@@ -31,6 +31,12 @@ export class InserterEntity extends EntityBase {
   /** Fortschritt der aktuellen Halbdrehung in Ticks. */
   progress = 0;
   held: string | null = null;
+  /** Anzahl gegriffener Items (Kapazität: 1 bzw. Massengreifarm 2, plus Forschung „Greifarm-Kapazität“). */
+  heldCount = 0;
+  /** Filter (Wiki 2.0: schneller Greifarm und Massengreifarm): Items der Liste; leer = kein Filter. */
+  filters: (string | null)[] = [];
+  /** Negativliste: alles außer den Filter-Items. */
+  filterBlacklist = false;
   /** Art des Ablageziels (für das Weiterreichen zwischen Laboren). */
   targetKind: string | undefined;
 
@@ -52,6 +58,17 @@ export class InserterEntity extends EntityBase {
   /** Für die Darstellung: Fortschritt je Tick in Tausendstel-Umdrehungen. */
   get turnPerTick(): number {
     return HALF_TURN / this.def.halfTurnTicks;
+  }
+  /** Wie viele Items der Arm auf einmal greift. */
+  stackSize(w: World): number {
+    return this.def.bulk ? 2 + w.research.bonus('bulk-stack') : 1 + w.research.bonus('inserter-stack');
+  }
+  /** Lässt der Filter dieses Item durch? */
+  filterOk(item: string): boolean {
+    if (!this.def.filterSlots) return true;
+    const set = this.filters.filter((f): f is string => !!f);
+    if (!set.length) return true;
+    return this.filterBlacklist ? !set.includes(item) : set.includes(item);
   }
   get halfSwingEnergy(): number {
     return Math.round(this.def.energyPerTransfer / 2);
@@ -111,14 +128,20 @@ export class InserterEntity extends EntityBase {
           return;
         }
         const onBelt = !!w.belts.tileAt(Math.floor(drop[0]), Math.floor(drop[1]));
-        const accept = dst && !onBelt ? (it: string) => dst.acceptAmount(it, 'inserter') > 0 : () => true;
+        const toBuilding = !!dst && !onBelt;
+        const accept = toBuilding ? (it: string) => this.filterOk(it) && dst.acceptAmount(it, 'inserter') > 0 : (it: string) => this.filterOk(it);
         const item = w.takeAt(pickup[0], pickup[1], accept, this);
         if (!item) {
           this.status = Status.NoInput;
           return;
         }
+        // Stapel: so viele gleiche Items wie Kapazität und Ziel zulassen (Wiki „Inserter capacity bonus“)
+        let count = 1;
+        const cap = Math.min(this.stackSize(w), toBuilding ? dst.acceptAmount(item, 'inserter') : Infinity);
+        while (count < cap && w.takeAt(pickup[0], pickup[1], (it) => it === item, this)) count++;
         this.energy.consume(half);
         this.held = item;
+        this.heldCount = count;
         this.phase = InserterPhase.ToDrop;
         this.progress = 1;
         this.status = Status.Working;
@@ -135,8 +158,20 @@ export class InserterEntity extends EntityBase {
       }
       case InserterPhase.WaitDrop: {
         if (this.held) {
-          if ((!dst && !groundTarget) || !w.deliverAt(drop[0], drop[1], this.held, 'inserter', true, this)) {
-            this.status = dst || groundTarget ? Status.OutputBlocked : Status.NoTarget;
+          if (!dst && !groundTarget) {
+            this.status = Status.NoTarget;
+            return;
+          }
+          // In Gebäude alles in einem Tick, auf Band und Boden ein Item je Tick (Wiki „Inserter capacity bonus“)
+          const onBelt = !!w.belts.tileAt(Math.floor(drop[0]), Math.floor(drop[1]));
+          const perTick = dst && !onBelt ? this.heldCount : 1;
+          let moved = 0;
+          while (moved < perTick && this.heldCount > 0 && w.deliverAt(drop[0], drop[1], this.held, 'inserter', true, this)) {
+            this.heldCount--;
+            moved++;
+          }
+          if (this.heldCount > 0) {
+            this.status = moved ? Status.Working : Status.OutputBlocked;
             return;
           }
           this.held = null;
@@ -163,7 +198,7 @@ export class InserterEntity extends EntityBase {
   override contents(): Stack[] {
     const b = this.burner;
     const out = b ? invContents(b.fuel) : [];
-    if (this.held) out.push({ item: this.held, count: 1 });
+    if (this.held) out.push({ item: this.held, count: Math.max(1, this.heldCount) });
     return out;
   }
   override guiSlots(): GuiSlots[] {
@@ -172,7 +207,11 @@ export class InserterEntity extends EntityBase {
   }
   override save() {
     const en = this.energy instanceof ElectricSource ? this.energy.serialize() : { b: this.burner?.serialize() };
-    return { ...en, phase: this.phase, progress: this.progress, held: this.held };
+    return {
+      ...en, phase: this.phase, progress: this.progress, held: this.held,
+      ...(this.heldCount > 1 ? { hc: this.heldCount } : {}),
+      ...(this.filters.some((f) => f) ? { f: this.filters, fb: this.filterBlacklist } : {}),
+    };
   }
   override load(d: Record<string, unknown>): void {
     if (d.b && this.burner) this.burner.load(d.b as ReturnType<Burner['serialize']>);
@@ -180,5 +219,8 @@ export class InserterEntity extends EntityBase {
     this.phase = d.phase as InserterPhase;
     this.progress = d.progress as number;
     this.held = (d.held as string | null) ?? null;
+    this.heldCount = this.held ? ((d.hc as number | undefined) ?? 1) : 0;
+    this.filters = (d.f as (string | null)[] | undefined) ?? [];
+    this.filterBlacklist = !!d.fb;
   }
 }

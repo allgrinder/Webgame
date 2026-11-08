@@ -50,7 +50,19 @@ def cliff_explosives(m):
     return eisen.parent_all(o, 'cliffexp')
 
 
+def bulk_inserter_icon():
+    m = kleinteile.Mats('#4f7a3a', 2)
+    base = kleinteile.inserter_base(m, False)
+    arm = kleinteile.inserter_arm(m, 0.55)
+    arm.rotation_euler = (0, 0, math.radians(-40))
+    return eisen.parent_all([base, arm])
+
+
 def render(out):
+    eisen.reset(samples=48)
+    finish(out, 'item.bulk-inserter', bulk_inserter_icon(), 0.92, -0.1)
+    eisen.reset(samples=48)
+    finish(out, 'item.military-science-pack', anlagen.flask(anlagen.Mats(), (0.18, 0.17, 0.16)), 1.2, -0.08)
     for name, fn, sc in (('item.grenade', grenade, 1.1), ('item.empty-barrel', empty_barrel, 1.2),
                          ('item.cliff-explosives', cliff_explosives, 0.95)):
         eisen.reset(samples=48)

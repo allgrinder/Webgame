@@ -305,3 +305,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .bar-btn { background: var(--slot); color: #e05a40; border: 1px solid var(--slot-edge); font-weight: 700; padding: 1px 8px; cursor: pointer; }
 .bar-btn.on { background: #6a2a20; color: #ffd0c0; }
 .tech-effects { color: #9fd49f; font-size: 12px; margin: 2px 0; }
+.filter-slot { border-color: #6a8a5a; }

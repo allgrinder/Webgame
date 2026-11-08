@@ -94,6 +94,7 @@ const INSERTER_PREFIX: Record<string, string> = {
   inserter: 'inserter-electric',
   'long-handed-inserter': 'inserter-long',
   'fast-inserter': 'inserter-fast',
+  'bulk-inserter': 'inserter-bulk',
 };
 
 export class GameRenderer {

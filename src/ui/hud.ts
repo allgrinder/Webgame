@@ -563,6 +563,7 @@ export class Hud {
     if (e.kind === 'assembler') this.recipePicker(e, body);
     if (e.kind === 'splitter') this.splitterControls(e, body);
     for (const g of e.guiSlots()) row(g.label, g.inv);
+    if (e.kind === 'inserter' && e.def.filterSlots) this.inserterFilters(e, body);
     if (e.kind === 'assembler') bar('Fortschritt', e.recipe && e.crafting ? e.progress / e.recipeTicks(e.recipe) : 0);
     if (e.kind === 'lab') {
       const t = g.world.research.currentTech;
@@ -596,6 +597,36 @@ export class Hud {
     el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte' + (e.kind === 'container' ? ' · ✕: Plätze sperren' : '');
   }
 
+  /** Filter eines schnellen Greifarms/Massengreifarms: Item in der Hand auf einen Platz = Filter setzen, Klick ohne Item = löschen. */
+  private inserterFilters(e: Extract<Entity, { kind: 'inserter' }>, body: HTMLElement): void {
+    const n = e.def.filterSlots ?? 0;
+    const head = el('div', 'slot-head', body);
+    el('span', 'label', head).textContent = 'Filter';
+    const mode = el('button', 'small-btn', head);
+    mode.textContent = e.filterBlacklist ? 'Negativliste' : 'Positivliste';
+    mode.title = 'Positivliste: nur diese Items · Negativliste: alles außer diesen';
+    mode.onclick = () => {
+      e.filterBlacklist = !e.filterBlacklist;
+      this.entWin.dataset.key = '';
+      this.buildEntity();
+    };
+    const r = el('div', 'slot-row', body);
+    for (let i = 0; i < n; i++) {
+      const s = el('div', 'slot filter-slot', r);
+      const f = e.filters[i];
+      if (f) s.appendChild(this.icon(`item.${f}`));
+      s.title = f ? `${ITEMS[f]?.name ?? f} – Klick ohne Item entfernt` : 'Item in der Hand: als Filter setzen';
+      s.onclick = () => {
+        const ci = this.game.cursorItem;
+        while (e.filters.length < n) e.filters.push(null);
+        e.filters[i] = ci ?? null;
+        this.entWin.dataset.key = '';
+        this.buildEntity();
+      };
+    }
+    el('div', 'dim', body).textContent = e.filters.some((x) => x) ? '' : 'Kein Filter: der Greifarm nimmt alles.';
+  }
+
   /** Begrenzungsmodus der Kiste: nächster Klick auf einen Platz setzt die Grenze. */
   private barMode = false;
 
@@ -623,7 +654,7 @@ export class Hud {
   }
 
   private entityKey(e: Entity): string {
-    const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|');
+    const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|') + (e.kind === 'inserter' ? JSON.stringify(e.filters) + e.filterBlacklist : '');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
     const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
     const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');

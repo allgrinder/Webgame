@@ -897,7 +897,7 @@ export class GameRenderer {
         break;
       }
       case 'rail': {
-        const key = e.def.shape === 'straight' ? `rail.straight.${e.dir % 2}` : `rail.curve.${e.dir}`;
+        const key = railKey(e.def.shape, e.dir);
         if (s.has(key)) {
           const sp = this.ents.get(s.frame(key));
           sp.position.set(cx, cy);
@@ -1183,7 +1183,7 @@ export class GameRenderer {
         case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
         case 'rail': {
-          const k = def.shape === 'straight' ? `rail.straight.${g.dir % 2}` : `rail.curve.${g.dir}`;
+          const k = railKey(def.shape, g.dir);
           tex = this.sprites.frame(this.sprites.has(k) ? k : 'item.rail');
           break;
         }
@@ -1672,3 +1672,14 @@ const STATUS_COLORS: Partial<Record<Status, number>> = {
 };
 
 export { Shape };
+
+/** Sprite eines Gleisstücks. */
+function railKey(shape: string, dir: number): string {
+  switch (shape) {
+    case 'straight': return `rail.straight.${dir % 2}`;
+    case 'curve': return `rail.curve.${dir}`;
+    case 'diagonal': return `rail.diag.${dir}`;
+    case 'half': return `rail.half.${dir}`;
+    default: return `rail.halfm.${dir}`;
+  }
+}

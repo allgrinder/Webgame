@@ -69,6 +69,29 @@ def curved_rail(m):
     return eisen.parent_all(o, 'crail')
 
 
+def diagonal_rail(m):
+    """Diagonalstück dir 0 im 2×2-Block: Spiel (0,1)→(1,0) (schneidet die linke obere Ecke)."""
+    ballast, sleeper, rail = _mats()
+    o = []
+    _track([(-1.0, 0.0), (0.0, 1.0)], None, ballast, sleeper, rail, o)
+    return eisen.parent_all(o, 'drail')
+
+
+def half_rail(m, mirror=False):
+    """45°-Übergang dir 0 im 2×4-Block: Spiel (1,4) nach Norden, Vorlauf 2−√2, Bogen r = 2+√2 bis (2,1) bzw. (0,1)."""
+    ballast, sleeper, rail = _mats()
+    r = 2 + math.sqrt(2)
+    lead = 2 - math.sqrt(2)
+    s = -1 if mirror else 1
+    pts = [(1, 4)]
+    for i in range(25):
+        a = (i / 24) * math.pi / 4
+        pts.append((1 + s * (r - r * math.cos(a)), 4 - lead - r * math.sin(a)))
+    o = []
+    _track([(gx - 1, -(gy - 2)) for gx, gy in pts], None, ballast, sleeper, rail, o)
+    return eisen.parent_all(o, 'hrail')
+
+
 def locomotive(m):
     """Lokomotive 2×6, Fahrtrichtung Norden (+y)."""
     body = anlagen.paint('#8a2f24', 'b_loco')

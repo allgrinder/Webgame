@@ -1,3 +1,4 @@
+import type { RailDef } from '../data/entities';
 import type { Entity } from './machines';
 import type { World } from './world';
 
@@ -25,15 +26,83 @@ export interface RailPiece {
   pose(s: number): Pose;
 }
 
+export type RailShape = RailDef['shape'];
+
 const R = 3;
 const CURVE_LEN = (Math.PI / 2) * R;
+const S2 = Math.SQRT1_2;
+/** 45°-Übergang: Vorlauf geradeaus, dann Bogen mit Radius 2+√2 (endet genau auf dem Diagonal-Raster). */
+const HALF_R = 2 + Math.SQRT2;
+const HALF_LEAD = 2 - Math.SQRT2;
+const HALF_ARC = (HALF_R * Math.PI) / 4;
 
-/** Drehung im 4×4-Block um die Mitte (dir Schritte im Uhrzeigersinn, y nach unten). */
-function rot(lx: number, ly: number, dir: number): [number, number] {
-  let x = lx;
-  let y = ly;
-  for (let k = 0; k < dir; k++) [x, y] = [4 - y, x];
-  return [x, y];
+interface LocalPose { x: number; y: number; dx: number; dy: number }
+interface LocalShape {
+  w: number;
+  h: number;
+  length: number;
+  ends: [LocalPose, LocalPose];
+  at(s: number): LocalPose;
+}
+
+/** Grundformen in Richtung 0 (Blockkoordinaten, y nach Süden); Enden mit Richtung nach außen. */
+function localShape(shape: RailShape): LocalShape {
+  switch (shape) {
+    case 'straight':
+      return {
+        w: 2, h: 2, length: 2,
+        ends: [{ x: 1, y: 0, dx: 0, dy: -1 }, { x: 1, y: 2, dx: 0, dy: 1 }],
+        at: (s) => ({ x: 1, y: s, dx: 0, dy: 1 }),
+      };
+    case 'curve': {
+      // Mittelpunkt (4,4), von (1,4) (nach Süden offen) bis (4,1) (nach Osten offen)
+      return {
+        w: 4, h: 4, length: CURVE_LEN,
+        ends: [{ x: 1, y: 4, dx: 0, dy: 1 }, { x: 4, y: 1, dx: 1, dy: 0 }],
+        at: (s) => {
+          const ang = Math.PI + (s / CURVE_LEN) * (Math.PI / 2);
+          return { x: 4 + R * Math.cos(ang), y: 4 + R * Math.sin(ang), dx: -Math.sin(ang), dy: Math.cos(ang) };
+        },
+      };
+    }
+    case 'diagonal':
+      // schneidet die linke obere Ecke: linke Kantenmitte (0,1) → obere Kantenmitte (1,0)
+      return {
+        w: 2, h: 2, length: Math.SQRT2,
+        ends: [{ x: 0, y: 1, dx: -S2, dy: S2 }, { x: 1, y: 0, dx: S2, dy: -S2 }],
+        at: (s) => ({ x: s * S2, y: 1 - s * S2, dx: S2, dy: -S2 }),
+      };
+    case 'half':
+    case 'half-mirror': {
+      // 2×4: von (1,4) nach Norden, Vorlauf, dann 45°-Bogen bis (2,1) Richtung Nordost (gespiegelt: (0,1), Nordwest)
+      const m = shape === 'half' ? 1 : -1;
+      const cx = 1 + m * HALF_R;
+      const cy = 4 - HALF_LEAD;
+      return {
+        w: 2, h: 4, length: HALF_LEAD + HALF_ARC,
+        ends: [{ x: 1, y: 4, dx: 0, dy: 1 }, { x: 1 + m, y: 1, dx: m * S2, dy: -S2 }],
+        at: (s) => {
+          if (s <= HALF_LEAD) return { x: 1, y: 4 - s, dx: 0, dy: -1 };
+          const a = ((s - HALF_LEAD) / HALF_R);
+          // Winkel vom Mittelpunkt aus: Start genau westlich (bzw. östlich) des Mittelpunkts
+          return { x: cx - m * HALF_R * Math.cos(a), y: cy - HALF_R * Math.sin(a), dx: m * Math.sin(a), dy: -Math.cos(a) };
+        },
+      };
+    }
+  }
+}
+
+/** Drehung eines Punkts im w×h-Block um dir Vierteldrehungen im Uhrzeigersinn (y nach unten). */
+function rotP(x: number, y: number, w: number, h: number, dir: number): [number, number] {
+  let px = x;
+  let py = y;
+  let bw = w;
+  let bh = h;
+  for (let k = 0; k < dir; k++) {
+    [px, py] = [bh - py, px];
+    [bw, bh] = [bh, bw];
+  }
+  return [px, py];
 }
 function rotV(vx: number, vy: number, dir: number): [number, number] {
   let x = vx;
@@ -43,41 +112,22 @@ function rotV(vx: number, vy: number, dir: number): [number, number] {
 }
 
 /** Geometrie eines Gleis-Gebäudes. */
-export function railPiece(e: { id: number; x: number; y: number; dir: number; shape: 'straight' | 'curve' }): RailPiece {
-  if (e.shape === 'straight') {
-    const vertical = e.dir % 2 === 0;
-    const a: RailEnd = vertical ? { x: e.x + 1, y: e.y, ox: 0, oy: -1 } : { x: e.x, y: e.y + 1, ox: -1, oy: 0 };
-    const b: RailEnd = vertical ? { x: e.x + 1, y: e.y + 2, ox: 0, oy: 1 } : { x: e.x + 2, y: e.y + 1, ox: 1, oy: 0 };
-    return {
-      id: e.id,
-      ends: [a, b],
-      length: 2,
-      pose: (s) => ({ x: a.x - a.ox * s, y: a.y - a.oy * s, dx: -a.ox, dy: -a.oy }),
-    };
-  }
-  // Bogen dir 0: Mittelpunkt (4,4), von (1,4) (nach Süden offen) bis (4,1) (nach Osten offen)
-  const d = e.dir;
-  const local = (t: number) => {
-    const ang = Math.PI + (t * Math.PI) / 2;
-    return { x: 4 + R * Math.cos(ang), y: 4 + R * Math.sin(ang), tx: -Math.sin(ang), ty: Math.cos(ang) };
+export function railPiece(e: { id: number; x: number; y: number; dir: number; shape: RailShape }): RailPiece {
+  // gerade Gleise: nur zwei Lagen; waagerecht wie bisher mit Ende 0 im Westen (Spielstände)
+  const d = e.shape === 'straight' ? (e.dir % 2 === 0 ? 0 : 3) : e.dir;
+  const L = localShape(e.shape);
+  const place = (p: LocalPose): Pose => {
+    const [x, y] = rotP(p.x, p.y, L.w, L.h, d);
+    const [dx, dy] = rotV(p.dx, p.dy, d);
+    return { x: e.x + x, y: e.y + y, dx, dy };
   };
-  const [ax, ay] = rot(1, 4, d);
-  const [aox, aoy] = rotV(0, 1, d);
-  const [bx, by] = rot(4, 1, d);
-  const [box, boy] = rotV(1, 0, d);
+  const a = place(L.ends[0]);
+  const b = place(L.ends[1]);
   return {
     id: e.id,
-    ends: [
-      { x: e.x + ax, y: e.y + ay, ox: aox, oy: aoy },
-      { x: e.x + bx, y: e.y + by, ox: box, oy: boy },
-    ],
-    length: CURVE_LEN,
-    pose: (s) => {
-      const p = local(s / CURVE_LEN);
-      const [px, py] = rot(p.x, p.y, d);
-      const [tx, ty] = rotV(p.tx, p.ty, d);
-      return { x: e.x + px, y: e.y + py, dx: tx, dy: ty };
-    },
+    ends: [{ x: a.x, y: a.y, ox: a.dx, oy: a.dy }, { x: b.x, y: b.y, ox: b.dx, oy: b.dy }],
+    length: L.length,
+    pose: (s) => place(L.at(Math.max(0, Math.min(L.length, s)))),
   };
 }
 

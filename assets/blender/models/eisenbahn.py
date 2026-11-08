@@ -33,6 +33,21 @@ def render(out):
         eisen.camera(4.25, 4.25)
         name = f'rail.curve.{d}'
         out.add(name, 'entities', [out.render_frame(name, 0)], (0.5, 0.5))
+    for d in ALL:
+        eisen.reset(samples=32)
+        root = bahn.diagonal_rail(anlagen.Mats())
+        eisen.rotate_root(root, d)
+        eisen.camera(3.25, 3.25)
+        name = f'rail.diag.{d}'
+        out.add(name, 'entities', [out.render_frame(name, 0)], (0.5, 0.5))
+    for key, mirror in (('half', False), ('halfm', True)):
+        for d in ALL:
+            eisen.reset(samples=32)
+            root = bahn.half_rail(anlagen.Mats(), mirror)
+            eisen.rotate_root(root, d)
+            eisen.camera(*((3.5, 4.75) if d % 2 == 0 else (4.75, 3.5)))
+            name = f'rail.{key}.{d}'
+            out.add(name, 'entities', [out.render_frame(name, 0)], (0.5, 0.5))
     for kind, fn in (('locomotive', bahn.locomotive), ('cargo-wagon', bahn.cargo_wagon)):
         for k in range(16):
             name = f'{kind}.{k}'

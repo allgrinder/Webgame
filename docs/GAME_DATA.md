@@ -299,6 +299,12 @@ Höchsttempo 1,2 × Bonus; Bremsen v − Bremskraft/Gewicht. Lok 2000 / 0,0075 /
 Lok 600 kW, 3 Brennstoffplätze; Güterwagen 40 Plätze; Abstand 7. Schiene: 1 Stein + 1 Eisenstange + 1 Stahl → 2.
 Bogen 4 Schienen (1.1-Wert, Bögen hier vereinfacht). Lok: 10 Schaltkreise + 20 Motoren + 30 Stahl, 4 s.
 
+Diagonale Gleise (Wunsch 08.11.2026, Geometrie eigener Entwurf, Quelle 3): Gleisknoten liegen auf den Kantenmitten des
+2er-Rasters. Diagonalstück 2×2 (schneidet eine Ecke, Länge √2, 1 Schiene), 45°-Übergang 2×4 (Vorlauf 2−√2, Bogen
+r = 2+√2, endet genau auf einem Diagonalknoten; 2 Schienen, auch gespiegelt). Bedienung: Tab wechselt die Gleisform,
+R dreht; beim Diagonalgleis folgt die Ecke der Maus, Ziehen ergibt die Treppe. Das Original (2.0) hat andere Stücke
+(Bögen A/B, halbe Diagonalen); Übernahme nur des Prinzips „gerade – 45° – diagonal“.
+
 ## Raketensilo (Quelle: Wiki „Rocket silo“, „Satellite“, Infobox „Cargo landing pad“)
 
 Silo 9×9, 4 MW, Tempo 1, 4 Module; Raketenteil 10 Leichtbauteile + 10 Prozessoren + 10 Raketentreibstoff, 3 s;

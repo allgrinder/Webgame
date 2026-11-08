@@ -26,6 +26,14 @@ type HistoryEntry =
   | { type: 'remove'; name: string; x: number; y: number; dir: Dir };
 const MAX_STEPS_PER_FRAME = 5;
 
+/** Gleisformen beim Bauen (Tab) mit Anzahl der Lagen (R). */
+const RAIL_GROUPS = [
+  { name: 'gerade', vars: 2 },
+  { name: 'Bogen', vars: 4 },
+  { name: 'Diagonale', vars: 2 },
+  { name: 'Übergang gerade↔diagonal', vars: 8 },
+];
+
 export class Game {
   world: World;
   creative: boolean;
@@ -37,8 +45,10 @@ export class Game {
   cursorItem: string | null = null;
   /** Drahtwerkzeug (G): Farbe und erster gewählter Anschluss. */
   wireTool: 'red' | 'green' | null = null;
-  /** Gleisform beim Bauen (R): 0/1 gerade senkrecht/waagerecht, 2–5 Bögen. */
-  railShape = 0;
+  /** Gleisform beim Bauen (Tab): 0 gerade, 1 Bogen, 2 Diagonale, 3 Übergang gerade→diagonal. */
+  railGroup = 0;
+  /** Lage innerhalb der Form (R). */
+  railVar = 0;
   wireFrom: { id: number; side: 0 | 1 } | null = null;
   /** Blaupause im Cursor (Strg+V, Bibliothek); Klick legt Geister ab. */
   cursorBlueprint: Blueprint | null = null;
@@ -312,12 +322,22 @@ export class Game {
         const m = this.mouseWorld();
         const e = this.world.entityAt(m.x, m.y);
         const rev = shift;
-        if (this.cursorItem === 'rail') this.railShape = (this.railShape + (rev ? 5 : 1)) % 6;
+        if (this.cursorItem === 'rail') {
+          const n = RAIL_GROUPS[this.railGroup].vars;
+          this.railVar = (this.railVar + (rev ? n - 1 : 1)) % n;
+        }
         else if (!this.cursorItem && e && entityDef(e.name).rotatable) {
           this.world.rotate(e.id, rotCW(e.dir, rev ? 3 : 1));
         } else this.buildDir = rotCW(this.buildDir, rev ? 3 : 1);
         break;
       }
+      case 'tab':
+        if (this.cursorItem === 'rail') {
+          this.railGroup = (this.railGroup + (shift ? RAIL_GROUPS.length - 1 : 1)) % RAIL_GROUPS.length;
+          this.railVar = 0;
+          this.world.player?.note(`Gleisform: ${RAIL_GROUPS[this.railGroup].name} (Tab wechselt, R dreht)`);
+        }
+        break;
       case 'q': this.pipette(); break;
       case 'e': this.hud.toggleInventory(); break;
       case 't': this.hud.toggleResearch(); break;
@@ -441,9 +461,23 @@ export class Game {
     let place = ITEMS[item]?.placeResult;
     if (!place) return null;
     let dir = this.buildDir;
+    let railCorner: ((x: number, y: number) => Dir) | null = null;
     if (item === 'rail') {
-      place = this.railShape < 2 ? 'straight-rail' : 'curved-rail';
-      dir = (this.railShape < 2 ? this.railShape : this.railShape - 2) as Dir;
+      const v = this.railVar % RAIL_GROUPS[this.railGroup].vars;
+      switch (this.railGroup) {
+        case 0: place = 'straight-rail'; dir = v as Dir; break;
+        case 1: place = 'curved-rail'; dir = v as Dir; break;
+        case 2:
+          // Diagonale: Lage „/“ oder „\“, die Ecke folgt der Maus im 2×2-Feld (so entsteht beim Ziehen eine Treppe)
+          place = 'diagonal-rail';
+          railCorner = (x, y) => {
+            const u = m.x - x;
+            const w = m.y - y;
+            return (v === 0 ? (u + w < 2 ? 0 : 2) : (u > w ? 1 : 3)) as Dir;
+          };
+          break;
+        default: place = v < 4 ? 'half-rail' : 'half-rail-mirror'; dir = (v % 4) as Dir;
+      }
     }
     const def = entityDef(place);
     if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < (def.itemCount ?? 1)) return null;
@@ -454,6 +488,7 @@ export class Game {
     if (def.kind === 'rail' || def.kind === 'train-stop') {
       x = Math.round((m.x - w / 2) / 2) * 2;
       y = Math.round((m.y - h / 2) / 2) * 2;
+      if (railCorner) dir = railCorner(x, y);
     }
     const chk = this.world.canPlace(place, x, y, dir);
     let ok = chk.ok;

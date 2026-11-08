@@ -131,10 +131,13 @@ export interface CombinatorDef extends EntityBase {
   readonly energyUsage: number;
 }
 
-/** Gleis: gerade 2×2 (dir 0 senkrecht, 1 waagerecht) oder Bogen 4×4 (dir 0–3). */
+/**
+ * Gleis: gerade 2×2 (dir 0 senkrecht, 1 waagerecht), Bogen 4×4 (dir 0–3), Diagonalstück 2×2 (dir = abgeschnittene
+ * Ecke, 0 = links oben, im Uhrzeigersinn) oder 45°-Übergang 2×4 (gerade → diagonal, auch gespiegelt).
+ */
 export interface RailDef extends EntityBase {
   readonly kind: 'rail';
-  readonly shape: 'straight' | 'curve';
+  readonly shape: 'straight' | 'curve' | 'diagonal' | 'half' | 'half-mirror';
 }
 
 /** Bahnhof 2×2 neben dem Gleis (rechts in Fahrtrichtung). */
@@ -609,6 +612,18 @@ const list: EntityDef[] = [
   {
     kind: 'rail', id: 'curved-rail', name: 'Gleisbogen', width: 4, height: 4, health: 200,
     item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'curve', itemCount: 4,
+  },
+  {
+    kind: 'rail', id: 'diagonal-rail', name: 'Diagonalgleis', width: 2, height: 2, health: 200,
+    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'diagonal',
+  },
+  {
+    kind: 'rail', id: 'half-rail', name: 'Gleisübergang', width: 2, height: 4, health: 200,
+    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'half', itemCount: 2,
+  },
+  {
+    kind: 'rail', id: 'half-rail-mirror', name: 'Gleisübergang', width: 2, height: 4, health: 200,
+    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'half-mirror', itemCount: 2,
   },
   {
     kind: 'train-stop', id: 'train-stop', name: 'Bahnhof', width: 2, height: 2, health: 250,

@@ -368,7 +368,7 @@ export class Player {
       this.mineTotal = this.mineTicks(kind.mineTime);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
-        world.events.push('tree', tree.x, tree.y);
+        world.events.push('tree', tree.x, tree.y, { item: 'wood' });
         if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
@@ -445,7 +445,7 @@ export class Player {
       this.mineTotal = secondsToTicks(def.miningTime / (PLAYER.miningSpeed * (1 + this.miningBonus) * PLAYER.handMiningFactor));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
-        world.events.push('mine', t.x + 0.5, t.y + 0.5);
+        world.events.push('mine', t.x + 0.5, t.y + 0.5, { item: def.result });
         if (world.map.mineOne(t.x, t.y)) {
           this.inventory.add(def.result, 1);
           world.stats.made(def.result, 1);
@@ -466,7 +466,7 @@ export class Player {
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         const rec = { name: e.name, x: e.x, y: e.y, dir: e.dir };
-        world.events.push('remove', e.cx, e.cy);
+        world.events.push('remove', e.cx, e.cy, { item: def.item });
         if (this.pickUpEntity(world, t.id)) this.minedLog.push(rec);
         this.mineTarget = null;
       }

@@ -82,4 +82,19 @@ export class SpritePool {
   end(): void {
     for (let i = this.n; i < this.pool.length; i++) this.pool[i].visible = false;
   }
+
+  /** Anzahl bisher in diesem Bild benutzter Sprites. */
+  get used(): number {
+    return this.n;
+  }
+
+  /** i-tes benutztes Sprite. */
+  at(i: number): Sprite {
+    return this.pool[i];
+  }
+
+  /** In diesem Bild benutzte Sprites (nach end()). */
+  forEachUsed(fn: (s: Sprite) => void): void {
+    for (let i = 0; i < this.n; i++) fn(this.pool[i]);
+  }
 }

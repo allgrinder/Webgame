@@ -1,5 +1,5 @@
 import type { Texture } from 'pixi.js';
-import { EMITTERS, FX, type FxKind } from '../data/fx';
+import { EMITTERS, FX, type FxKind, LIFE } from '../data/fx';
 import { Status } from '../sim/entity';
 import type { GameEvent } from '../sim/events';
 import type { World } from '../sim/world';
@@ -35,7 +35,10 @@ export class Effects {
   private readonly tex: Record<FxKind, Texture[]>;
   readonly enabled: boolean;
 
-  constructor(sprites: SpriteLib, private readonly pool: SpritePool, private readonly addPool: SpritePool, private readonly tile: number) {
+  /** Abgebaute Items auf dem Weg zur Figur. */
+  private readonly flying: { tex: Texture; x: number; y: number; age: number; delay: number }[] = [];
+
+  constructor(private readonly sprites: SpriteLib, private readonly pool: SpritePool, private readonly addPool: SpritePool, private readonly tile: number) {
     const list = (prefix: string) => {
       const out: Texture[] = [];
       for (let i = 0; sprites.has(`${prefix}.${i}`); i++) out.push(sprites.frame(`${prefix}.${i}`));
@@ -120,6 +123,27 @@ export class Effects {
       s.tint = q.tint;
     }
     this.parts.length = n;
+    // Items fliegen im Bogen zur Figur und werden dabei kleiner
+    const pl = world.player;
+    let m = 0;
+    for (const f of this.flying) {
+      f.age += dt;
+      const t = (f.age - f.delay) / LIFE.flySeconds;
+      if (t >= 1 || !pl) continue;
+      this.flying[m++] = f;
+      if (t < 0) continue;
+      const e = t * t * (3 - 2 * t);
+      const tx = pl.px / 256;
+      const ty = pl.py / 256 - 0.6;
+      const x = f.x + (tx - f.x) * e;
+      const y = f.y + (ty - f.y) * e - Math.sin(Math.PI * t) * LIFE.flyArc;
+      const s = this.pool.get(f.tex);
+      s.position.set(x * T, y * T);
+      s.scale.set((LIFE.flySize * (1 - 0.45 * t) * T) / f.tex.width);
+      s.alpha = t > 0.85 ? (1 - t) / 0.15 : 1;
+      s.zIndex = 1e9;
+    }
+    this.flying.length = m;
     this.pool.end();
     this.addPool.end();
   }
@@ -180,11 +204,36 @@ export class Effects {
         case 'shot':
           this.burst('spark', ev.x, ev.y - 0.4, 1, 0.6, 0xffe0a0, 0.15, 0.7);
           break;
-        case 'tree':
-          this.burst('dust', ev.x, ev.y, 6, 1.5, 0x6a7a40, 0.8, 0.8);
+        case 'build': {
+          // Staubring entlang der Grundfläche (größere Gebäude: mehr Staub)
+          const w = ev.w ?? 1;
+          const h = ev.h ?? 1;
+          const n = Math.min(28, 4 + 2 * (w + h));
+          for (let i = 0; i < n && this.parts.length < FX.maxParticles; i++) {
+            const a = (i / n) * Math.PI * 2 + Math.random() * 0.3;
+            const ex = Math.cos(a);
+            const ey = Math.sin(a);
+            // Punkt auf dem Rand des Rechtecks in Richtung a
+            const k = 0.5 / Math.max(Math.abs(ex) / w, Math.abs(ey) / h);
+            this.burst('dust', ev.x + ex * k, ev.y + ey * k, 1, 0.1, 0x8a7a62, 0.8, 0.8 + 0.1 * Math.min(w, 4));
+            const q = this.parts[this.parts.length - 1];
+            if (q) {
+              q.vx = ex * (0.9 + Math.random() * 0.6) * 1.4;
+              q.vy = ey * (0.9 + Math.random() * 0.6) * 0.9 - 0.2;
+            }
+          }
           break;
-        case 'build':
-          this.burst('dust', ev.x, ev.y, 6, 1.2, 0x8a7a62, 0.7, 0.9);
+        }
+        case 'mine':
+        case 'remove':
+        case 'tree':
+          if (ev.item && this.sprites.has(`item.${ev.item}`)) {
+            const count = ev.type === 'tree' ? 3 : 1;
+            for (let i = 0; i < count; i++) {
+              this.flying.push({ tex: this.sprites.frame(`item.${ev.item}`), x: ev.x + (Math.random() - 0.5) * 0.4, y: ev.y + (Math.random() - 0.5) * 0.4, age: 0, delay: i * 0.08 });
+            }
+          }
+          if (ev.type === 'tree') this.burst('dust', ev.x, ev.y, 6, 1.5, 0x6a7a40, 0.8, 0.8);
           break;
         default:
           break;

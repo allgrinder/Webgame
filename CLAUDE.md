@@ -73,6 +73,10 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Phase J: Kleinteile neu (`lib/kleinteile.py`), Klippen (`GameMap.isCliff`, `models/cliffs.py`), Wurfgegenstände
   (`src/sim/capsules.ts`), Bodenbeläge (`src/data/floors.ts`, `GameMap.floorAt`, `models/floors.py`), bewegtes Wasser
   (Reflexe und Uferschaum in `models/water.py`). Klippen nur in neuen Karten (Einstellung `cliffs`).
+- Phase K: Forschungs-Boni/unendliche Forschung, Massen-/Filtergreifarm, Fässer, Leiche, Band im Schaltungsnetz,
+  Kernkraft (`src/sim/heat.ts`, `entities/nuclear.ts`, Modelle `lib/kernkraft.py`), diagonale Gleise (`src/sim/rails.ts`,
+  Tab wechselt Gleisform), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
+  Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

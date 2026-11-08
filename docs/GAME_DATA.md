@@ -437,3 +437,17 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 | Dampfturbine | 3×5, 5,82 MW, 60 Einheiten/s | Wiki „Steam turbine“ |
 | Heißdampf | eigene Flüssigkeit „Heißdampf (500 °C)“ statt Temperatur je Dampf (Vereinfachung) | – |
 | Wiederaufbereitung / Kovarex | 5 abgebrannte → 3 U-238 (60 s); 40 U-235 + 5 U-238 → 41 + 2 (60 s) | Wiki |
+
+## Nachtlicht, Hitzeflimmern, Leben beim Bauen (Wunsch 08.11.2026, nur Darstellung, Quelle 3)
+
+- Nachtlicht (`src/render/night.ts`, Werte `NIGHT` in `src/data/fx.ts`): Blender rendert zu Bild 0 jedes Gebäudes eine
+  Normal-Map (Kameraraum, `<name>.nrm`, Gruppe `normals`). Nachts werden die Gebäude damit in eine Bildschirmtextur
+  gespiegelt; ein Shader rechnet Mondlicht (Restlicht 0x2a3a5c, 86 % Abdunklung) plus bis zu 48 farbige Lichter:
+  Lampe Radius 10 (Wiki „Lamp“), Feuer 3,5, Reaktor 6, Figur 4, Taschenlampe als Kegel 60°/14 Felder in Blickrichtung,
+  Zugscheinwerfer 40°/18 Felder. Lichthöhe 1,6 Felder. Ergebnis wird mit der Welt multipliziert, Leuchten bleiben hell.
+- Hitzeflimmern (`src/render/haze.ts`, `HAZE`): Verzerrungskarte in Viertelauflösung über Schornsteinen arbeitender
+  Öfen/Kessel sowie über Reaktor und Wärmetauscher, 7 px, 3 aufsteigende Flecken je Quelle (1,6 s). Nur mit Leuchteffekten.
+- Rauch weicher: Lebensdauer 5 s, Endgröße 2,4 Felder, Deckkraft 0,88.
+- Leben beim Bauen (`src/render/life.ts`, `LIFE`): Aufspringen von 72 % mit Überschwingen (320 ms), Staubring entlang
+  der Grundfläche, abgebaute Items fliegen im Bogen zur Figur (0,42 s), Maschinen wackeln beim Anlaufen nach ≥ 1,5 s Pause
+  (4,5 %, 7 Hz, gedämpft, 0,7 s).

@@ -218,7 +218,7 @@ export class World {
     }
     if (!chk.ok && !force) return null;
     const e = this.create(this.nextId++, name, x, y, dir);
-    this.events.push('build', e.cx, e.cy);
+    this.events.push('build', e.cx, e.cy, { id: e.id, w: e.w, h: e.h });
     return e;
   }
 

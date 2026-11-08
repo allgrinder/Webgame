@@ -29,6 +29,22 @@ export class SpriteLib {
     for (const [name, info] of Object.entries(manifest.sprites)) {
       this.tex.set(name, info.frames.map((f) => all[f] ?? Texture.WHITE));
     }
+    // Normal-Maps („<name>.nrm“, Bild 0) für alle Bilder eines Sprites
+    for (const [name, list] of this.tex) {
+      const n = this.tex.get(`${name}.nrm`);
+      if (n?.[0] && n[0] !== Texture.WHITE) for (const t of list) this.normals.set(t, n[0]);
+    }
+  }
+
+  private readonly normals = new Map<Texture, Texture>();
+
+  /** Normal-Map zu einem Bild (für das Nachtlicht), sonst null. */
+  normalOf(t: Texture): Texture | null {
+    return this.normals.get(t) ?? null;
+  }
+
+  get hasNormals(): boolean {
+    return this.normals.size > 0;
   }
 
   has(name: string): boolean {

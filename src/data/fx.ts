@@ -31,7 +31,7 @@ export const EMITTERS: Readonly<Record<string, readonly Emitter[]>> = {
 
 /** Partikelwerte je Art: Lebensdauer (s), Steigen und Wind (Felder/s), Größe Anfang/Ende, Deckkraft. */
 export const FX = {
-  smoke: { life: 4.0, rise: 0.4, wind: 0.22, jitter: 0.06, size0: 0.5, size1: 1.9, alpha: 1.0 },
+  smoke: { life: 5.0, rise: 0.38, wind: 0.22, jitter: 0.07, size0: 0.45, size1: 2.4, alpha: 0.88 },
   dust: { life: 1.4, rise: 0.12, wind: 0.08, jitter: 0.15, size0: 0.35, size1: 1.0, alpha: 0.9 },
   spark: { life: 0.9, rise: 0.9, wind: 0.15, jitter: 0.35, size0: 0.55, size1: 0.2, alpha: 1.0 },
   /** Staub beim Handabbau (Partikel pro Sekunde). */
@@ -57,11 +57,56 @@ export const CLOUDS = {
 /** Nacht (nur Darstellung): Farbe und Deckkraft der Dunkelheit, Lichtradien in Feldern. */
 export const NIGHT = {
   color: 0x0a1428,
-  /** Deckkraft bei voller Dunkelheit. */
-  alpha: 0.82,
+  /** Abdunklung bei voller Dunkelheit (Anteil). */
+  alpha: 0.86,
+  /** Farbe des Restlichts (Mondlicht), mit der die Welt nachts multipliziert wird. */
+  ambient: 0x2a3a5c,
+  /** Kameraneigung der Blender-Renders (eisen.TILT) für die Bodennormale. */
+  tiltDeg: 30,
+  /** Höhe der Lichtquellen über dem Boden (Felder). */
+  lightHeight: 1.6,
   /** Lampe: Wiki „Lamp“ – mittlerer Bereich (Radius 10 Felder). */
   lampRadius: 10,
+  lampColor: 0xfff0d8,
   /** Leuchtende Gebäude (Ofen, Kessel) und Taschenlampe der Figur. */
-  fireRadius: 3,
-  playerRadius: 7,
+  fireRadius: 3.5,
+  fireColor: 0xff9a4a,
+  reactorRadius: 6,
+  reactorColor: 0x9cff9a,
+  playerRadius: 4,
+  playerColor: 0xd8e4ff,
+  /** Taschenlampe: Kegel in Blickrichtung (Messvorschlag). */
+  flashlightRange: 14,
+  flashlightAngle: 60,
+  flashlightColor: 0xfff6e0,
+  /** Zugscheinwerfer. */
+  headlightRange: 18,
+  headlightAngle: 40,
+} as const;
+
+/** Leben beim Bauen (reine Darstellung, Messvorschlag). */
+export const LIFE = {
+  /** Aufspringen beim Bauen: Startgröße und Dauer. */
+  popFrom: 0.72,
+  popMs: 320,
+  /** Anlauf-Wackeln: nach mindestens dieser Pause (ms), Stärke, Frequenz, Dämpfung, Dauer. */
+  wobbleAfterMs: 1500,
+  wobbleAmp: 0.045,
+  wobbleHz: 7,
+  wobbleDamp: 7,
+  wobbleSeconds: 0.7,
+  /** Abgebaute Items fliegen zur Figur (Sekunden, Bogenhöhe in Feldern, Größe in Feldern). */
+  flySeconds: 0.42,
+  flyArc: 1.2,
+  flySize: 0.55,
+} as const;
+
+/** Hitzeflimmern (nur Darstellung): Verzerrung in Bildpunkten, Auflösungsteiler, Flecken je Quelle, Steighöhe. */
+export const HAZE = {
+  strength: 7,
+  downscale: 4,
+  blobs: 3,
+  /** Sekunden je Aufstieg eines Flecks und Steighöhe in Feldern. */
+  period: 1.6,
+  rise: 1.8,
 } as const;

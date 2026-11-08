@@ -1,7 +1,9 @@
 // Asset-Pipeline: rendert geänderte Blender-Modelle neu und packt alles in Atlanten.
-// Aufruf: npm run assets [-- --force] [-- --only belt,ground] [-- --stamp]
+// Aufruf: npm run assets [-- --force] [-- --only belt,ground] [-- --stamp] [-- --reuse]
 // Ein Modell wird neu gerendert, wenn sich sein Skript oder eine der Bibliotheken ändert, die es (auch
 // mittelbar) importiert. --stamp übernimmt vorhandene Renderergebnisse ohne Neurendern (nach Umstellungen).
+// --reuse: Hat sich nur eine Bibliothek geändert, die die Farbbilder nicht beeinflusst (Stand im letzten Commit
+// passt zum Zwischenspeicher), werden vorhandene Bilder behalten und nur fehlende (z. B. Normal-Maps) gerendert.
 import { execFileSync, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -19,6 +21,7 @@ const PUBLIC = path.join(root, 'public/assets');
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const stamp = args.includes('--stamp');
+const reuse = args.includes('--reuse');
 const onlyIdx = args.indexOf('--only');
 const only = onlyIdx >= 0 ? new Set(args[onlyIdx + 1].split(',')) : null;
 
@@ -68,10 +71,18 @@ function depsOf(file, seen = new Set()) {
 
 const renderPy = path.join(BL, 'render.py');
 const baseDeps = depsOf(renderPy);
-function modelHash(m) {
+function modelHash(m, read = (f) => fs.readFileSync(f)) {
   const file = path.join(BL, 'models', `${m}.py`);
   const deps = [...new Set([...baseDeps, ...depsOf(file)])].sort();
-  return sha(fs.readFileSync(renderPy), ...deps.map((f) => path.relative(BL, f) + fs.readFileSync(f)), useVenv ? 'bpy' : 'blender', fs.readFileSync(file));
+  return sha(read(renderPy), ...deps.map((f) => path.relative(BL, f) + read(f)), useVenv ? 'bpy' : 'blender', read(file));
+}
+/** Hash mit dem Stand der Dateien im letzten Commit (für --reuse). */
+function committedHash(m) {
+  try {
+    return modelHash(m, (f) => execFileSync('git', ['show', `HEAD:${path.relative(root, f)}`], { cwd: root, maxBuffer: 1 << 26 }));
+  } catch {
+    return null;
+  }
 }
 const models = fs.readdirSync(path.join(BL, 'models')).filter((f) => f.endsWith('.py')).map((f) => f.slice(0, -3)).sort();
 
@@ -128,6 +139,9 @@ for (const m of models) {
   if (!force && cached) source = 'cache';
   else if (!force && inAtlas && !(only && wanted)) source = 'atlas';
   else if (!wanted && inAtlas) source = 'atlas';
+  // mit --only: nicht gewählte Modelle bleiben wie bisher (auch wenn sich eine Bibliothek geändert hat)
+  else if (!wanted && fs.existsSync(path.join(dir, 'sprites.json'))) source = 'cache';
+  else if (!wanted && oldManifest?.models?.[m]) source = 'atlas';
   else source = 'render';
   if (source === 'render') {
     if (!version) {
@@ -136,14 +150,25 @@ for (const m of models) {
       else process.exit(1);
     }
   }
+  // --reuse: Zwischenspeicher passt zum letzten Commit -> Bilder behalten, nur Fehlendes rendern
+  const keepDir = reuse && source === 'render' && fs.existsSync(path.join(dir, 'hash.txt'))
+    && fs.readFileSync(path.join(dir, 'hash.txt'), 'utf8') === committedHash(m);
+  if (keepDir) {
+    const list = JSON.parse(fs.readFileSync(path.join(dir, 'sprites.json'), 'utf8'));
+    if (!list.some((s) => s.group === 'entities')) {
+      // keine Gebäudebilder: nichts nachzurendern
+      fs.writeFileSync(path.join(dir, 'hash.txt'), hash);
+      source = 'cache';
+    }
+  }
   if (source === 'render') {
-    console.log(`> Rendere ${m} …`);
-    fs.rmSync(dir, { recursive: true, force: true });
+    console.log(`> Rendere ${m}${keepDir ? ' (nur Fehlendes)' : ''} …`);
+    if (!keepDir) fs.rmSync(dir, { recursive: true, force: true });
     const cmd = useVenv ? VENV_PY : 'blender';
     const cargs = useVenv
       ? [path.join(BL, 'render.py'), '--', '--model', m, '--out', dir]
       : ['-b', '--factory-startup', '-noaudio', '-P', path.join(BL, 'render.py'), '--', '--model', m, '--out', dir];
-    const r = spawnSync(cmd, cargs, { encoding: 'utf8', maxBuffer: 1 << 28 });
+    const r = spawnSync(cmd, cargs, { encoding: 'utf8', maxBuffer: 1 << 28, env: keepDir ? { ...process.env, EISEN_REUSE: '1' } : process.env });
     const log = (r.stdout ?? '') + (r.stderr ?? '');
     const done = log.split('\n').find((l) => l.startsWith('[eisenwerk]'));
     if (r.status !== 0 || !done) {

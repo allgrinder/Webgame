@@ -1,5 +1,5 @@
 import { FLOOR_BY_ID } from '../data/floors';
-import { Application, Container, Graphics, Texture } from 'pixi.js';
+import { Application, Container, type Filter, Graphics, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
@@ -22,6 +22,9 @@ import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
+import { EntityLife } from './life';
+import { HeatHaze } from './haze';
+import { HAZE } from '../data/fx';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
@@ -127,6 +130,11 @@ export class GameRenderer {
   private readonly cloudPool = new SpritePool();
   private clouds: CloudShadows | null = null;
   private night: NightLayer | null = null;
+  private readonly life = new EntityLife();
+  private haze: HeatHaze | null = null;
+  /** Filter der Welt ohne Hitzeflimmern. */
+  private rootFilters: Filter[] = [];
+  private hazeOn = false;
   /** Blickrichtung der Figur (0..7, 0 = Norden, im Uhrzeigersinn). */
   private playerDir = 4;
   private readonly icons = new SpritePool();
@@ -273,6 +281,12 @@ export class GameRenderer {
       }
       this.groundLayer.filters = [gradeFilter(LOOK.ground)];
       this.root.filters = [gradeFilter(LOOK.world)];
+      this.rootFilters = [...(this.root.filters as Filter[])];
+      // Hitzeflimmern nur mit eingeschalteten Leuchteffekten (Leistung)
+      if (bloomEnabled()) {
+        this.haze = new HeatHaze(this.app.renderer, TILE);
+        this.root.addChild(this.haze.mapSprite);
+      }
     }
     this.root.addChild(
       this.groundLayer,
@@ -282,11 +296,13 @@ export class GameRenderer {
       this.wireShadows,
       this.shadows.container,
       this.ents.container,
-      this.glow.container,
       this.fxPool.container,
+      this.wires,
+      // Nachtlicht multipliziert alles darunter; Leuchten und Funken bleiben darüber hell
+      this.night!.sprite,
+      this.glow.container,
       this.fxAddPool.container,
       this.cloudPool.container,
-      this.wires,
       this.ghostSprites.container,
       this.altBg,
       this.icons.container,
@@ -326,6 +342,7 @@ export class GameRenderer {
 
   /** Ereignisse der Simulation (Explosionen usw.) an die Effekte geben. */
   onEvents(events: readonly GameEvent[]): void {
+    for (const ev of events) if (ev.type === 'build' && ev.id !== undefined) this.life.built(ev.id);
     this.effects?.onEvents(events);
   }
 
@@ -344,11 +361,20 @@ export class GameRenderer {
     this.effects?.update(world, alpha, view);
     this.clouds?.update(world, alpha, view);
     if (this.night) {
-      // Dunkelheit über der Welt, aber unter Bauvorschau, Symbolen und Overlay
-      if (!this.night.sprite.parent) this.root.addChildAt(this.night.sprite, this.root.getChildIndex(this.ghostSprites.container));
-      this.night.update(world, c, w, h);
+      // Nachtlicht über Gebäuden und Rauch, unter Leuchten, Bauvorschau, Symbolen und Overlay
+      const a = (this.playerDir * Math.PI) / 4;
+      this.night.update(world, c, w, h, this.root, this.ents, { x: Math.sin(a), y: -Math.cos(a) });
       this.night.sprite.position.set(-this.root.x / c.zoom, -this.root.y / c.zoom);
       this.night.sprite.scale.set(1 / c.zoom);
+    }
+    if (this.haze) {
+      this.haze.update(world, c, w, h, (world.tick + alpha) / 60);
+      this.haze.mapSprite.position.set(-this.root.x / c.zoom, -this.root.y / c.zoom);
+      this.haze.mapSprite.scale.set(HAZE.downscale / c.zoom);
+      if (this.haze.active !== this.hazeOn) {
+        this.hazeOn = this.haze.active;
+        this.root.filters = this.hazeOn ? [this.haze.filter, ...this.rootFilters] : this.rootFilters;
+      }
     }
     this.drawOverlay(world, ui);
   }
@@ -796,12 +822,21 @@ export class GameRenderer {
     this.icons.begin();
     let n = 0;
     const blink = Math.floor((world.tick + alpha) / 30) % 2 === 0;
+    const now = performance.now();
     for (const e of this.visibleEntities(world, v)) {
       if (e.kind === 'belt') continue;
       n++;
       const cx = e.cx * TILE;
       const cy = e.cy * TILE;
+      const e0 = this.ents.used;
+      const g0 = this.glow.used;
       this.drawEntity(e, cx, cy, world, alpha);
+      // Aufspringen beim Bauen, Wackeln beim Anlaufen
+      const k = this.life.scaleOf(e, now);
+      if (k) {
+        for (let i = e0; i < this.ents.used; i++) EntityLife.apply(this.ents.at(i), k[0], k[1]);
+        for (let i = g0; i < this.glow.used; i++) EntityLife.apply(this.glow.at(i), k[0], k[1]);
+      }
       if (blink && (e.status === Status.NoFuel || e.status === Status.OutputBlocked)) {
         const icon = this.icons.get(s.frame(e.status === Status.NoFuel ? 'icon.nofuel' : 'icon.blocked'));
         icon.position.set(cx, cy);

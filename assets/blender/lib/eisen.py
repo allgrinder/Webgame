@@ -82,6 +82,8 @@ def camera(canvas_w, canvas_h, anchor=(0.5, 0.5), target=(0.0, 0.0, 0.0), tilt=T
 
 
 def render_to(path):
+    if os.environ.get('EISEN_REUSE') and os.path.exists(path):
+        return  # vorhandenes Bild behalten (Pipeline --reuse)
     s = bpy.context.scene
     os.makedirs(os.path.dirname(path), exist_ok=True)
     s.render.filepath = path
@@ -281,6 +283,66 @@ def all_mesh_objects():
             and o.visible_camera]
 
 
+# --------------------------------------------------------------------------- Normal-Maps
+
+_NO_NORMALS = ('item.', 'fx.', 'cloud', 'ground', 'water', 'res.', 'decal', 'icon', 'flora', 'cliff', 'floor', 'belt.',
+               'fast-belt.', 'express-belt.')
+
+
+def wants_normals(sprite):
+    """Normal-Maps nur für Gebäude/Fahrzeuge (nicht für Schatten, Symbole, Boden, Effekte)."""
+    return not sprite.endswith('.shadow') and not sprite.startswith(_NO_NORMALS)
+
+
+def _normal_material():
+    mat = bpy.data.materials.get('eisen_normals')
+    if mat:
+        return mat
+    mat = bpy.data.materials.new('eisen_normals')
+    mat.use_nodes = True
+    nt = mat.node_tree
+    n = nt.nodes
+    L = nt.links
+    for x in list(n):
+        n.remove(x)
+    geo = n.new('ShaderNodeNewGeometry')
+    vt = n.new('ShaderNodeVectorTransform')
+    vt.vector_type = 'NORMAL'
+    vt.convert_from = 'WORLD'
+    vt.convert_to = 'CAMERA'
+    # Kameraraum: x rechts, y oben, z in die Szene -> gespeichert (x, y, -z) * 0,5 + 0,5 (zur Kamera = blau)
+    mul = n.new('ShaderNodeVectorMath')
+    mul.operation = 'MULTIPLY_ADD'
+    mul.inputs[1].default_value = (0.5, 0.5, -0.5)
+    mul.inputs[2].default_value = (0.5, 0.5, 0.5)
+    em = n.new('ShaderNodeEmission')
+    out = n.new('ShaderNodeOutputMaterial')
+    L.new(geo.outputs['Normal'], vt.inputs[0])
+    L.new(vt.outputs[0], mul.inputs[0])
+    L.new(mul.outputs[0], em.inputs['Color'])
+    L.new(em.outputs[0], out.inputs['Surface'])
+    return mat
+
+
+def render_normals(path):
+    """Gleiches Bild noch einmal als Normal-Map (Material-Override, linear, wenige Samples)."""
+    s = bpy.context.scene
+    vl = bpy.context.view_layer
+    old = (vl.material_override, s.cycles.samples, s.cycles.use_denoising, s.view_settings.view_transform,
+           s.view_settings.look, s.cycles.film_transparent_glass)
+    vl.material_override = _normal_material()
+    s.cycles.samples = 4
+    s.cycles.use_denoising = False
+    s.view_settings.view_transform = 'Raw'
+    s.view_settings.look = 'None'
+    s.cycles.film_transparent_glass = False
+    try:
+        render_to(path)
+    finally:
+        (vl.material_override, s.cycles.samples, s.cycles.use_denoising, s.view_settings.view_transform,
+         s.view_settings.look, s.cycles.film_transparent_glass) = old
+
+
 # --------------------------------------------------------------------------- Ausgabe
 
 class Output:
@@ -303,6 +365,11 @@ class Output:
         if meta:
             d['meta'] = meta
         self.sprites.append(d)
+        # Normal-Map (Bild 0) für das Nachtlicht: eigener Sprite „<name>.nrm“ in der Gruppe normals
+        nrm = frames[0][:-4] + '.nrm.png' if frames else None
+        if group == 'entities' and nrm and os.path.exists(nrm):
+            self.sprites.append({'name': sprite + '.nrm', 'group': 'normals', 'frames': [os.path.relpath(nrm, self.out_dir)],
+                                 'anchor': list(anchor)})
 
     def add_sheet(self, path, cols, rows, name_fmt, group, anchor=(0.5, 0.5)):
         """Ein großes Bild, das die Pipeline in cols×rows Einzelsprites schneidet.
@@ -313,6 +380,8 @@ class Output:
     def render_frame(self, sprite, i):
         p = self.frame_path(sprite, i)
         render_to(p)
+        if i == 0 and wants_normals(sprite):
+            render_normals(p[:-4] + '.nrm.png')
         return p
 
     def finish(self):

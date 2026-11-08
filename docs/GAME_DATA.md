@@ -392,3 +392,26 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 |---|---|---|
 | Begrenzung („rotes X“) | Plätze ab der Grenze werden von Greifarmen, Robotern und beim Einlegen nicht befüllt; vorhandener Inhalt bleibt entnehmbar; gespeichert und in Blaupausen übernommen | Wiki „Wooden chest“/„Inventory“ (Inventarbegrenzung) |
 | Kistenfenster | Raster mit 10 Spalten wie das Spielerinventar; solange ein Gebäude offen ist, ist das Handwerk ausgeblendet | Original-Oberfläche |
+
+## Forschungs-Boni, Greifarme, Fässer, Leiche, Band im Schaltungsnetz (Wunsch 08.11.2026)
+
+| Wert | Eisenwerk | Quelle |
+|---|---|---|
+| Greifarm-Kapazität 1–7 | normal +1 (St. 2), +1 (St. 7) → 3; Massengreifarm 2 → 12 (+1,+1,+1,+1,+2,+2,+2); Kosten 200/250/250/250/300/400/600 | Wiki „Inserter capacity bonus (research)“ |
+| Bergbau-Produktivität | +10 % je Stufe; 1–3: 250/500/1000; ab 4 unendlich 2500 × (Stufe − 3) | Wiki „Mining productivity (research)“ |
+| Laborgeschwindigkeit 1–6 | +20/30/40/50/50/60 % | Wiki „Lab research speed (research)“ |
+| Werkzeuggürtel | +10 Inventarplätze, 100 × (rot, grün) | Wiki „Toolbelt (research)“ |
+| Stahlaxt | +100 % Abbautempo der Figur, Auslöser 50 Stahl | Wiki „Steel axe (research)“ |
+| Projektilschaden 1–6, 7+ | Kugeln/Geschützturm +10/10/20/20/20/40 %, ab 7 unendlich +40 % (Turm +70 %), Kosten 2^(St.−7) × 1000 | Wiki „Physical projectile damage (research)“ |
+| Feuerrate 1–6 | +10/20/20/30/30/40 % (Kugeln und Geschützturm) | Wiki „Weapon shooting speed (research)“ |
+| Robotertempo 1–5, 6+ | +35/40/45/55/65 %, ab 6 unendlich +65 %, 2^(St.−6) × 1000 | Wiki „Worker robot speed (research)“ |
+| Roboter-Frachtgröße 1–3 | +1 je Stufe | Wiki „Worker robot cargo size (research)“ |
+| Bremskraft 1–7 | +10/15/15/15/15/15/15 % | Wiki „Braking force (research)“ |
+| Militär-Wissenschaftspaket | 1 Granate + 1 panzerbrechendes Magazin + 2 Mauern → 2, 10 s; Forschung 30 × (rot, grün) | Wiki „Military science pack“ |
+| Massengreifarm | wie schneller Greifarm (24 Ticks/Zyklus), Kapazität 2, 1 kW Grundlast, 23,2 kJ/Zyklus (Messvorschlag aus Leistungsmodifikator 20/7); Rezept 1 fortgeschr. + 15 elektron. Schaltkreise + 1 schneller Greifarm + 15 Zahnräder | Wiki „Bulk inserter“, „Inserters“ |
+| Greifarm-Stapel | in Gebäude alles in einem Tick, auf Band/Boden ein Item je Tick | Wiki „Inserter capacity bonus“ |
+| Filter | schneller Greifarm und Massengreifarm, 5 Plätze, Positiv-/Negativliste | Wiki 2.0 („filter inserter“ entfiel) |
+| Fässer | füllen/leeren 0,2 s, 50 Einheiten, Montagemaschine 2/3, alle Flüssigkeiten außer Dampf | Wiki „Barrel“ |
+| Montagemaschine 2/3 | zusätzlich ein Flüssigkeitsausgang (links/rechts Mitte; Lage eigene Wahl, Eingang unverändert) | Wiki 2.0 |
+| Leiche | Inventar bleibt am Todesort, Rechtsklick (0,5 s) holt es zurück | Wiki „Character corpse“ |
+| Band im Schaltungsnetz | liest Inhalt (Halten), Bedingung hält das Band an; ein Tick Verzögerung | Wiki „Transport belt“ |

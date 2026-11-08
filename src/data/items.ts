@@ -1,3 +1,4 @@
+import { FLUIDS } from './fluids';
 import { MJ } from './time';
 
 /**
@@ -15,6 +16,9 @@ export interface ItemDef {
   /** Sortierreihenfolge im Inventar. */
   readonly order: number;
 }
+
+/** Flüssigkeiten, die in Fässer passen (Wiki: alle außer Dampf). */
+export const BARRELED = Object.values(FLUIDS).filter((f) => f.id !== 'steam');
 
 const list: ItemDef[] = [
   { id: 'iron-ore', name: 'Eisenerz', stackSize: 50, order: 10 },
@@ -140,6 +144,8 @@ const list: ItemDef[] = [
   { id: 'grenade', name: 'Granate', stackSize: 100, order: 137 },
   { id: 'cliff-explosives', name: 'Klippensprengstoff', stackSize: 20, order: 138 },
   { id: 'empty-barrel', name: 'Fass', stackSize: 10, order: 85 },
+  // Gefüllte Fässer (Wiki „Barrel“: 50 Einheiten, Stapel 10; kein Dampf)
+  ...BARRELED.map((f, i) => ({ id: `${f.id}-barrel`, name: `${f.name}fass`, stackSize: 10, order: 85.1 + i * 0.01 })),
 ];
 
 export const ITEMS: Readonly<Record<string, ItemDef>> = Object.freeze(

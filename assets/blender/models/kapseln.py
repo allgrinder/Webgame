@@ -58,7 +58,16 @@ def bulk_inserter_icon():
     return eisen.parent_all([base, arm])
 
 
+# Fässer: Farbe der Flüssigkeit (wie src/data/fluids.ts)
+BARRELS = {'water': '#3a6f9a', 'crude-oil': '#2a2018', 'heavy-oil': '#a04a18', 'light-oil': '#c8a020',
+           'petroleum-gas': '#5a3a6a', 'lubricant': '#2e7a3a', 'sulfuric-acid': '#c8c020'}
+
+
 def render(out):
+    for fluid, hex_ in BARRELS.items():
+        eisen.reset(samples=48)
+        root = anlagen.fluid_barrel(anlagen.Mats(), eisen.srgb(hex_))
+        finish(out, f'item.{fluid}-barrel', root, 1.25, -0.1)
     eisen.reset(samples=48)
     finish(out, 'item.bulk-inserter', bulk_inserter_icon(), 0.92, -0.1)
     eisen.reset(samples=48)

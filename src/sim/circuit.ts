@@ -1,3 +1,4 @@
+import { itemId } from './machines';
 import { type ArithmeticOp, type Comparator, WIRE_REACH, arithmetic, compare, int32 } from '../data/circuit';
 import type { PoleDef } from '../data/entities';
 import { Status } from './entity';
@@ -180,6 +181,17 @@ export class CircuitSystem {
       return s;
     }
     if (e.kind === 'accumulator') return new Map([['signal-A', Math.floor(e.fraction * 100)]]);
+    if (e.kind === 'belt') {
+      // Band liest seinen Inhalt (Modus „Halten“, Wiki „Transport belt“)
+      const t = w.belts.tileById(id);
+      if (!t) return undefined;
+      const s: Signals = new Map();
+      for (const it of w.belts.itemsOnTile(t)) {
+        const name = itemId(it.item);
+        s.set(name, (s.get(name) ?? 0) + 1);
+      }
+      return s;
+    }
     if (e.kind === 'tank') {
       const net = e.box.net;
       return net && net.fluid ? new Map([[net.fluid, Math.floor(net.amount / 1000)]]) : undefined;

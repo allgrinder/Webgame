@@ -251,7 +251,9 @@ export class Game {
         }
       } else if (p) {
         const tree = e ? undefined : this.treeNear(m.x, m.y);
-        if (e) p.setMineTarget({ kind: 'entity', id: e.id });
+        const corpse = e ? undefined : this.world.corpses.at(m.x, m.y);
+        if (corpse) p.setMineTarget({ kind: 'corpse', id: corpse.id });
+        else if (e) p.setMineTarget({ kind: 'entity', id: e.id });
         else if (tree) p.setMineTarget({ kind: 'tree', cx: tree.cx, cy: tree.cy, i: tree.i, x: tree.x, y: tree.y });
         else {
           const r = this.world.map.resourceAt(tx, ty);
@@ -621,12 +623,12 @@ export class Game {
     if (!item) {
       if (!target && this.buildGhost(tx, ty)) return;
       if (target && ctrl && p) this.takeAllFrom(target);
-      else if (target && hasWindow(target)) this.hud.openEntity(target.id);
+      else if (target && hasWindow(target, this.world)) this.hud.openEntity(target.id);
       return;
     }
     const g = this.ghostAt(at);
     if (!g) return;
-    if (!g.ok && target && hasWindow(target) && entityDef(g.name).kind !== 'belt') {
+    if (!g.ok && target && hasWindow(target, this.world) && entityDef(g.name).kind !== 'belt') {
       this.hud.openEntity(target.id);
       return;
     }
@@ -890,6 +892,6 @@ const CREATIVE_QUICKBAR: (string | null)[] = [
 /** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
 const DIR_VEC: readonly [number, number][] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
-function hasWindow(e: Entity): boolean {
-  return e.guiSlots().length > 0 || e.kind === 'train-stop' || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
+function hasWindow(e: Entity, w?: World): boolean {
+  return e.guiSlots().length > 0 || (e.kind === 'belt' && !!w?.circuit.isWired(e.id)) || e.kind === 'train-stop' || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
 }

@@ -1,3 +1,4 @@
+import { BARRELED } from './items';
 /**
  * Technologien. Kosten: count Einheiten zu je time Sekunden, jede Einheit verbraucht ein Paket je Sorte.
  * Auslöser-Technologien (2.0) haben keine Kosten: sie werden erforscht, sobald trigger erfüllt ist
@@ -42,6 +43,8 @@ export interface TechDef {
   readonly infinite?: { readonly count: (level: number) => number };
 }
 
+/** Fässer füllen/leeren (Flüssigkeitshandhabung, Wiki). */
+const BARREL_RECIPES = BARRELED.flatMap((f) => [`fill-${f.id}-barrel`, `empty-${f.id}-barrel`]);
 const RED = ['automation-science-pack'];
 const RED_GREEN = ['automation-science-pack', 'logistic-science-pack'];
 const RGB = ['automation-science-pack', 'logistic-science-pack', 'chemical-science-pack'];
@@ -120,7 +123,7 @@ export const TECHS: readonly TechDef[] = [
   { id: 'engine', name: 'Motor', count: 100, time: 15, packs: RED_GREEN, prerequisites: ['logistic-science-pack', 'steel-processing'], unlocks: ['engine-unit'] },
   {
     id: 'fluid-handling', name: 'Flüssigkeitshandhabung', count: 50, time: 15, packs: RED_GREEN,
-    prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank', 'empty-barrel'],
+    prerequisites: ['automation-2', 'engine'], unlocks: ['pump', 'storage-tank', 'empty-barrel', ...BARREL_RECIPES],
   },
   { id: 'oil-gathering', name: 'Ölförderung', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['fluid-handling'], unlocks: ['pumpjack'] },
   {

@@ -27,7 +27,11 @@ export type MineTarget =
   | { kind: 'resource'; x: number; y: number; /** Rohstoff-Index: gleicher Rohstoff → Fortschritt bleibt. */ res?: number }
   | { kind: 'entity'; id: number }
   | { kind: 'tree'; cx: number; cy: number; i: number; x: number; y: number }
-  | { kind: 'floor'; x: number; y: number };
+  | { kind: 'floor'; x: number; y: number }
+  | { kind: 'corpse'; id: number };
+
+/** Leiche plündern: Abbauzeit (eigener Wert). */
+const CORPSE_MINE_TIME = 0.5;
 
 export class Player {
   /** Mittelpunkt in 1/256 Feldern. */
@@ -140,12 +144,14 @@ export class Player {
     this.lastHit = world.tick;
     if (this.hp > 0) return;
     this.hp = PLAYER_COMBAT.health;
+    // Wiki „Character corpse“: das Inventar bleibt in der Leiche am Todesort
+    world.corpses.add(this.x, this.y, world.tick, this.inventory);
     this.px = 128;
     this.py = 128;
     this.prevPx = this.px;
     this.prevPy = this.py;
     this.mineTarget = null;
-    this.note('Du bist gestorben – Neustart am Startpunkt');
+    this.note('Du bist gestorben – dein Inventar liegt in deiner Leiche (Rechtsklick holt es zurück)');
   }
 
   private updateRepair(world: World): void {
@@ -305,7 +311,9 @@ export class Player {
           ? this.mineTarget.kind === 'tree' && t.cx === this.mineTarget.cx && t.cy === this.mineTarget.cy && t.i === this.mineTarget.i
           : t.kind === 'floor'
             ? this.mineTarget.kind === 'floor' && t.x === this.mineTarget.x && t.y === this.mineTarget.y
-            : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
+            : t.kind === 'corpse'
+              ? this.mineTarget.kind === 'corpse' && t.id === this.mineTarget.id
+              : this.mineTarget.kind === 'entity' && t.id === this.mineTarget.id);
     if (same) return;
     // Zeiger rutscht auf ein Nachbarfeld desselben Rohstoffs: Fortschritt behalten (kein Neustart des Balkens)
     if (t?.kind === 'resource' && this.mineTarget?.kind === 'resource' && t.res !== undefined && t.res === this.mineTarget.res) {
@@ -365,6 +373,22 @@ export class Player {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
         }
+        this.mineTarget = null;
+      }
+      return;
+    }
+    if (t.kind === 'corpse') {
+      const c = world.corpses.get(t.id);
+      if (!c || !this.canReach(c.x, c.y)) {
+        this.mineProgress = 0;
+        if (!c) this.mineTarget = null;
+        return;
+      }
+      this.mineTotal = this.mineTicks(CORPSE_MINE_TIME);
+      if (++this.mineProgress >= this.mineTotal) {
+        this.mineProgress = 0;
+        world.corpses.loot(t.id, this.inventory);
+        if (world.corpses.get(t.id)) this.note('Inventar voll – Rest bleibt in der Leiche');
         this.mineTarget = null;
       }
       return;

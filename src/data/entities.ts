@@ -422,14 +422,15 @@ const list: EntityDef[] = [
     kind: 'assembler', id: 'assembling-machine-2', name: 'Montagemaschine 2', width: 3, height: 3, health: 350,
     item: 'assembling-machine-2', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 0.75, energyUsage: 150_000, drain: 5_000,
     categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'], moduleSlots: 2,
-    // Ein Flüssigkeitsbehälter mit Anschluss oben und unten in der Mitte (durchgängig)
-    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }],
+    // Eingang mit Anschluss oben und unten in der Mitte (durchgängig); Ausgang links/rechts in der Mitte
+    // (Wiki 2.0: Eingang und Ausgang; Lage des Ausgangs eigene Wahl, damit bestehende Anlagen weiter passen)
+    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }, { type: 'output', volume: 1000, ports: [[0, 1, 3], [2, 1, 1]] }],
   },
   {
     kind: 'assembler', id: 'assembling-machine-3', name: 'Montagemaschine 3', width: 3, height: 3, health: 400,
     item: 'assembling-machine-3', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 1.25, energyUsage: 375_000, drain: 12_500,
     categories: ['crafting', 'advanced-crafting', 'crafting-with-fluid'], moduleSlots: 4,
-    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }],
+    fluidBoxes: [{ type: 'input', volume: 1000, ports: [[1, 0, 0], [1, 2, 2]] }, { type: 'output', volume: 1000, ports: [[0, 1, 3], [2, 1, 1]] }],
   },
   {
     kind: 'beacon', id: 'beacon', name: 'Leuchtfeuer', width: 3, height: 3, health: 200,

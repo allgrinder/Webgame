@@ -59,6 +59,9 @@ export interface SaveData {
   /** Bodenbeläge [x, y, Belag-ID]. */
   floors?: [number, number, number][];
   capsules?: ReturnType<World['capsules']['serialize']>;
+  corpses?: ReturnType<World['corpses']['serialize']>;
+  /** Durch Schaltbedingung angehaltene Bänder. */
+  beltStop?: number[];
   /** gefällte Bäume [Chunk-x, Chunk-y, Index] */
   trees?: [number, number, number][];
   /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
@@ -122,6 +125,8 @@ export function serializeWorld(w: World): SaveData {
     cliffs: w.map.serializeCliffs(),
     floors: w.map.serializeFloors(),
     capsules: w.capsules.serialize(),
+    ...(w.corpses.all.length ? { corpses: w.corpses.serialize() } : {}),
+    ...(w.beltStopped.size ? { beltStop: [...w.beltStopped].sort((a, b) => a - b) } : {}),
     trees: w.map.trees.serialize(),
     research: w.research.serialize(),
     ghosts: w.ghosts.serialize(),
@@ -166,6 +171,8 @@ export function deserializeWorld(d: SaveData): World {
   w.map.loadCliffs(d.cliffs);
   w.map.loadFloors(d.floors);
   w.capsules.load(d.capsules);
+  w.corpses.load(d.corpses);
+  for (const id of d.beltStop ?? []) w.beltStopped.add(id);
   if (d.trees) w.map.trees.load(d.trees);
   if (d.research) w.research.load(d.research);
   w.circuit.load(d.circuit);

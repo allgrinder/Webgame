@@ -809,6 +809,16 @@ export class GameRenderer {
       }
     }
     this.drawFlora(world, v);
+    // Leichen der Figur: liegende, abgedunkelte Figur
+    for (const c of world.corpses.all) {
+      if (c.x < v.x0 - 2 || c.x > v.x1 + 2 || c.y < v.y0 - 2 || c.y > v.y1 + 2) continue;
+      if (!this.sprites.has('player.idle.2')) break;
+      const sp = this.ents.get(this.sprites.frame('player.idle.2', 0));
+      sp.position.set(c.x * TILE, c.y * TILE);
+      sp.rotation = Math.PI / 2;
+      sp.tint = 0x6a6258;
+      sp.zIndex = c.y * TILE - 20;
+    }
     const pl = world.player;
     if (pl) {
       const px = (pl.prevPx + (pl.px - pl.prevPx) * alpha) / 256;

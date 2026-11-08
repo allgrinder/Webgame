@@ -1261,7 +1261,7 @@ export class Hud {
         cb.onchange = () => (d.copyCount = cb.checked);
         lab.append(' Eingangswert statt 1');
       }
-    } else if (e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump') {
+    } else if (e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'belt') {
       const cur: Condition | undefined = c.conditions.get(e.id);
       const r = el('div', 'circ-row', box);
       el('span', 'dim', r).textContent = 'Ein, wenn';

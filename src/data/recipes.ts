@@ -1,3 +1,4 @@
+import { BARRELED } from './items';
 /**
  * Rezepte. category bestimmt, wo das Rezept hergestellt wird:
  *  - 'crafting': Handwerk (später Montagemaschinen)
@@ -135,6 +136,17 @@ const list: RecipeDef[] = [
     results: [{ item: 'cliff-explosives', amount: 1 }],
   },
   { id: 'empty-barrel', category: 'crafting', time: 1, ingredients: [{ item: 'steel-plate', amount: 1 }], results: [{ item: 'empty-barrel', amount: 1 }] },
+  // Fässer füllen und leeren (Wiki „Barrel“: 0,2 s, 50 Einheiten, Montagemaschine 2/3)
+  ...BARRELED.flatMap((f): RecipeDef[] => [
+    {
+      id: `fill-${f.id}-barrel`, category: 'crafting-with-fluid', time: 0.2,
+      ingredients: [{ item: 'empty-barrel', amount: 1 }, { item: f.id, amount: 50 }], results: [{ item: `${f.id}-barrel`, amount: 1 }],
+    },
+    {
+      id: `empty-${f.id}-barrel`, category: 'crafting-with-fluid', time: 0.2,
+      ingredients: [{ item: `${f.id}-barrel`, amount: 1 }], results: [{ item: 'empty-barrel', amount: 1 }, { item: f.id, amount: 50 }],
+    },
+  ]),
   { id: 'stone-wall', category: 'crafting', time: 0.5, ingredients: [{ item: 'stone-brick', amount: 5 }], results: [{ item: 'stone-wall', amount: 1 }] },
   {
     id: 'lamp', category: 'crafting', time: 0.5,

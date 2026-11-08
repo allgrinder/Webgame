@@ -1,3 +1,4 @@
+import { CorpseSystem } from './corpses';
 import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
@@ -68,6 +69,10 @@ export class World {
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
   readonly events = new EventQueue();
   readonly enemies = new EnemySystem();
+  /** Bänder, die im nächsten Tick durch ihre Schaltbedingung angehalten sind (gespeichert). */
+  readonly beltStopped = new Set<number>();
+  /** Leichen der Spielfigur mit Inventar. */
+  readonly corpses = new CorpseSystem();
   /** Geworfene Granaten und Klippensprengstoff. */
   readonly capsules = new CapsuleSystem();
   readonly entities = new Map<number, Entity>();
@@ -277,8 +282,20 @@ export class World {
     this.power.ensure(this);
     this.beacons.ensure(this);
     this.power.update(1 - this.darkness);
+    // Bänder mit Schaltbedingung (Wiki „Transport belt“: Bedingung aktivieren/deaktivieren) halten einzeln an
+    const stop = new Set<number>();
+    for (const [id, c] of this.circuit.conditions) if (c.first && this.belts.tileById(id)) stop.add(id);
+    this.belts.setStoppers(stop);
+    this.belts.ensure();
+    // Halte-Zustand aus dem Vortick (Schaltungswerte entstehen erst in circuit.update, ein Tick Verzögerung)
+    for (const id of stop) {
+      const t = this.belts.tileById(id);
+      if (t?.line) t.line.stopped = this.beltStopped.has(id);
+    }
     this.belts.update();
     this.circuit.update(this);
+    this.beltStopped.clear();
+    for (const id of stop) if (!this.circuit.enabled(id)) this.beltStopped.add(id);
     this.trains.update(this);
     for (const e of this.entities.values()) e.update(this);
     this.robots.update(this);

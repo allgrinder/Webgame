@@ -997,6 +997,30 @@ export class GameRenderer {
         }
         break;
       }
+      case 'heat-pipe': {
+        // Anschlüsse an Nachbarn im Wärmenetz (N=1, O=2, S=4, W=8); glüht ab 500 °C (Wiki)
+        const nb = world.heat.neighbours.get(e.id);
+        let mask = 0;
+        for (let d = 0; d < 4; d++) {
+          const o = world.entityAt(e.x + DX[d], e.y + DY[d]);
+          if (o && nb?.has(o.id)) mask |= 1 << d;
+        }
+        const name = s.has(`heat-pipe.${mask}`) ? `heat-pipe.${mask}` : null;
+        if (!name) {
+          this.drawGeneric(e, cx, cy, z - 32);
+          break;
+        }
+        const sp = this.ents.get(s.frame(name));
+        sp.position.set(cx, cy);
+        sp.zIndex = z - 32;
+        const t = e.temperature;
+        if (t > 500 && s.has(`heat-pipe.glow.${mask}`)) {
+          const g = this.glow.get(s.frame(`heat-pipe.glow.${mask}`));
+          g.position.set(cx, cy);
+          g.alpha = Math.min(1, (t - 500) / 400);
+        }
+        break;
+      }
       case 'pipe': {
         const mask = world.fluids.connections.get(e.id) ?? 0;
         if (s.has(`pipe.${mask}`)) {

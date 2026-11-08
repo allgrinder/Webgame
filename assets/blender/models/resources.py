@@ -16,7 +16,7 @@ from natur import disc, patch_material
 
 P = gw_lib.P
 lin = gw_ground.lin
-RESOURCES = ('iron-ore', 'coal', 'stone', 'copper-ore')
+RESOURCES = ('iron-ore', 'coal', 'stone', 'copper-ore', 'uranium-ore')
 COUNTS = (5, 9, 14, 20)
 SIZE = 1.5
 
@@ -27,6 +27,8 @@ STYLE = {
     'stone': (['#a39479', '#b3a58a', '#8f826b', '#9c8d74'], ('#5a4c3a', '#665643'), False, (0.06, 0.13)),
     # Kupfererz: rotbraune Brocken mit grünlicher Patina (Malachit)
     'copper-ore': (['#9c5a34', '#b06a3e', '#7f4a2c', '#5f7d64', '#8c5333'], ('#3f3226', '#4c3a2a'), True, (0.06, 0.13)),
+    # Uranerz: dunkles Gestein mit giftgrünen Einschlüssen
+    'uranium-ore': (['#3c4a32', '#4f6a3a', '#6cc23a', '#2f3a2a', '#5aa034'], ('#2f3324', '#373c2a'), True, (0.06, 0.13)),
 }
 
 

@@ -204,6 +204,8 @@ export class GeneratorEntity extends EntityBase implements FluidHolder, Generato
   readonly box: FluidBox;
   /** Erzeugte Energie im letzten Tick (J) für Anzeige und Animation. */
   lastOutput = 0;
+  /** Leistung des letzten Ticks (J/Tick) für die Anzeige (nicht gespeichert). */
+  shownOutput = 0;
   workTicks = 0;
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
@@ -243,6 +245,7 @@ export class GeneratorEntity extends EntityBase implements FluidHolder, Generato
   override update(w: World): void {
     if (this.lastSteam > 0) w.stats.used(this.def.fluid, this.lastSteam / FLUID_UNIT);
     this.lastSteam = 0;
+    this.shownOutput = this.lastOutput;
     if (this.lastOutput > 0) {
       this.status = Status.Working;
       this.workTicks++;

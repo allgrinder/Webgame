@@ -22,6 +22,9 @@ import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
+import { type FluidHolder, isFluidHolder } from '../sim/fluids';
+import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
+import { FLUID_UNIT } from '../data/fluids';
 import { TechTreeView } from './techtree';
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -557,7 +560,8 @@ export class Hud {
       });
     };
     const bar = (label: string, frac: number, cls = '') => {
-      const r = el('div', 'progress-row', body);
+      // lange Beschriftungen über dem Balken statt daneben
+      const r = el('div', `progress-row${label.length > 14 ? ' stacked' : ''}`, body);
       el('span', 'label', r).textContent = label;
       const b = el('div', `progress ${cls}`, r);
       el('div', 'fill', b).style.width = `${Math.round(Math.max(0, Math.min(1, frac)) * 100)}%`;
@@ -590,6 +594,12 @@ export class Hud {
         : e.rocketReady ? (e.satellite.isEmpty() ? 'Rakete bereit – Satellit einlegen' : 'Startet, sobald ein Fracht-Landeplatz steht') : 'Rakete im Bau';
     }
     if (e.kind === 'container' && (e.logistic === 'requester' || e.logistic === 'buffer')) this.requestEditor(e, body);
+    if (e.kind === 'generator') this.generatorInfo(e, body, bar);
+    if (e.kind !== 'generator' && isFluidHolder(e)) this.fluidInfo(e, bar);
+    if (isHeatNode(e)) {
+      const t = temperatureOf(e);
+      bar(`Temperatur ${Math.round(t)} °C${e.kind === 'heat-exchanger' ? ' (nutzbar ab 500 °C)' : ''}`, (t - 15) / (e.maxTemperature - 15), 'energy');
+    }
     if (e.kind === 'solar') bar(`Leistung ${Math.round(e.potential() * 0.06)} kW`, e.potential() / 1000, 'power');
     if (e.kind === 'accumulator') bar(`Ladung ${(e.stored / 1e6).toFixed(2)} MJ`, e.fraction, 'power');
     if (e.kind === 'drill') bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
@@ -655,13 +665,49 @@ export class Hud {
     void e;
   }
 
+  /** Dampfmaschine/Turbine: Leistung, Dampfvorrat, Stromnetz. */
+  private generatorInfo(e: Extract<Entity, { kind: 'generator' }>, body: HTMLElement, bar: (label: string, frac: number, cls?: string) => void): void {
+    const max = e.maxPerTick;
+    bar(`Leistung ${fmtPower(e.shownOutput)} von ${fmtPower(max)}`, e.shownOutput / max, 'power');
+    const net = e.box.net;
+    const fluid = FLUIDS[e.def.fluid]?.name ?? e.def.fluid;
+    if (net) bar(`${fluid} in der Leitung ${Math.floor(net.amount / FLUID_UNIT)} / ${Math.floor(net.capacity / FLUID_UNIT)}`, net.amount / Math.max(1, net.capacity));
+    else el('div', 'dim', body).textContent = `Kein ${fluid} – Rohr vom Kessel an ein Ende anschließen`;
+    const pn = this.game.world.power.netOf.get(e.id);
+    const info = el('div', 'dim', body);
+    if (!pn) info.textContent = 'Nicht im Stromnetz – Strommast in die Nähe setzen';
+    else {
+      const use = pn.potential > 0 ? pn.supplied / pn.potential : 0;
+      info.textContent = `Stromnetz: Verbrauch ${fmtPower(pn.supplied)} · möglich ${fmtPower(pn.potential)} (${Math.round(use * 100)} % ausgelastet)`;
+      if (pn.demand === 0) info.textContent += ' – keine Verbraucher angeschlossen';
+    }
+  }
+
+  /** Füllstände der Flüssigkeitsanschlüsse (je Leitung einmal). */
+  private fluidInfo(e: Entity & FluidHolder, bar: (label: string, frac: number, cls?: string) => void): void {
+    const seen = new Set<unknown>();
+    for (const b of e.fluidBoxes()) {
+      const src = b.net ?? b;
+      if (seen.has(src)) continue;
+      seen.add(src);
+      const fl = (b.net?.fluid ?? b.fluid ?? b.filter) as string | null;
+      const amount = b.net ? b.net.amount : b.amount;
+      const cap = b.net ? b.net.capacity : b.capacity;
+      const name = fl ? FLUIDS[fl]?.name ?? fl : 'leer';
+      bar(`${name} ${Math.floor(amount / FLUID_UNIT)} / ${Math.floor(cap / FLUID_UNIT)}`, amount / Math.max(1, cap));
+    }
+  }
+
   private entityKey(e: Entity): string {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|') + (e.kind === 'inserter' ? JSON.stringify(e.filters) + e.filterBlacklist : '');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
     const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
     const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
-    const power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
+    let power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
+    if (e.kind === 'generator') power = (e.shownOutput >> 6) * 7919 + (this.game.world.power.netOf.get(e.id)?.supplied ?? 0);
+    if (isFluidHolder(e)) for (const b of e.fluidBoxes()) power += ((b.net?.amount ?? b.amount) >> 10) * 31;
+    if (isHeatNode(e)) power += Math.round(temperatureOf(e));
     return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
   }
 

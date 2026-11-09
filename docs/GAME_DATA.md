@@ -482,3 +482,18 @@ Neue Karteneinstellung `frequency` (`FREQUENCY_SETTINGS` in `src/data/mapgen.ts`
 Felder (Raster der Zufallsfelder, Öl und Uran um √Faktor enger), Menge je Feld ×1 / ×1,5 / ×2; ab „Viel“ ein zweiter
 Satz Startfelder (Eisen, Kupfer, Kohle, Stein weiter draußen). Neue Runden: Häufigkeit „Viel“, Feldgröße 2,0 (vorher 1,8).
 Alte Spielstände ohne Einstellung bleiben „Normal“ (Karte unverändert). Adresse: `?freq=normal|viel|sehr-viel`.
+
+## Community-Blaupausen im Original-Format (Wunsch 09.11.2026)
+
+Format nach Wiki „Blueprint string format“ (öffentlich beschrieben, kein Reverse Engineering): „0“ + Base64(zlib(JSON)),
+seit 2.0 auch rohes JSON; Blaupausen und (verschachtelte) Bücher. Umrechnung in `src/sim/foreignbp.ts`:
+- Namen gleich, Ausnahmen in `ALIASES` (small-lamp → lamp, filter-/stack-inserter → schneller/Massengreifarm,
+  logistic-chest-* → *-chest). Unbekanntes wird gezählt und ausgelassen.
+- Version aus `version` (Hauptversion = obere 16 Bit): 2.0 → 16 Richtungsstufen, sonst 8; auf 4 gerundet.
+- Greifarme: Richtung zeigt im Original zur Aufnahmeseite (Prototyp: pickup_position {0,−1}), bei uns zur Ablage → +180°.
+- Position = Gebäudemitte → linke obere Ecke (mit unserer Größe), Gleise/Bahnhöfe auf gerader Verschiebung.
+- Übernommen: Rezept, Untergrund-Typ (input/output; Ausgang ggf. gedreht, wenn sein Eingang auf der Gegenseite liegt),
+  Splitter-Vorrang (left/right → 0/1) und -Filter, Greifarm-Filter (Weiß-/Schwarzliste), Kisten-Begrenzung `bar`,
+  Bahnhofsname. Ausgelassen (mit Hinweis): Drähte, Bodenbeläge, Module, Bögen/Diagonalgleise (andere Formen).
+Geprüft mit Hauptbus-Splitter-Blaupausen aus dem Wiki (nur lokal, nicht eingecheckt): alle Gebäude übernommen,
+Untergrund-Paare identisch.

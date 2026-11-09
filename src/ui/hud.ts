@@ -10,6 +10,7 @@ import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serializ
 import { isGzip, pack, unpack } from '../game/packing';
 import { PRESETS } from '../data/blueprints';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
+import { importForeign, isForeignText, reportText } from '../sim/foreignbp';
 import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
 import { bloomEnabled, setBloomEnabled } from '../render/look';
 import { Status } from '../sim/entity';
@@ -945,10 +946,29 @@ export class Hud {
       };
     });
     const area = el('textarea', 'bp-text', body);
-    area.placeholder = 'Blaupausen-Text hier einfügen …';
+    area.placeholder = 'Blaupausen-Text hier einfügen … (eigene Texte „EW1…“ oder Community-Blaupausen im Original-Format „0eN…“, auch Bücher)';
     const imp = el('button', '', body);
     imp.textContent = 'Text übernehmen';
     imp.onclick = () => {
+      if (isForeignText(area.value) || area.value.trim().startsWith('{')) {
+        // Community-Blaupause im Original-Format: umrechnen; Bücher landen in der Bibliothek
+        const r = importForeign(area.value);
+        if (!r || !r.blueprints.length) {
+          this.flash(r ? `Keine bekannten Gebäude – ${reportText(r.report, 0)}` : 'Kein gültiger Blaupausen-Text');
+          return;
+        }
+        if (r.blueprints.length === 1) {
+          g.clipboard = r.blueprints[0].bp;
+          g.setBlueprint(r.blueprints[0].bp);
+          this.toggleBlueprints();
+        } else {
+          for (const b of r.blueprints) lib.push({ name: b.label, text: bpEncode(b.bp) });
+          this.saveLibrary(lib);
+          this.buildBlueprints();
+        }
+        this.flash(reportText(r.report, r.blueprints.length));
+        return;
+      }
       const bp = bpDecode(area.value);
       if (!bp) {
         this.flash('Kein gültiger Blaupausen-Text');

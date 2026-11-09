@@ -5,6 +5,7 @@ import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
 import { PollutionSystem } from './pollution';
+import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -67,6 +68,8 @@ export class World {
   /** Gleise und Züge. */
   readonly trains = new TrainSystem();
   readonly pollution = new PollutionSystem();
+  /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
+  readonly chart = new ChartSystem();
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
   readonly events = new EventQueue();
   readonly enemies = new EnemySystem();
@@ -308,6 +311,7 @@ export class World {
     this.capsules.update(this);
     this.player?.update(this);
     this.pollution.update(this);
+    this.chart.update(this);
     this.tick++;
     if (this.tick % 60 === 0) {
       this.stats.second(this.tick / 60);

@@ -465,3 +465,13 @@ bleiben sie Hindernisse. Großer Mast und Umspannwerk (2×2) bleiben fest.
 
 Untergrundbänder länger (Wunsch 09.11.2026, weicht vom Original ab): größter Abstand gelb 10 (Original 5),
 schnell 15 (7), Express 20 (9) Felder; `maxDistance` in `src/data/entities.ts`.
+
+## Radar und Kartenaufdeckung (Quelle: Wiki „Radar“, 09.11.2026)
+
+Abschnitte zu 32×32 Feldern (`src/data/chart.ts`, `src/sim/chart.ts`). Figur und Roboterhangar decken 5×5 Abschnitte
+um sich auf, ein Radar mit Strom 7×7 ständig (Puls je Sekunde) und erkundet 29×29: je 10 MJ ein ferner Abschnitt
+(300 kW → 33,3 s), unerkundete zuerst, Ring für Ring von links oben im Uhrzeigersinn (Wiki: „top-left, then clockwise“),
+sonst der am längsten nicht gesehene. 10 s nach dem Aufdecken „live“ (Gegner auf der Karte sichtbar), danach letzter
+Stand abgedunkelt. Startgebiet 7×7 Abschnitte (Messvorschlag). Radare verbinden verdrahtete Schaltungsnetze drahtlos
+(Wiki: Modus „Surface“). Vereinfachung: Nester bleiben nach dem Aufdecken auf der Karte sichtbar, auch wenn sich ihr
+Abschnitt geändert hat.

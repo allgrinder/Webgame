@@ -159,6 +159,17 @@ export class CircuitSystem {
         const rb = find(key(wr.b));
         if (ra !== rb) parent.set(Math.max(ra, rb), Math.min(ra, rb));
       }
+      // Radare verbinden ihre Netze drahtlos (Wiki „Radar“, Modus Oberfläche): alle verdrahteten Radare dieser Farbe
+      let radarRoot = -1;
+      for (const k of [...parent.keys()].sort((x, y) => x - y)) {
+        if (k % 2 !== 0 || w.entities.get(k >> 1)?.kind !== 'radar') continue;
+        const r = find(k);
+        if (radarRoot < 0) radarRoot = r;
+        else if (r !== find(radarRoot)) {
+          const a2 = find(radarRoot);
+          parent.set(Math.max(r, a2), Math.min(r, a2));
+        }
+      }
       const idx = new Map<number, number>();
       for (const k of [...parent.keys()].sort((a, b) => a - b)) {
         const r = find(k);

@@ -25,6 +25,7 @@ import { Tooltip } from './tooltip';
 import { type FluidHolder, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT } from '../data/fluids';
+import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -600,6 +601,12 @@ export class Hud {
       const t = temperatureOf(e);
       bar(`Temperatur ${Math.round(t)} °C${e.kind === 'heat-exchanger' ? ' (nutzbar ab 500 °C)' : ''}`, (t - 15) / (e.maxTemperature - 15), 'energy');
     }
+    if (e.kind === 'radar') {
+      bar(`Fernerkundung ${Math.floor((e.scan / CHART.scanEnergy) * 100)} %`, e.scan / CHART.scanEnergy, 'power');
+      el('div', 'dim', body).textContent = `Deckt ${CHART.radarNearRadius * 2 + 1}×${CHART.radarNearRadius * 2 + 1} Abschnitte (je 32×32 Felder) ständig auf `
+        + `und erkundet bis ${CHART.radarFarRadius} Abschnitte weit – einen alle ${Math.round(CHART.scanEnergy / e.def.energyUsage)} s bei vollem Strom. `
+        + `Aufgedeckt: ${g.world.chart.count} Abschnitte. Mit Draht verbunden: überträgt Signale an alle anderen Radare.`;
+    }
     if (e.kind === 'solar') bar(`Leistung ${Math.round(e.potential() * 0.06)} kW`, e.potential() / 1000, 'power');
     if (e.kind === 'accumulator') bar(`Ladung ${(e.stored / 1e6).toFixed(2)} MJ`, e.fraction, 'power');
     if (e.kind === 'drill') bar('Fortschritt', e.progress / Math.max(1, e.ticksPerItem(1)));
@@ -705,6 +712,7 @@ export class Hud {
     const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
     let power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
+    if (e.kind === 'radar') power = Math.floor(e.scan / 100_000) * 7 + this.game.world.chart.count * 1009;
     if (e.kind === 'generator') power = (e.shownOutput >> 6) * 7919 + (this.game.world.power.netOf.get(e.id)?.supplied ?? 0);
     if (isFluidHolder(e)) for (const b of e.fluidBoxes()) power += ((b.net?.amount ?? b.amount) >> 10) * 31;
     if (isHeatNode(e)) power += Math.round(temperatureOf(e));

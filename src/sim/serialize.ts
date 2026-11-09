@@ -74,6 +74,8 @@ export interface SaveData {
   rockets?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
   pollution?: ReturnType<PollutionSystem['serialize']>;
+  /** Aufgedeckte Abschnitte: Paare (Schlüssel, Tick). */
+  chart?: number[];
   enemies?: ReturnType<EnemySystem['serialize']>;
   trains?: ReturnType<TrainSystem['serialize']>;
 }
@@ -134,6 +136,7 @@ export function serializeWorld(w: World): SaveData {
     robots: w.robots.serialize(),
     rockets: w.rocketsLaunched,
     pollution: w.pollution.serialize(),
+    chart: w.chart.serialize(),
     enemies: w.enemies.serialize(),
     circuit: w.circuit.serialize(),
     trains: w.trains.serialize(),
@@ -188,6 +191,7 @@ export function deserializeWorld(d: SaveData): World {
   w.robots.load(w, d.robots);
   w.rocketsLaunched = d.rockets ?? 0;
   w.pollution.load(d.pollution);
+  w.chart.load(d.chart);
   w.enemies.load(w, d.enemies);
   w.trains.load(d.trains);
   for (const [id, list] of d.beltItems) {

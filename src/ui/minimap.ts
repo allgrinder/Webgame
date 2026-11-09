@@ -25,6 +25,9 @@ function mul(a: number, b: number): number {
  * Übersichtskarte: Gelände je Chunk zwischengespeichert (Landschaftsfarbe, Wasser, Erz), darüber Gebäude,
  * Bänder, Spieler und der sichtbare Ausschnitt. Ohne Spieler (Sandkasten/Demo) verschiebt ein Klick die Kamera.
  */
+/** Farbe unerkundeter Abschnitte. */
+const MINIMAP_FOG = '#0d0c0a';
+
 export class Minimap {
   readonly el: HTMLCanvasElement;
   private readonly ctx: CanvasRenderingContext2D;
@@ -144,9 +147,21 @@ export class Minimap {
     ctx.fillStyle = '#1d1b17';
     ctx.fillRect(0, 0, wpx, hpx);
     const CS = MAPGEN.chunkSize;
+    // Nebel (Wiki „Radar“): unerkundete Abschnitte schwarz, nicht beobachtete leicht abgedunkelt
+    const chart = world.chart;
+    const charted = (x: number, y: number) => chart.isCharted(Math.floor(x), Math.floor(y));
     for (let gy = Math.floor(y0 / CS); gy <= Math.floor(y1 / CS); gy++) {
       for (let gx = Math.floor(x0 / CS); gx <= Math.floor(x1 / CS); gx++) {
+        if (!chart.chunkCharted(gx, gy)) {
+          ctx.fillStyle = MINIMAP_FOG;
+          ctx.fillRect(toX(gx * CS), toY(gy * CS), CS * scale + 0.5, CS * scale + 0.5);
+          continue;
+        }
         ctx.drawImage(this.chunkCanvas(world, gx, gy), toX(gx * CS), toY(gy * CS), CS * scale + 0.5, CS * scale + 0.5);
+        if (!chart.chunkLive(gx, gy, world.tick)) {
+          ctx.fillStyle = 'rgba(0,0,0,0.28)';
+          ctx.fillRect(toX(gx * CS), toY(gy * CS), CS * scale + 0.5, CS * scale + 0.5);
+        }
       }
     }
     // Stromnetz: Versorgungsflächen der Masten (nur Kartenansicht)
@@ -160,7 +175,7 @@ export class Minimap {
       }
     }
     for (const e of world.entities.values()) {
-      if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x1 || e.y > y1) continue;
+      if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x1 || e.y > y1 || !charted(e.cx, e.cy)) continue;
       ctx.fillStyle = css(e.kind === 'belt' || e.kind === 'underground' || e.kind === 'splitter' ? MINIMAP.belt
         : e.kind === 'rail' ? 0x8a8a8a : e.kind === 'turret' || e.kind === 'wall' ? 0xb0b0a0 : MINIMAP.building);
       ctx.fillRect(toX(e.x), toY(e.y), Math.max(1, e.w * scale), Math.max(1, e.h * scale));
@@ -184,18 +199,20 @@ export class Minimap {
     for (const [k, val] of world.pollution.chunks) {
       if (val < 5) continue;
       const [gx, gy] = PollutionSystem.unkey(k);
-      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x1 || gy * PC > y1) continue;
+      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x1 || gy * PC > y1 || !charted(gx * PC, gy * PC)) continue;
       ctx.fillStyle = `rgba(200,60,40,${Math.min(0.45, 0.06 + val / 600).toFixed(3)})`;
       ctx.fillRect(toX(gx * PC), toY(gy * PC), PC * scale, PC * scale);
     }
     ctx.fillStyle = '#d23a2a';
     for (const n of world.enemies.nestsIn(x0, y0, x1, y1)) {
+      if (!charted(n.x + 2, n.y + 2)) continue;
       ctx.fillRect(toX(n.x), toY(n.y), Math.max(2, 5 * scale), Math.max(2, 5 * scale));
     }
     if (detail) {
       ctx.fillStyle = '#ff6a50';
       for (const u of world.enemies.units.values()) {
         if (u.x < x0 || u.y < y0 || u.x > x1 || u.y > y1) continue;
+        if (!chart.chunkLive(Math.floor(u.x / CS), Math.floor(u.y / CS), world.tick)) continue;
         ctx.fillRect(toX(u.x) - 1, toY(u.y) - 1, 2, 2);
       }
     }

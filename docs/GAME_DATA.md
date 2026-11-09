@@ -462,3 +462,6 @@ Masten kein Licht, Lampen haben Radius ~10.
 Begehbar (Wunsch 09.11.2026, weicht vom Original ab): Die Figur läuft durch kleine und mittlere Strommasten und Lampen
 (`walkable` in `src/data/entities.ts`); sie dürfen auch auf die Figur gebaut werden. Für Gegner und deren Wegsuche
 bleiben sie Hindernisse. Großer Mast und Umspannwerk (2×2) bleiben fest.
+
+Untergrundbänder länger (Wunsch 09.11.2026, weicht vom Original ab): größter Abstand gelb 10 (Original 5),
+schnell 15 (7), Express 20 (9) Felder; `maxDistance` in `src/data/entities.ts`.

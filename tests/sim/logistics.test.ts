@@ -91,21 +91,34 @@ describe('Logistik', () => {
     expect(w.belts.tileAt(4, 0)!.line).not.toBe(ta.line);
   });
 
+  it('Untergrundband über die volle Länge (10 Felder, Wunsch) hält 15 Items/s', () => {
+    const w = new World(1);
+    row(w, 'transport-belt', 0, 0, 2);
+    const a = w.place('underground-belt', 2, 0, 1) as UndergroundEntity;
+    const b = w.place('underground-belt', 12, 0, 1) as UndergroundEntity;
+    expect(a.output).toBe(false);
+    expect(b.output).toBe(true);
+    row(w, 'transport-belt', 13, 0, 3);
+    w.belts.ensure();
+    expect(w.belts.tileAt(2, 0)!.line).toBe(w.belts.tileAt(15, 0)!.line);
+    expect(throughput(w, 0, 0, 15, 0)).toBeCloseTo(15, 0);
+  });
+
   it('Untergrundband: zu weit = keine Paarung; Drehen tauscht Ein- und Ausgang', () => {
     const w = new World(1);
     const a = w.place('underground-belt', 0, 0, 1) as UndergroundEntity;
-    const b = w.place('underground-belt', 6, 0, 1) as UndergroundEntity;
-    expect(b.output).toBe(false); // Abstand 6 > 5
+    const b = w.place('underground-belt', 11, 0, 1) as UndergroundEntity;
+    expect(b.output).toBe(false); // Abstand 11 > 10
     w.belts.ensure();
     expect(w.belts.tileAt(0, 0)!.ug!.partner).toBeNull();
     w.remove(b.id);
-    const c = w.place('underground-belt', 5, 0, 1) as UndergroundEntity;
+    const c = w.place('underground-belt', 10, 0, 1) as UndergroundEntity;
     expect(c.output).toBe(true);
     w.rotate(a.id, 0);
     expect(a.output).toBe(true);
     expect(a.dir).toBe(3);
     w.belts.ensure();
-    expect(w.belts.tileAt(5, 0)!.ug!.partner).toBeNull();
+    expect(w.belts.tileAt(10, 0)!.ug!.partner).toBeNull();
   });
 
   it('Splitter verteilt abwechselnd und weicht bei Stau auf den freien Ausgang aus', () => {

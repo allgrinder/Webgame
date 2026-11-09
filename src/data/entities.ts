@@ -338,7 +338,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'underground', id: 'underground-belt', name: 'Untergrundband', width: 1, height: 1, health: 150,
-    item: 'underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 8, maxDistance: 5,
+    item: 'underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 8, maxDistance: 10,
   },
   {
     kind: 'splitter', id: 'splitter', name: 'Splitter', width: 2, height: 1, health: 170,
@@ -346,7 +346,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'underground', id: 'fast-underground-belt', name: 'Schnelles Untergrundband', width: 1, height: 1, health: 160,
-    item: 'fast-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 16, maxDistance: 7,
+    item: 'fast-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 16, maxDistance: 15,
   },
   {
     kind: 'splitter', id: 'fast-splitter', name: 'Schneller Splitter', width: 2, height: 1, health: 180,
@@ -558,7 +558,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'underground', id: 'express-underground-belt', name: 'Express-Untergrundband', width: 1, height: 1, health: 170,
-    item: 'express-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 24, maxDistance: 9,
+    item: 'express-underground-belt', mineTime: 0.1, solid: false, rotatable: true, speed: 24, maxDistance: 20,
   },
   {
     kind: 'splitter', id: 'express-splitter', name: 'Express-Splitter', width: 2, height: 1, health: 190,

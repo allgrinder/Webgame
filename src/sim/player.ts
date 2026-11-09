@@ -289,7 +289,8 @@ export class Player {
       for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
         if (world.map.isBlocked(tx, ty) || world.enemies.nestAt(tx, ty)) return true;
         const e = world.entityAt(tx, ty);
-        if (e && entityDef(e.name).solid) {
+        const ed = e ? entityDef(e.name) : null;
+        if (e && ed!.solid && !ed!.walkable) {
           // Spieler, die bereits darin stehen (z. B. nach dem Bauen), dürfen hinaus
           const cur = world.entityAt(Math.floor(this.x), Math.floor(this.y));
           if (cur === e) continue;

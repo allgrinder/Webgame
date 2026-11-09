@@ -451,3 +451,14 @@ Quelle W = Wiki (direkt gelesen: „Pollution“, „Enemies“, Infoboxen), M =
 - Leben beim Bauen (`src/render/life.ts`, `LIFE`): Aufspringen von 72 % mit Überschwingen (320 ms), Staubring entlang
   der Grundfläche, abgebaute Items fliegen im Bogen zur Figur (0,42 s), Maschinen wackeln beim Anlaufen nach ≥ 1,5 s Pause
   (4,5 %, 7 Hz, gedämpft, 0,7 s).
+
+## Licht von Masten und Lampen (Wunsch 09.11.2026, weicht vom Original ab)
+
+Nach der Forschung „Lampe“ (Wirkung `pole-light`) leuchten Strommasten nachts so hell wie zuvor die Lampen
+(Radius 10, Stärke 1), solange ihr Netz Strom liefern kann (Netz-Potenzial > 0). Lampen leuchten dafür viel heller:
+Radius 22, Stärke 1,6 (Fläche nahe der Lampe fast taghell). Werte `NIGHT` in `src/data/fx.ts`. Im Original geben
+Masten kein Licht, Lampen haben Radius ~10.
+
+Begehbar (Wunsch 09.11.2026, weicht vom Original ab): Die Figur läuft durch kleine und mittlere Strommasten und Lampen
+(`walkable` in `src/data/entities.ts`); sie dürfen auch auf die Figur gebaut werden. Für Gegner und deren Wegsuche
+bleiben sie Hindernisse. Großer Mast und Umspannwerk (2×2) bleiben fest.

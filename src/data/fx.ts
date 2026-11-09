@@ -65,9 +65,17 @@ export const NIGHT = {
   tiltDeg: 30,
   /** Höhe der Lichtquellen über dem Boden (Felder). */
   lightHeight: 1.6,
-  /** Lampe: Wiki „Lamp“ – mittlerer Bereich (Radius 10 Felder). */
-  lampRadius: 10,
+  /**
+   * Lampe (Wunsch 09.11.2026, heller als im Original): großer Lichtkreis, Stärke über 1 hellt die Fläche
+   * fast wie am Tag auf. Strommasten leuchten nach der Forschung „Lampe“ so hell wie früher die Lampen
+   * (Radius 10 wie Wiki „Lamp“), solange ihr Netz Strom liefern kann.
+   */
+  lampRadius: 22,
+  lampStrength: 1.6,
   lampColor: 0xfff0d8,
+  poleRadius: 10,
+  poleStrength: 1,
+  poleColor: 0xffe6c0,
   /** Leuchtende Gebäude (Ofen, Kessel) und Taschenlampe der Figur. */
   fireRadius: 3.5,
   fireColor: 0xff9a4a,

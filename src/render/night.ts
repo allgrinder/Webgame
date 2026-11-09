@@ -2,12 +2,14 @@ import { Container, Filter, GlProgram, type Renderer, RenderTexture, Sprite, Uni
 import { NIGHT } from '../data/fx';
 import { Status } from '../sim/entity';
 import type { World } from '../sim/world';
+import type { Entity } from '../sim/machines';
+import { DAY } from '../data/time';
 import type { SpritePool } from './pools';
 import type { Camera } from './renderer';
 import type { SpriteLib } from './assets';
 
 /** Höchstzahl gleichzeitig berechneter Lichter. */
-const MAX_LIGHTS = 48;
+const MAX_LIGHTS = 64;
 
 const vertex = `in vec2 aPosition;
 out vec2 vTextureCoord;
@@ -188,11 +190,23 @@ export class NightLayer {
           { dx: v.pose.dx * sgn, dy: v.pose.dy * sgn, cos: Math.cos((NIGHT.headlightAngle * Math.PI) / 360) });
       }
     }
+    // Lampen zuerst (falls mehr Lichter als Plätze), dann Feuer und Masten
+    const poles = world.research.bonus('pole-light') > 0 && d >= DAY.lampOn;
+    const rest: Entity[] = [];
     for (const e of world.entities.values()) {
-      if (e.status !== Status.Working) continue;
-      if (e.kind === 'lamp') add(e.cx, e.cy, NIGHT.lampRadius, 1, NIGHT.lampColor);
-      else if (e.kind === 'furnace' || e.kind === 'boiler') add(e.cx, e.cy + e.h * 0.4, NIGHT.fireRadius, 0.9, NIGHT.fireColor);
+      if (e.kind === 'lamp') {
+        if (e.status === Status.Working) add(e.cx, e.cy, NIGHT.lampRadius, NIGHT.lampStrength, NIGHT.lampColor);
+      } else if (e.status === Status.Working || e.kind === 'pole') rest.push(e);
+    }
+    for (const e of rest) {
+      if (e.kind === 'furnace' || e.kind === 'boiler') add(e.cx, e.cy + e.h * 0.4, NIGHT.fireRadius, 0.9, NIGHT.fireColor);
       else if (e.kind === 'reactor') add(e.cx, e.cy, NIGHT.reactorRadius, 0.9, NIGHT.reactorColor);
+    }
+    if (poles) {
+      for (const e of rest) {
+        if (e.kind !== 'pole' || !((world.power.netOf.get(e.id)?.potential ?? 0) > 0)) continue;
+        add(e.cx, e.cy, NIGHT.poleRadius, NIGHT.poleStrength, NIGHT.poleColor);
+      }
     }
     const amb = NIGHT.alpha * d;
     const ac = NIGHT.ambient;

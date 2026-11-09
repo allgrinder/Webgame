@@ -16,6 +16,11 @@ interface EntityBase {
   readonly mineTime: number;
   /** Spieler kann nicht hindurchlaufen. */
   readonly solid: boolean;
+  /**
+   * Die Figur kann trotzdem hindurchlaufen (Wunsch 09.11.2026: kleine/mittlere Masten, Lampen); für Gegner und
+   * Wegsuche bleibt es ein Hindernis.
+   */
+  readonly walkable?: boolean;
   readonly rotatable: boolean;
   /** Modulplätze (Wiki-Infobox „Modules“); fehlt = keine. */
   readonly moduleSlots?: number;
@@ -432,7 +437,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pole', id: 'small-electric-pole', name: 'Kleiner Strommast', width: 1, height: 1, health: 100,
-    item: 'small-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 7.5, supplyRadius: 3.5,
+    item: 'small-electric-pole', mineTime: 0.1, solid: true, walkable: true, rotatable: false, wireReach: 7.5, supplyRadius: 3.5,
   },
   {
     kind: 'assembler', id: 'assembling-machine-1', name: 'Montagemaschine', width: 3, height: 3, health: 300,
@@ -471,7 +476,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'pole', id: 'medium-electric-pole', name: 'Mittlerer Strommast', width: 1, height: 1, health: 100,
-    item: 'medium-electric-pole', mineTime: 0.1, solid: true, rotatable: false, wireReach: 9, supplyRadius: 4.5,
+    item: 'medium-electric-pole', mineTime: 0.1, solid: true, walkable: true, rotatable: false, wireReach: 9, supplyRadius: 4.5,
   },
   {
     kind: 'pole', id: 'big-electric-pole', name: 'Großer Strommast', width: 2, height: 2, health: 150,
@@ -479,7 +484,7 @@ const list: EntityDef[] = [
   },
   {
     kind: 'lamp', id: 'lamp', name: 'Lampe', width: 1, height: 1, health: 100,
-    item: 'lamp', mineTime: 0.1, solid: true, rotatable: false, energyUsage: 5_000,
+    item: 'lamp', mineTime: 0.1, solid: true, walkable: true, rotatable: false, energyUsage: 5_000,
   },
   {
     kind: 'assembler', id: 'assembling-machine-2', name: 'Montagemaschine 2', width: 3, height: 3, health: 350,

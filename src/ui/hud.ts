@@ -52,6 +52,7 @@ function effectText(e: TechEffect): string {
     case 'robot-cargo': return `+${e.value} Roboterfracht`;
     case 'braking': return `${pct} Bremskraft`;
     case 'hand-mining': return `${pct} Abbautempo der Figur`;
+    case 'pole-light': return 'Strommasten leuchten nachts';
   }
 }
 

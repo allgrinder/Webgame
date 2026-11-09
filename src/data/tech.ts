@@ -15,7 +15,9 @@ export interface TechTrigger {
 /** Bonusarten der Forschung (Wiki „Research“, Abschnitt Bonusse). value: Prozent als Bruch (0,1 = +10 %) bzw. Anzahl. */
 export type BonusType =
   | 'inserter-stack' | 'bulk-stack' | 'mining-productivity' | 'lab-speed' | 'toolbelt'
-  | 'bullet-damage' | 'turret-damage' | 'shooting-speed' | 'robot-speed' | 'robot-cargo' | 'braking' | 'hand-mining';
+  | 'bullet-damage' | 'turret-damage' | 'shooting-speed' | 'robot-speed' | 'robot-cargo' | 'braking' | 'hand-mining'
+  /** Strommasten leuchten nachts (Wunsch, nicht im Original). */
+  | 'pole-light';
 
 export interface TechEffect {
   readonly type: BonusType;
@@ -97,7 +99,8 @@ export const TECHS: readonly TechDef[] = [
   { id: 'logistic-science-pack', name: 'Logistik-Wissenschaft', count: 75, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['logistic-science-pack'] },
   { id: 'steel-processing', name: 'Stahlverarbeitung', count: 50, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['steel-plate', 'steel-chest'] },
   { id: 'fast-inserter', name: 'Schneller Greifarm', count: 30, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['fast-inserter'] },
-  { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'] },
+  { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'],
+    effects: [{ type: 'pole-light', value: 1 }] },
   // Militär (Wiki „Military“, „Gun turret (research)“, „Stone wall (research)“, „Military 2“)
   { id: 'military', name: 'Militär', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['submachine-gun'] },
   { id: 'gun-turret', name: 'Geschützturm', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['gun-turret'] },

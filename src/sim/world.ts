@@ -186,7 +186,7 @@ export class World {
       if (this.enemies.nestAt(tx, ty)) return { ok: false, reason: 'Gegnernest im Weg' };
     }
     const [w, h] = sizeOf(def, dir);
-    if (def.solid && this.player && this.player.overlapsRect(x, y, w, h)) {
+    if (def.solid && !def.walkable && this.player && this.player.overlapsRect(x, y, w, h)) {
       return { ok: false, reason: 'Spieler im Weg' };
     }
     if (def.kind === 'pumpjack') {

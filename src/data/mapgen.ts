@@ -6,12 +6,15 @@
 export type ResourceSetting = 'leicht' | 'mittel' | 'schwer';
 export type EnemySetting = 'aus' | 'friedlich' | 'normal' | 'stark';
 export type CliffSetting = 'aus' | 'wenig' | 'normal';
+export type FrequencySetting = 'normal' | 'viel' | 'sehr-viel';
 export interface MapSettings {
   readonly resources: ResourceSetting;
   readonly size: number;
   readonly enemies: EnemySetting;
   /** Klippen (fehlt bei älteren Spielständen: keine Klippen, damit gebaute Fabriken nicht im Fels stehen). */
   readonly cliffs?: CliffSetting;
+  /** Häufigkeit der Rohstofffelder (fehlt bei älteren Spielständen: normal, damit die Karte gleich bleibt). */
+  readonly frequency?: FrequencySetting;
 }
 
 export const RESOURCE_SETTINGS: Readonly<Record<ResourceSetting, { label: string; richness: number; hint: string }>> = {
@@ -27,6 +30,16 @@ export const ENEMY_SETTINGS: Readonly<Record<EnemySetting, { label: string; hint
   stark: { label: 'Stark', hint: 'mehr Nester, schnellere Entwicklung' },
 };
 
+/**
+ * Häufigkeit (Wunsch 09.11.2026: „deutlich mehr Rohstoffe“): factor vervielfacht die Zahl der Felder
+ * (Raster enger, auch Öl und Uran), amount die Menge je Feld; ab „viel“ zusätzliche Startfelder.
+ */
+export const FREQUENCY_SETTINGS: Readonly<Record<FrequencySetting, { label: string; hint: string; factor: number; amount: number }>> = {
+  normal: { label: 'Normal', hint: 'Felder wie bisher', factor: 1, amount: 1 },
+  viel: { label: 'Viel', hint: 'doppelt so viele Felder, 1,5× Menge, zweiter Satz Startfelder', factor: 2, amount: 1.5 },
+  'sehr-viel': { label: 'Sehr viel', hint: 'dreimal so viele Felder, doppelte Menge, zweiter Satz Startfelder', factor: 3, amount: 2 },
+};
+
 export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint: string }>> = {
   aus: { label: 'Aus', hint: 'keine Klippen' },
   wenig: { label: 'Wenig', hint: 'vereinzelte Felsstufen mit breiten Durchgängen' },
@@ -34,7 +47,7 @@ export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint
 };
 
 /** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
-export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 1.8, enemies: 'normal', cliffs: 'normal' };
+export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel' };
 export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus', cliffs: 'aus' };
 
 /** Parameter der Kartengenerierung (eigene Werte, keine Vorlage). */
@@ -47,6 +60,13 @@ export const MAPGEN = {
     { resource: 'coal', distance: 10, radius: 5, richness: 900 },
     { resource: 'stone', distance: 11, radius: 4.5, richness: 700 },
     { resource: 'copper-ore', distance: 12, radius: 5, richness: 1000 },
+  ],
+  /** Zweiter Satz Startfelder ab Häufigkeit „viel“ (weiter draußen, andere Richtungen). */
+  startPatchesExtra: [
+    { resource: 'iron-ore', distance: 27, radius: 6.5, richness: 1400 },
+    { resource: 'copper-ore', distance: 28, radius: 6, richness: 1200 },
+    { resource: 'coal', distance: 26, radius: 5.5, richness: 1000 },
+    { resource: 'stone', distance: 40, radius: 5, richness: 800 },
   ],
   /** Zufällige Felder: Raster, Wahrscheinlichkeit, Radiusbereich, Reichtum (steigt mit Entfernung). */
   patchCell: 80,

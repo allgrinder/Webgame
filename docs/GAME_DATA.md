@@ -475,3 +475,10 @@ sonst der am längsten nicht gesehene. 10 s nach dem Aufdecken „live“ (Gegne
 Stand abgedunkelt. Startgebiet 7×7 Abschnitte (Messvorschlag). Radare verbinden verdrahtete Schaltungsnetze drahtlos
 (Wiki: Modus „Surface“). Vereinfachung: Nester bleiben nach dem Aufdecken auf der Karte sichtbar, auch wenn sich ihr
 Abschnitt geändert hat.
+
+## Rohstoff-Häufigkeit (Wunsch 09.11.2026: „deutlich mehr Ressourcen“)
+
+Neue Karteneinstellung `frequency` (`FREQUENCY_SETTINGS` in `src/data/mapgen.ts`): Normal ×1, Viel ×2, Sehr viel ×3
+Felder (Raster der Zufallsfelder, Öl und Uran um √Faktor enger), Menge je Feld ×1 / ×1,5 / ×2; ab „Viel“ ein zweiter
+Satz Startfelder (Eisen, Kupfer, Kohle, Stein weiter draußen). Neue Runden: Häufigkeit „Viel“, Feldgröße 2,0 (vorher 1,8).
+Alte Spielstände ohne Einstellung bleiben „Normal“ (Karte unverändert). Adresse: `?freq=normal|viel|sehr-viel`.

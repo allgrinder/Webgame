@@ -1,4 +1,4 @@
-import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, type MapSettings, RESOURCE_SETTINGS, type ResourceSetting } from './data/mapgen';
+import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, type MapSettings, RESOURCE_SETTINGS, type ResourceSetting } from './data/mapgen';
 import { Game } from './game/game';
 import { type SceneName, createScene } from './game/scenes';
 import { loadSprites } from './render/assets';
@@ -20,11 +20,13 @@ async function main(): Promise<void> {
   const res = params.get('res');
   const en = params.get('enemies');
   const cl = params.get('cliffs');
+  const fq = params.get('freq');
   const settings: MapSettings = {
     ...DEFAULT_MAP_SETTINGS,
     ...(res && res in RESOURCE_SETTINGS ? { resources: res as ResourceSetting } : {}),
     ...(en && en in ENEMY_SETTINGS ? { enemies: en as EnemySetting } : {}),
     ...(cl && cl in CLIFF_SETTINGS ? { cliffs: cl as CliffSetting } : {}),
+    ...(fq && fq in FREQUENCY_SETTINGS ? { frequency: fq as FrequencySetting } : {}),
   };
   const scene = createScene(sceneName, seed, settings);
   // Gottmodus (?god): neue Runde mit schnellem Abbau/Handwerk zum Testen

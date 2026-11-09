@@ -1,4 +1,4 @@
-import { LEGACY_MAP_SETTINGS, MAPGEN, type MapSettings, RESOURCE_SETTINGS } from '../data/mapgen';
+import { FREQUENCY_SETTINGS, LEGACY_MAP_SETTINGS, MAPGEN, type MapSettings, RESOURCE_SETTINGS } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel, resourceById } from '../data/resources';
 import { tileKey } from './geom';
 import { fbm, hash01, hash32, valueNoise } from './rng';
@@ -99,15 +99,22 @@ export class GameMap {
   /** Fällbare Bäume (Holz) und Fruchtbarkeit. */
   readonly trees: TreeField;
 
-  /** Faktor auf die Menge je Feld (Einstellung Rohstoffe). */
+  /** Faktor auf die Menge je Feld (Einstellungen Rohstoffe und Häufigkeit). */
   private readonly richness: number;
+  /** Faktor auf die Zahl der Felder (Einstellung Häufigkeit): Raster um √factor enger. */
+  private readonly frequency: number;
 
   constructor(readonly seed: number, readonly settings: MapSettings = LEGACY_MAP_SETTINGS) {
     const base = hash32(seed, 77) % 8;
-    this.richness = RESOURCE_SETTINGS[settings.resources].richness;
     const size = settings.size;
-    this.startPatches = MAPGEN.startPatches.map((p, i) => {
-      const [dx, dy] = DIRS8[(base + i * 3) % 8];
+    const freq = FREQUENCY_SETTINGS[settings.frequency ?? 'normal'];
+    this.frequency = freq.factor;
+    this.richness = RESOURCE_SETTINGS[settings.resources].richness * freq.amount;
+    // Startfelder; ab „viel“ ein zweiter Satz weiter draußen (Richtungen 2, 5, 7 und weiter draußen 0; nicht in Richtung des Startsees)
+    const starts = freq.factor > 1 ? [...MAPGEN.startPatches, ...MAPGEN.startPatchesExtra] : MAPGEN.startPatches;
+    const dirIdx = [0, 3, 6, 1, 2, 5, 7, 0];
+    this.startPatches = starts.map((p, i) => {
+      const [dx, dy] = DIRS8[(base + dirIdx[i]) % 8];
       const radius = p.radius * size;
       // größere Felder etwas weiter weg, damit sie sich nicht überlappen
       const dist = p.distance * (size > 1 ? 0.55 + 0.5 * size : 1);
@@ -265,7 +272,7 @@ export class GameMap {
       const r = p.reach;
       if (p.x + r >= x0 && p.x - r <= x1 && p.y + r >= y0 && p.y - r <= y1) out.push(p);
     }
-    const cell = MAPGEN.patchCell;
+    const cell = Math.round(MAPGEN.patchCell / Math.sqrt(this.frequency));
     const size = this.settings.size;
     const reach = MAPGEN.patchRadiusMax * size * 2.3;
     const gx0 = Math.floor((x0 - reach) / cell);
@@ -501,7 +508,7 @@ export class GameMap {
 
   /** Uranvorkommen (eigenes Raster, weit draußen; ändert vorhandene Erzfelder nicht). */
   private placeUranium(c: Chunk, x0: number, y0: number): void {
-    const U = MAPGEN.uranium;
+    const U = { ...MAPGEN.uranium, cell: Math.round(MAPGEN.uranium.cell / Math.sqrt(this.frequency)) };
     const res = resourceById('uranium-ore').index;
     const size = this.settings.size;
     const reach = U.radiusMax * size * 2.3;
@@ -605,7 +612,7 @@ export class GameMap {
 
   /** Ölquellen eines Chunks (deterministisch je Feldzelle, unabhängig von der Erzeugungsreihenfolge). */
   private placeOil(c: Chunk, x0: number, y0: number): void {
-    const O = MAPGEN.oil;
+    const O = { ...MAPGEN.oil, cell: Math.round(MAPGEN.oil.cell / Math.sqrt(this.frequency)) };
     const res = resourceById('crude-oil').index;
     const reach = O.radius + 1;
     for (let gy = Math.floor((y0 - reach) / O.cell); gy <= Math.floor((y0 + CS + reach) / O.cell); gy++) {

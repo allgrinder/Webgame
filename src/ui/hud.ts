@@ -1,7 +1,7 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { PLAYER_COMBAT } from '../data/enemies';
-import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
+import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
@@ -1671,6 +1671,8 @@ export class Hud {
     if (!(enemies in ENEMY_SETTINGS)) enemies = DEFAULT_MAP_SETTINGS.enemies;
     let cliffs: CliffSetting = (localStorage.getItem('eisenwerk.cliffs') as CliffSetting | null) ?? DEFAULT_MAP_SETTINGS.cliffs ?? 'normal';
     if (!(cliffs in CLIFF_SETTINGS)) cliffs = 'normal';
+    let freq: FrequencySetting = (localStorage.getItem('eisenwerk.freq') as FrequencySetting | null) ?? DEFAULT_MAP_SETTINGS.frequency ?? 'viel';
+    if (!(freq in FREQUENCY_SETTINGS)) freq = 'viel';
     this.menu.replaceChildren();
     const head = el('div', 'win-head', this.menu);
     head.textContent = 'Neues Spiel';
@@ -1691,10 +1693,11 @@ export class Hud {
       hint.textContent = opts[get()].hint;
       for (const x of btns) x.classList.toggle('on', x.dataset.key === get());
     };
-    group('Rohstoffe', RESOURCE_SETTINGS, () => res, (k) => (res = k));
+    group('Rohstoffe: Häufigkeit', FREQUENCY_SETTINGS, () => freq, (k) => (freq = k));
+    group('Rohstoffe: Menge je Feld', RESOURCE_SETTINGS, () => res, (k) => (res = k));
     group('Gegner', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
     group('Klippen', CLIFF_SETTINGS, () => cliffs, (k) => (cliffs = k));
-    el('div', 'hint', body).textContent = 'Rohstofffelder sind in neuen Runden deutlich größer als früher.';
+    el('div', 'hint', body).textContent = 'Rohstofffelder sind in neuen Runden größer und (Häufigkeit „Viel“) doppelt so zahlreich wie früher.';
     const go = el('button', 'menu-btn primary', body);
     go.textContent = 'Starten (neue Karte)';
     go.onclick = () => {
@@ -1702,8 +1705,9 @@ export class Hud {
         localStorage.setItem('eisenwerk.res', res);
         localStorage.setItem('eisenwerk.enemies', enemies);
         localStorage.setItem('eisenwerk.cliffs', cliffs);
+        localStorage.setItem('eisenwerk.freq', freq);
       } catch { /* privat */ }
-      location.search = `?new&res=${res}&enemies=${enemies}&cliffs=${cliffs}${this.game.world.player?.god ? '&god' : ''}`;
+      location.search = `?new&res=${res}&freq=${freq}&enemies=${enemies}&cliffs=${cliffs}${this.game.world.player?.god ? '&god' : ''}`;
     };
     const back = el('button', 'menu-btn', body);
     back.textContent = 'Zurück';

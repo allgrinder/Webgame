@@ -22,6 +22,7 @@ import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
+import { TechTreeView } from './techtree';
 
 const STATUS_TEXT: Record<Status, string> = {
   [Status.Idle]: 'Leerlauf',
@@ -1431,73 +1432,65 @@ export class Hud {
     if (!this.techWin.classList.contains('hidden')) this.buildResearch();
   }
 
+  private techTree: TechTreeView | null = null;
+  private techQueue: HTMLDivElement | null = null;
+
   private buildResearch(): void {
     const r = this.game.world.research;
-    this.techWin.replaceChildren();
-    const head = el('div', 'win-head', this.techWin);
-    head.textContent = 'Forschung';
-    const close = el('button', 'close', head);
-    close.textContent = '×';
-    close.onclick = () => this.toggleResearch();
-    if (r.current || r.queue.length) {
-      const qe = el('div', 'tech-queue', this.techWin);
-      el('span', 'dim', qe).textContent = 'Warteschlange:';
-      for (const id of [...(r.current ? [r.current] : []), ...r.queue]) {
-        const q = el('div', `q${id === r.current ? ' cur' : ''}`, qe);
-        q.appendChild(this.techIcon(id));
-        el('span', '', q).textContent = r.nameOf(id);
-        const x = el('button', '', q);
-        x.textContent = '×';
-        x.title = 'Aus der Warteschlange nehmen';
-        x.onclick = () => {
-          r.dequeue(id);
+    if (!this.techTree || this.techTree.root.parentElement !== this.techWin) {
+      this.techWin.replaceChildren();
+      const head = el('div', 'win-head', this.techWin);
+      head.textContent = 'Forschung';
+      const close = el('button', 'close', head);
+      close.textContent = '×';
+      close.onclick = () => this.toggleResearch();
+      this.techQueue = el('div', 'tech-queue', this.techWin);
+      this.techTree = new TechTreeView({
+        research: () => this.game.world.research,
+        icon: (n, cls) => this.icon(n, cls),
+        techIcon: (id) => this.techIcon(id),
+        recipeTip: (target, id) => {
+          const rec = RECIPE_LIST.find((x) => x.id === id);
+          if (rec) this.tip.attach(target, () => this.tip.recipe(rec));
+        },
+        effectText,
+        flash: (m) => this.flash(m),
+        changed: () => {
           this.researchKey = '';
-          this.buildResearch();
-        };
+        },
+      });
+      this.techWin.appendChild(this.techTree.root);
+      el('div', 'hint tt-hint', this.techWin).textContent =
+        'Klick: auswählen (Grundlagen blau, darauf aufbauend orange) · Doppelklick oder Umschalt+Klick: in die Warteschlange (mit Voraussetzungen) · '
+        + 'Ziehen oder Mausrad: Baum verschieben (Umschalt: senkrecht, Strg: zoomen) · Farben: grün erforscht, gelb erforschbar, orange über die Warteschlange erreichbar, rot gesperrt';
+      requestAnimationFrame(() => this.techTree?.focusDefault());
+    } else this.techTree.refresh();
+    // Warteschlange
+    const qe = this.techQueue!;
+    qe.replaceChildren();
+    el('span', 'dim', qe).textContent = r.current || r.queue.length ? 'Warteschlange:' : 'Keine Forschung läuft – Forschung auswählen und starten.';
+    for (const id of [...(r.current ? [r.current] : []), ...r.queue]) {
+      const q = el('div', `q${id === r.current ? ' cur' : ''}`, qe);
+      q.appendChild(this.techIcon(id));
+      el('span', '', q).textContent = r.nameOf(id);
+      if (id === r.current) {
+        const b = el('div', 'progress', q);
+        el('div', 'fill', b).style.width = `${(r.fraction(id) * 100).toFixed(1)}%`;
       }
+      q.onclick = (ev) => {
+        if ((ev.target as HTMLElement).tagName === 'BUTTON') return;
+        const k = TECH_BY_ID[id];
+        if (k) this.techTree?.select(k.level !== undefined ? k.id.replace(/-\d+$/, '') : k.id, true);
+      };
+      const x = el('button', '', q);
+      x.textContent = '×';
+      x.title = 'Aus der Warteschlange nehmen';
+      x.onclick = () => {
+        r.dequeue(id);
+        this.researchKey = '';
+        this.buildResearch();
+      };
     }
-    const body = el('div', 'win-body tech-body', this.techWin);
-    for (const t of TECHS) {
-      const done = r.done.has(t.id);
-      const avail = r.available(t.id);
-      const queued = r.queue.includes(t.id);
-      const card = el('div', `tech-card${done ? ' done' : avail || queued ? '' : ' locked'}${r.current === t.id ? ' active' : ''}${queued ? ' queued' : ''}`, body);
-      const top = el('div', 'tech-top', card);
-      el('b', '', top).textContent = r.nameOf(t.id);
-      el('span', 'dim', top).textContent = done ? 'erforscht' : r.current === t.id ? 'läuft' : queued ? `Warteschlange ${r.queue.indexOf(t.id) + 1}` : avail ? '' : 'gesperrt';
-      const cost = el('div', 'tech-cost', card);
-      if (t.trigger) {
-        cost.appendChild(this.icon(`item.${t.trigger.item}`));
-        const made = Math.min(t.trigger.count, r.made.get(t.trigger.item) ?? 0);
-        el('span', '', cost).textContent = ` Auslöser: ${t.trigger.count} × ${ITEMS[t.trigger.item]?.name ?? t.trigger.item} herstellen (${done ? t.trigger.count : made}/${t.trigger.count})`;
-      } else {
-        for (const pk of t.packs) cost.appendChild(this.icon(`item.${pk}`));
-        el('span', '', cost).textContent = ` × ${r.countOf(t)} · ${t.time} s je Einheit${t.infinite ? ' · unendlich' : ''}`;
-      }
-      if (t.effects?.length) el('div', 'tech-effects', card).textContent = t.effects.map(effectText).join(' · ');
-      const un = el('div', 'tech-unlocks', card);
-      for (const u of t.unlocks) {
-        const ic = this.icon(`item.${u}`);
-        un.appendChild(ic);
-        const rec = RECIPE_LIST.find((x) => x.id === u);
-        if (rec) this.tip.attach(ic, () => this.tip.recipe(rec));
-      }
-      if (t.prerequisites.length) el('div', 'dim', card).textContent = `Voraussetzung: ${t.prerequisites.map((p) => TECH_BY_ID[p].name).join(', ')}`;
-      if (!done) {
-        const b = el('div', 'progress', card);
-        el('div', 'fill', b).style.width = `${(r.fraction(t.id) * 100).toFixed(1)}%`;
-      }
-      if (!done && !t.trigger) {
-        card.addEventListener('click', (ev) => {
-          if (ev.shiftKey || !avail) {
-            if (!r.enqueue(t.id)) this.flash(queued ? 'Schon in der Warteschlange' : 'Warteschlange voll');
-          } else r.start(r.current === t.id ? null : t.id);
-          this.researchKey = '';
-          this.buildResearch();
-        });
-      }
-    }
-    el('div', 'hint', body).textContent = 'Klick: Forschung starten/anhalten · Umschalt+Klick oder Klick auf gesperrte: in die Warteschlange (mit Voraussetzungen) · Labore brauchen Strom und Pakete (je Einheit ein Paket jeder Sorte) · Auslöser-Forschungen schließen sich von selbst ab';
   }
 
   toggleHelp(): void {

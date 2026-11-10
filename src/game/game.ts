@@ -10,6 +10,9 @@ import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
 import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
 import { treeKey } from '../sim/robots';
+import { fluidSummary, isFluidHolder } from '../sim/fluids';
+import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
+import { FLUIDS, FLUID_UNIT } from '../data/fluids';
 import { CircuitSystem } from '../sim/circuit';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import type { Tree } from '../sim/trees';
@@ -928,10 +931,25 @@ export class Game {
   }
 
   /** Text für die Hover-Info im HUD. */
+  /** Inhalt eines Flüssigkeitsgebäudes bzw. Temperatur für die Anzeige unter dem Mauszeiger. */
+  private fluidHover(e: Entity): string {
+    const parts: string[] = [];
+    if (isFluidHolder(e)) {
+      for (const b of e.fluidBoxes()) {
+        const s = fluidSummary(b, FLUID_UNIT);
+        if (!s.fluid) continue;
+        parts.push(`${FLUIDS[s.fluid]?.name ?? s.fluid} ${Math.round(s.own).toLocaleString('de-DE')} / ${Math.round(s.ownCap).toLocaleString('de-DE')}`);
+      }
+      if (!parts.length && e.fluidBoxes().length) parts.push('leer');
+    }
+    if (isHeatNode(e)) parts.push(`${Math.round(temperatureOf(e))} °C`);
+    return parts.length ? ` – ${parts.join(' · ')}` : '';
+  }
+
   hoverInfo(): string {
     const m = this.mouseWorld();
     const e = this.world.entityAt(m.x, m.y);
-    if (e) return entityDef(e.name).name;
+    if (e) return entityDef(e.name).name + this.fluidHover(e);
     const tree = this.treeNear(m.x, m.y);
     if (tree) {
       const k = MAPGEN.trees.kinds[tree.kind];
@@ -954,5 +972,7 @@ const CREATIVE_QUICKBAR: (string | null)[] = [
 const DIR_VEC: readonly [number, number][] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 function hasWindow(e: Entity, w?: World): boolean {
+  // alle Gebäude mit Flüssigkeiten (Tank, Rohr, Pumpen, Kessel, Dampfmaschine, Raffinerie …), Wärme und Radar zeigen Füllstände
+  if (isFluidHolder(e) || isHeatNode(e) || e.kind === 'radar') return true;
   return e.guiSlots().length > 0 || (e.kind === 'belt' && !!w?.circuit.isWired(e.id)) || e.kind === 'train-stop' || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
 }

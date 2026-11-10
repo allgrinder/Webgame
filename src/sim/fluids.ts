@@ -182,3 +182,15 @@ export class FluidSystem {
     this.nets = nets;
   }
 }
+
+/**
+ * Füllstand eines Behälters für die Anzeige (in Einheiten): eigener Anteil (Netze verteilen gleichmäßig nach
+ * Fassungsvermögen, wie die Füllstandsanzeige im Original je Gebäude) und das ganze angeschlossene Rohrnetz.
+ */
+export function fluidSummary(b: FluidBox, unit: number): { fluid: string | null; own: number; ownCap: number; net: number; netCap: number } {
+  const n = b.net;
+  const fluid = (n?.fluid ?? b.fluid ?? (b.filter && b.filter !== '__none' ? b.filter : null)) as string | null;
+  if (!n) return { fluid, own: b.amount / unit, ownCap: b.capacity / unit, net: b.amount / unit, netCap: b.capacity / unit };
+  const own = n.capacity > 0 ? (n.amount * b.capacity) / n.capacity : 0;
+  return { fluid, own: own / unit, ownCap: b.capacity / unit, net: n.amount / unit, netCap: n.capacity / unit };
+}

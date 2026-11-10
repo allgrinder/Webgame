@@ -22,6 +22,8 @@ import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
+import { fluidSummary } from '../sim/fluids';
+import { FLUIDS, FLUID_UNIT, visibleFluidColor } from '../data/fluids';
 import { EntityLife } from './life';
 import { HeatHaze } from './haze';
 import { HAZE } from '../data/fx';
@@ -1578,6 +1580,15 @@ export class GameRenderer {
         g.rect(area[0][0] * TILE + 3, area[0][1] * TILE + 3, e.def.miningAreaSize * TILE - 6, e.def.miningAreaSize * TILE - 6).stroke({ width: 1.5 / z, color: 0x80c0ff, alpha: 0.5 });
       } else if (e.kind === 'inserter') {
         this.arrow(g, e.x + 0.5 + DX[e.dir] * 0.75, e.y + 0.5 + DY[e.dir] * 0.75, e.dir, 0xffd060, 0.22);
+      } else if (e.kind === 'tank') {
+        // Füllstand in der Farbe der Flüssigkeit
+        const s = fluidSummary(e.box, FLUID_UNIT);
+        const f = s.own / Math.max(1e-9, s.ownCap);
+        const bw = e.w * TILE * 0.8;
+        const bx = (e.x + e.w * 0.1) * TILE;
+        const by = (e.y + e.h - 0.45) * TILE;
+        g.rect(bx, by, bw, 10).fill({ color: 0x14120f, alpha: 0.85 });
+        if (f > 0) g.rect(bx + 1, by + 1, (bw - 2) * f, 8).fill({ color: s.fluid ? visibleFluidColor(FLUIDS[s.fluid]?.color ?? 0x8a8a8a) : 0x8a8a8a, alpha: 0.95 });
       }
       this.drawAltContents(e, g, world);
     }

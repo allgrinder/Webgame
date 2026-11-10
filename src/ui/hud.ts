@@ -24,9 +24,9 @@ import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
 import { ARMORS, EQUIPMENT } from '../data/armor';
-import { type FluidHolder, isFluidHolder } from '../sim/fluids';
+import { type FluidHolder, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
-import { FLUID_UNIT, isFluid } from '../data/fluids';
+import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
 
@@ -41,6 +41,11 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.NoPower]: 'Kein Strom',
   [Status.Disabled]: 'Durch Schaltbedingung aus',
 };
+
+/** Flüssigkeitsmenge lesbar (Tausender mit Punkt). */
+function fmtFluid(v: number): string {
+  return Math.round(v).toLocaleString('de-DE');
+}
 
 /** Wirkung einer Forschungsstufe als Text. */
 function effectText(e: TechEffect): string {
@@ -631,7 +636,7 @@ export class Hud {
     close.textContent = '×';
     close.onclick = () => this.closeEntity();
     const body = el('div', 'win-body', this.entWin);
-    if (e.kind !== 'container') el('div', `status s${e.status}`, body).textContent = statusText(e);
+    if (e.kind !== 'container' && e.kind !== 'tank' && e.kind !== 'pipe' && e.kind !== 'pipe-ground') el('div', `status s${e.status}`, body).textContent = statusText(e);
     const row = (label: string, inv: Inventory, ghosts?: { item: string; amount: number }[]) => {
       // große Inventare (Kisten, Wagen) als Raster mit 10 Spalten wie im Original, sonst eine Zeile
       const big = inv.size > 10;
@@ -721,7 +726,7 @@ export class Hud {
     }
     if (e.kind === 'container' && (e.logistic === 'requester' || e.logistic === 'buffer')) this.requestEditor(e, body);
     if (e.kind === 'generator') this.generatorInfo(e, body, bar);
-    if (e.kind !== 'generator' && isFluidHolder(e)) this.fluidInfo(e, bar);
+    if (e.kind !== 'generator' && isFluidHolder(e)) this.fluidInfo(e, body);
     if (isHeatNode(e)) {
       const t = temperatureOf(e);
       bar(`Temperatur ${Math.round(t)} °C${e.kind === 'heat-exchanger' ? ' (nutzbar ab 500 °C)' : ''}`, (t - 15) / (e.maxTemperature - 15), 'energy');
@@ -738,7 +743,7 @@ export class Hud {
     if (e.kind === 'furnace') bar('Fortschritt', e.recipe ? e.progress / e.recipeTicks(e.recipe) : 0);
     const burner = e.burner;
     if (burner) bar('Energie', burner.energy / 4e6, 'energy');
-    el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte' + (e.kind === 'container' ? ' · ✕: Plätze sperren' : '');
+    if (e.guiSlots().length) el('div', 'hint', body).textContent = 'Gebäude: Klick Stapel nehmen · Rechtsklick Hälfte · Strg alle dieser Sorte. Inventar: Umschalt+Klick Stapel hinein · Rechtsklick halber Stapel hinein · Strg+Klick alle dieser Sorte' + (e.kind === 'container' ? ' · ✕: Plätze sperren' : '');
   }
 
   /** Filter eines schnellen Greifarms/Massengreifarms: Item in der Hand auf einen Platz = Filter setzen, Klick ohne Item = löschen. */
@@ -816,18 +821,25 @@ export class Hud {
   }
 
   /** Füllstände der Flüssigkeitsanschlüsse (je Leitung einmal). */
-  private fluidInfo(e: Entity & FluidHolder, bar: (label: string, frac: number, cls?: string) => void): void {
-    const seen = new Set<unknown>();
-    for (const b of e.fluidBoxes()) {
-      const src = b.net ?? b;
-      if (seen.has(src)) continue;
-      seen.add(src);
-      const fl = (b.net?.fluid ?? b.fluid ?? b.filter) as string | null;
-      const amount = b.net ? b.net.amount : b.amount;
-      const cap = b.net ? b.net.capacity : b.capacity;
-      const name = fl ? FLUIDS[fl]?.name ?? fl : 'leer';
-      bar(`${name} ${Math.floor(amount / FLUID_UNIT)} / ${Math.floor(cap / FLUID_UNIT)}`, amount / Math.max(1, cap));
-    }
+  private fluidInfo(e: Entity & FluidHolder, body: HTMLElement): void {
+    // je Behälter: eigener Füllstand (Balken in der Farbe der Flüssigkeit), darunter das ganze Rohrnetz
+    const boxes = e.fluidBoxes();
+    const multi = boxes.length > 1;
+    boxes.forEach((b, i) => {
+      const s = fluidSummary(b, FLUID_UNIT);
+      const name = s.fluid ? FLUIDS[s.fluid]?.name ?? s.fluid : 'leer';
+      const r = el('div', 'progress-row stacked fluid-row', body);
+      const lab = el('span', 'label', r);
+      const what = e.kind === 'pipe' || e.kind === 'pipe-ground' ? 'im Rohr' : e.kind === 'tank' ? 'im Tank' : multi ? `Anschluss ${i + 1}` : 'im Gebäude';
+      lab.textContent = `${name} ${what}: ${fmtFluid(s.own)} / ${fmtFluid(s.ownCap)}`;
+      const pb = el('div', 'progress', r);
+      const fill = el('div', 'fill', pb);
+      fill.style.width = `${Math.round((s.own / Math.max(1e-9, s.ownCap)) * 100)}%`;
+      if (s.fluid && FLUIDS[s.fluid]) fill.style.background = `#${visibleFluidColor(FLUIDS[s.fluid].color).toString(16).padStart(6, '0')}`;
+      if (b.net && s.netCap > s.ownCap + 0.5) {
+        el('div', 'dim fluid-net', body).textContent = `Rohrnetz gesamt: ${fmtFluid(s.net)} / ${fmtFluid(s.netCap)} (${Math.round((s.net / Math.max(1e-9, s.netCap)) * 100)} %)`;
+      }
+    });
   }
 
   private entityKey(e: Entity): string {

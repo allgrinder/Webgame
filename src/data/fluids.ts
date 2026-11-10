@@ -33,3 +33,16 @@ export function steamEnergyPerUnit(targetTemperature: number): number {
   const w = FLUIDS.water;
   return (targetTemperature - w.defaultTemperature) * w.heatCapacity;
 }
+
+/** Sehr dunkle Flüssigkeiten (Rohöl) aufhellen, damit der Balken vor dunklem Grund sichtbar ist. */
+export function visibleFluidColor(c: number): number {
+  const r = (c >> 16) & 255;
+  const g = (c >> 8) & 255;
+  const b = c & 255;
+  const lum = 0.3 * r + 0.59 * g + 0.11 * b;
+  if (lum >= 70) return c;
+  const k = (70 - lum) / 70;
+  const mix = (v: number, t: number) => Math.round(v + (t - v) * k * 0.75);
+  return (mix(r, 150) << 16) | (mix(g, 120) << 8) | mix(b, 90);
+}
+

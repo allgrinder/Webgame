@@ -26,7 +26,7 @@ import { Tooltip } from './tooltip';
 import { ARMORS, EQUIPMENT } from '../data/armor';
 import { type FluidHolder, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
-import { FLUID_UNIT } from '../data/fluids';
+import { FLUID_UNIT, isFluid } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
 
@@ -623,7 +623,7 @@ export class Hud {
     close.onclick = () => this.closeEntity();
     const body = el('div', 'win-body', this.entWin);
     if (e.kind !== 'container') el('div', `status s${e.status}`, body).textContent = statusText(e);
-    const row = (label: string, inv: Inventory) => {
+    const row = (label: string, inv: Inventory, ghosts?: { item: string; amount: number }[]) => {
       // große Inventare (Kisten, Wagen) als Raster mit 10 Spalten wie im Original, sonst eine Zeile
       const big = inv.size > 10;
       let r: HTMLElement;
@@ -636,11 +636,22 @@ export class Hud {
         r = el('div', 'slot-row', body);
         el('span', 'label', r).textContent = label;
       }
+      // Vorschau wie im Original: leere Plätze zeigen blass, was hinein gehört (Zutaten bzw. Ergebnis des Rezepts)
+      const present = new Set(inv.slots.filter((st) => st).map((st) => st!.item));
+      const open = (ghosts ?? []).filter((g) => !present.has(g.item));
       inv.slots.forEach((st, i) => {
         const s = el('div', `slot${i >= inv.bar ? ' locked' : ''}`, r);
+        const need = ghosts?.find((g) => g.item === st?.item);
         if (st) {
           s.appendChild(this.icon(`item.${st.item}`));
           el('span', 'count', s).textContent = String(st.count);
+          if (need) s.title = `${ITEMS[st.item]?.name ?? st.item}: ${need.amount} je Durchgang`;
+        } else if (open.length) {
+          const g = open.shift()!;
+          s.classList.add('ghost-slot');
+          s.appendChild(this.icon(`item.${g.item}`));
+          el('span', 'count', s).textContent = `×${g.amount}`;
+          s.title = `${ITEMS[g.item]?.name ?? g.item} – ${g.amount} je Durchgang (fehlt)`;
         }
         s.addEventListener('click', (ev) => {
           if (this.barMode && e.kind === 'container') {
@@ -668,7 +679,13 @@ export class Hud {
     };
     if (e.kind === 'assembler') this.recipePicker(e, body);
     if (e.kind === 'splitter') this.splitterControls(e, body);
-    for (const g of e.guiSlots()) row(g.label, g.inv);
+    for (const gs of e.guiSlots()) {
+      const rec = e.kind === 'assembler' ? e.recipe : null;
+      const ghosts = !rec || e.kind !== 'assembler' ? undefined
+        : gs.inv === e.input ? rec.ingredients.filter((x) => !isFluid(x.item))
+        : gs.inv === e.output ? rec.results.filter((x) => !isFluid(x.item)) : undefined;
+      row(gs.label, gs.inv, ghosts);
+    }
     if (e.kind === 'inserter' && e.def.filterSlots) this.inserterFilters(e, body);
     if (e.kind === 'assembler') bar('Fortschritt', e.recipe && e.crafting ? e.progress / e.recipeTicks(e.recipe) : 0);
     if (e.kind === 'lab') {

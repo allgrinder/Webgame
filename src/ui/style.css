@@ -390,3 +390,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 
 .armor-cols { display: flex; gap: 10px; align-items: flex-start; }
 .armor-side { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+
+/* Gebäudefenster: blasse Vorschau der benötigten Zutaten bzw. des Ergebnisses in leeren Plätzen */
+.slot.ghost-slot .icon { opacity: 0.32; filter: grayscale(0.6); }
+.slot.ghost-slot .count { color: var(--dim); opacity: 0.85; }

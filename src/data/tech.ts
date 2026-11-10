@@ -77,7 +77,7 @@ const E = (type: BonusType, value: number): TechEffect => ({ type, value });
 /** Physischer Schaden (Wiki): Kugeln und Geschützturm je Stufe. */
 const dmg = (b: number, t: number) => [E('bullet-damage', b), E('turret-damage', t)];
 
-export const TECHS: readonly TechDef[] = [
+const RAW_TECHS: readonly TechDef[] = [
   {
     id: 'steam-power', name: 'Dampfkraft', count: 0, time: 0, packs: [], prerequisites: [],
     unlocks: ['pipe', 'pipe-to-ground', 'offshore-pump', 'boiler', 'steam-engine'],
@@ -351,6 +351,45 @@ export const TECHS: readonly TechDef[] = [
     [650, 60, RGBPU, [E('braking', 0.15)]],
   ]),
 ];
+
+/**
+ * Wie im Original braucht jede Forschung die Forschung, die ihre Wissenschaftspakete freischaltet (z. B. Stufe 3 von
+ * „Physischer Projektilschaden“ mit Militär-Paketen → „Militär-Wissenschaft“). Fehlt sie in den Vorgängern, wird sie
+ * ergänzt. Weltraumpakete gibt es erst nach dem Raketensilo.
+ */
+function withPackPrereqs(raw: readonly TechDef[]): TechDef[] {
+  const byId = new Map(raw.map((t) => [t.id, t]));
+  const packTech = new Map<string, string>([['space-science-pack', 'rocket-silo']]);
+  for (const t of raw) for (const u of t.unlocks) if (u.endsWith('-science-pack') && !packTech.has(u)) packTech.set(u, t.id);
+  const ancestors = (id: string, seen = new Set<string>()): Set<string> => {
+    for (const p of byId.get(id)?.prerequisites ?? []) {
+      if (seen.has(p)) continue;
+      seen.add(p);
+      ancestors(p, seen);
+    }
+    return seen;
+  };
+  // in Abhängigkeitsreihenfolge ergänzen, damit Vorgänger ihre Ergänzungen schon haben (keine doppelten Linien)
+  const done = new Set<string>();
+  const visit = (id: string): void => {
+    if (done.has(id)) return;
+    done.add(id);
+    const t = byId.get(id);
+    if (!t) return;
+    for (const p of t.prerequisites) visit(p);
+    const anc = ancestors(id);
+    const extra: string[] = [];
+    for (const pk of t.packs) {
+      const pt = packTech.get(pk);
+      if (pt && pt !== id && !anc.has(pt) && !extra.includes(pt) && !ancestors(pt).has(id)) extra.push(pt);
+    }
+    if (extra.length) byId.set(id, { ...t, prerequisites: [...t.prerequisites, ...extra] });
+  };
+  for (const t of raw) visit(t.id);
+  return raw.map((t) => byId.get(t.id)!);
+}
+
+export const TECHS: readonly TechDef[] = withPackPrereqs(RAW_TECHS);
 
 export const TECH_BY_ID: Readonly<Record<string, TechDef>> = Object.fromEntries(TECHS.map((t) => [t.id, t]));
 

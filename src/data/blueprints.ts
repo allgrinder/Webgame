@@ -165,13 +165,13 @@ export function plasticBlock(): Blueprint {
   const parts: Part[] = [];
   parts.push({ name: 'oil-refinery', x: 0, y: 0, dir: 0, settings: { recipe: 'basic-oil-processing' } });
   parts.push({ name: 'oil-refinery', x: 6, y: 0, dir: 0, settings: { recipe: 'basic-oil-processing' } });
-  parts.push({ name: 'storage-tank', x: 2, y: 7, dir: 0 });
-  // Rohöl: Tank → unter den Raffinerien entlang → je ein Eingang (der zweite Eingang bleibt frei)
-  parts.push({ name: 'pipe', x: 1, y: 5 }, { name: 'pipe', x: 7, y: 5 });
-  for (let x = 1; x <= 7; x++) parts.push({ name: 'pipe', x, y: 6 });
-  // Erdgas: je ein Ausgang → Leitung oben → Chemiefabrik
-  parts.push({ name: 'pipe', x: 0, y: -1 }, { name: 'pipe', x: 6, y: -1 });
-  for (let x = 0; x <= 6; x++) parts.push({ name: 'pipe', x, y: -2 });
+  parts.push({ name: 'storage-tank', x: 5, y: 7, dir: 0 });
+  // Rohöl (wie im Original unten rechts an der Raffinerie): Tank → Leitung unter den Raffinerien
+  parts.push({ name: 'pipe', x: 3, y: 5 }, { name: 'pipe', x: 9, y: 5 });
+  for (let x = 3; x <= 9; x++) parts.push({ name: 'pipe', x, y: 6 });
+  // Erdgas (oben rechts) → Leitung oben → Chemiefabrik
+  parts.push({ name: 'pipe', x: 4, y: -1 }, { name: 'pipe', x: 10, y: -1 });
+  for (let x = 4; x <= 10; x++) parts.push({ name: 'pipe', x, y: -2 });
   parts.push({ name: 'chemical-plant', x: 6, y: -5, dir: 0, settings: { recipe: 'plastic-bar' } });
   // schnelle Greifarme: die Chemiefabrik braucht 0,9 Kohle/s und gibt 1,8 Plastik/s aus
   parts.push({ name: 'fast-inserter', x: 5, y: -5, dir: 1 }, { name: 'iron-chest', x: 4, y: -5 });

@@ -533,3 +533,7 @@ elektrischer Bohrer 0,5 Erz/s; Kessel 1,8 MW = 2 Dampfmaschinen à 900 kW; Solar
 Bandlogik nach Wiki „Inserters“ (Chest to belt): Ist die Lücke an der Ablagestelle schmaler als ein Item, halten die
 nachfolgenden Items an, um Platz zu machen; nur bei lückenlos vollem Band wartet der Greifarm. Erst damit füllen
 24 Öfen je Spur ein Band ganz (vorher ≈ 96 %).
+
+Raffinerie-Anschlüsse wie im Original (Wiki „Oil refinery“): Eingänge hinten links Wasser, rechts Rohöl; Ausgänge vorn
+links Schweröl, Mitte Leichtöl, rechts Erdgas – auch bei der Grundverarbeitung (Rezeptfeld `box` in `src/data/recipes.ts`).
+Unbenutzte Anschlüsse eines Rezepts verbinden sich nicht (auch nicht mit Rohren).

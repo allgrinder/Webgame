@@ -24,7 +24,7 @@ import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
 import { ARMORS, EQUIPMENT } from '../data/armor';
-import { type FluidHolder, fluidSummary, isFluidHolder } from '../sim/fluids';
+import { type FluidHolder, UNUSED, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
@@ -825,12 +825,26 @@ export class Hud {
     // je Behälter: eigener Füllstand (Balken in der Farbe der Flüssigkeit), darunter das ganze Rohrnetz
     const boxes = e.fluidBoxes();
     const multi = boxes.length > 1;
+    // Maschinen mit Rezept: Anschlüsse nach Lage benennen (Raffinerie wie im Original), unbenutzte ausblenden
+    const defs = e.kind === 'assembler' ? e.def.fluidBoxes ?? [] : [];
+    const side = (i: number): string => {
+      const d = defs[i];
+      if (!d) return `Anschluss ${i + 1}`;
+      const same = defs.filter((x) => x.type === d.type);
+      const k = same.indexOf(d);
+      const pos = same.length === 1 ? '' : same.length === 2 ? [' links', ' rechts'][k] : [' links', ' Mitte', ' rechts'][k] ?? ` ${k + 1}`;
+      return `${d.type === 'input' ? 'Eingang' : 'Ausgang'}${pos}`;
+    };
+    if (defs.length && boxes.some((b) => b.filter !== UNUSED)) {
+      el('div', 'dim', body).textContent = 'Ausgänge vorn (Pfeilrichtung), Eingänge hinten; links/rechts in Pfeilrichtung gesehen. Unbenutzte Anschlüsse sind nicht verbunden.';
+    }
     boxes.forEach((b, i) => {
+      if (b.filter === UNUSED) return;
       const s = fluidSummary(b, FLUID_UNIT);
       const name = s.fluid ? FLUIDS[s.fluid]?.name ?? s.fluid : 'leer';
       const r = el('div', 'progress-row stacked fluid-row', body);
       const lab = el('span', 'label', r);
-      const what = e.kind === 'pipe' || e.kind === 'pipe-ground' ? 'im Rohr' : e.kind === 'tank' ? 'im Tank' : multi ? `Anschluss ${i + 1}` : 'im Gebäude';
+      const what = e.kind === 'pipe' || e.kind === 'pipe-ground' ? 'im Rohr' : e.kind === 'tank' ? 'im Tank' : defs.length ? `– ${side(i)}` : multi ? `Anschluss ${i + 1}` : 'im Gebäude';
       lab.textContent = `${name} ${what}: ${fmtFluid(s.own)} / ${fmtFluid(s.ownCap)}`;
       const pb = el('div', 'progress', r);
       const fill = el('div', 'fill', pb);

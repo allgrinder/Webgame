@@ -95,9 +95,12 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     const ins = r.ingredients.filter((g) => isFluid(g.item)).map((g) => g.item);
     const outs = r.results.filter((g) => isFluid(g.item)).map((g) => g.item);
     const defs = this.def.fluidBoxes ?? [];
+    const fixed = [...r.ingredients.map((g) => [g, 'input'] as const), ...r.results.map((g) => [g, 'output'] as const)]
+      .find(([g]) => g.item === fluid && g.box !== undefined);
     const pick = (list: string[], type: 'input' | 'output') => {
-      const k = list.indexOf(fluid);
+      let k = list.indexOf(fluid);
       if (k < 0) return undefined;
+      if (fixed && fixed[1] === type) k = fixed[0].box!;
       const idx = defs.map((d, i) => (d.type === type ? i : -1)).filter((i) => i >= 0)[k];
       return idx === undefined ? undefined : this.boxes[idx];
     };

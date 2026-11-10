@@ -68,16 +68,14 @@ describe('Öl und Chemie (Wiki-Werte)', () => {
     const ref = w.place('oil-refinery', 0, 0, 0) as AssemblerEntity;
     ref.setRecipe('basic-oil-processing');
     expect(ref.recipe?.id).toBe('basic-oil-processing');
-    // Eingang unten (1,4) → Rohr (1,5) → Tank; Ausgang oben (0,0) → Rohr (0,−1)
-    w.place('pipe', 1, 5, 0);
-    const src = w.place('storage-tank', -1, 6, 0) as TankEntity; // Ecke (−1,6) mit Anschluss Nord → (−1,5)? über Rohr (0,5)
-    w.place('pipe', 0, 5, 0);
-    w.place('pipe', -1, 5, 0);
-    w.place('pipe', 0, -1, 0);
+    // wie im Original: Rohöl unten rechts (3,4) → Rohr (3,5) → Tank; Erdgas oben rechts (4,0) → Rohr (4,−1)
+    w.place('pipe', 3, 5, 0);
+    const src = w.place('storage-tank', 3, 6, 0) as TankEntity; // Anschluss Nord an der Ecke (3,6) → Rohr (3,5)
+    w.place('pipe', 4, -1, 0);
     w.step();
     src.box.net!.add('crude-oil', 1000 * 1000);
     run(w, 5 * 60 * 2 + 5);
-    const gas = ref.boxes[2].net!;
+    const gas = ref.boxes[4].net!;
     expect(gas.fluid).toBe('petroleum-gas');
     expect(gas.amount / 1000).toBe(90);
     expect(ref.canCraft({ category: 'chemistry' } as never)).toBe(false);

@@ -16,6 +16,12 @@ export interface ItemAmount {
   readonly amount: number;
   /** Wahrscheinlichkeit des Ergebnisses (Urananreicherung, Wiki); fehlt = immer. */
   readonly probability?: number;
+  /**
+   * Flüssigkeit: fester Anschluss (Index unter den Ein- bzw. Ausgängen der Maschine), wie im Original
+   * (Raffinerie: unten links Wasser, rechts Rohöl; oben links Schweröl, Mitte Leichtöl, rechts Erdgas).
+   * Fehlt = nach Reihenfolge im Rezept.
+   */
+  readonly box?: number;
 }
 
 export interface RecipeDef {
@@ -219,11 +225,14 @@ const list: RecipeDef[] = [
     id: 'pipe-to-ground', category: 'crafting', time: 0.5,
     ingredients: [{ item: 'iron-plate', amount: 5 }, { item: 'pipe', amount: 10 }], results: [{ item: 'pipe-to-ground', amount: 2 }],
   },
-  { id: 'basic-oil-processing', category: 'oil-processing', time: 5, ingredients: [{ item: 'crude-oil', amount: 100 }], results: [{ item: 'petroleum-gas', amount: 45 }] },
+  {
+    id: 'basic-oil-processing', category: 'oil-processing', time: 5,
+    ingredients: [{ item: 'crude-oil', amount: 100, box: 1 }], results: [{ item: 'petroleum-gas', amount: 45, box: 2 }],
+  },
   {
     id: 'advanced-oil-processing', category: 'oil-processing', time: 5,
-    ingredients: [{ item: 'crude-oil', amount: 100 }, { item: 'water', amount: 50 }],
-    results: [{ item: 'heavy-oil', amount: 25 }, { item: 'light-oil', amount: 45 }, { item: 'petroleum-gas', amount: 55 }],
+    ingredients: [{ item: 'crude-oil', amount: 100, box: 1 }, { item: 'water', amount: 50, box: 0 }],
+    results: [{ item: 'heavy-oil', amount: 25, box: 0 }, { item: 'light-oil', amount: 45, box: 1 }, { item: 'petroleum-gas', amount: 55, box: 2 }],
   },
   { id: 'heavy-oil-cracking', category: 'chemistry', time: 2, ingredients: [{ item: 'heavy-oil', amount: 40 }, { item: 'water', amount: 30 }], results: [{ item: 'light-oil', amount: 30 }] },
   { id: 'light-oil-cracking', category: 'chemistry', time: 2, ingredients: [{ item: 'light-oil', amount: 30 }, { item: 'water', amount: 30 }], results: [{ item: 'petroleum-gas', amount: 20 }] },

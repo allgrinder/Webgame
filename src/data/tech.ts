@@ -106,6 +106,9 @@ export const TECHS: readonly TechDef[] = [
   { id: 'gun-turret', name: 'Geschützturm', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['gun-turret'] },
   { id: 'repair-pack', name: 'Reparaturset', count: 25, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['repair-pack'] },
   { id: 'stone-wall', name: 'Steinmauer', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall'] },
+  // Rüstung (Wiki-Infoboxen „Heavy armor (research)“, „Modular armor (research)“, „Power armor (research)“,
+  // „Portable solar panel (research)“, „Personal battery (research)“, „Personal roboport (research)“)
+  { id: 'heavy-armor', name: 'Schwere Rüstung', count: 30, time: 30, packs: RED, prerequisites: ['military', 'steel-processing'], unlocks: ['heavy-armor'] },
   {
     id: 'military-2', name: 'Militär 2', count: 20, time: 15, packs: RED_GREEN,
     prerequisites: ['military', 'steel-processing', 'logistic-science-pack'], unlocks: ['piercing-rounds-magazine', 'grenade'],
@@ -176,6 +179,12 @@ export const TECHS: readonly TechDef[] = [
   { id: 'speed-module', name: 'Geschwindigkeitsmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['speed-module'] },
   { id: 'productivity-module', name: 'Produktivitätsmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['productivity-module'] },
   { id: 'efficiency-module', name: 'Effizienzmodul', count: 50, time: 30, packs: RED_GREEN, prerequisites: ['modules'], unlocks: ['efficiency-module'] },
+  { id: 'modular-armor', name: 'Modulare Rüstung', count: 100, time: 30, packs: RED_GREEN, prerequisites: ['advanced-circuit', 'heavy-armor'], unlocks: ['modular-armor'] },
+  {
+    id: 'solar-panel-equipment', name: 'Tragbares Solarmodul', count: 100, time: 15, packs: RED_GREEN,
+    prerequisites: ['modular-armor', 'solar-energy'], unlocks: ['solar-panel-equipment'],
+  },
+  { id: 'battery-equipment', name: 'Persönlicher Akku', count: 50, time: 15, packs: RED_GREEN, prerequisites: ['battery', 'solar-panel-equipment'], unlocks: ['battery-equipment'] },
   { id: 'processing-unit', name: 'Prozessor', count: 300, time: 30, packs: RGB, prerequisites: ['chemical-science-pack'], unlocks: ['processing-unit'] },
   ...(['speed', 'productivity', 'efficiency'] as const).map((k) => ({
     id: `${k}-module-2`, name: `${k === 'speed' ? 'Geschwindigkeits' : k === 'productivity' ? 'Produktivitäts' : 'Effizienz'}modul 2`,
@@ -217,6 +226,14 @@ export const TECHS: readonly TechDef[] = [
   {
     id: 'construction-robotics', name: 'Bauroboter', count: 100, time: 30, packs: RGB, prerequisites: ['robotics'],
     unlocks: ['construction-robot', 'passive-provider-chest', 'roboport', 'storage-chest'],
+  },
+  {
+    id: 'personal-roboport-equipment', name: 'Persönlicher Roboterhangar', count: 50, time: 30, packs: RGB,
+    prerequisites: ['construction-robotics', 'solar-panel-equipment'], unlocks: ['personal-roboport-equipment'],
+  },
+  {
+    id: 'power-armor', name: 'Kraftrüstung', count: 200, time: 30, packs: RGB,
+    prerequisites: ['electric-engine', 'modular-armor', 'processing-unit'], unlocks: ['power-armor'],
   },
   {
     id: 'logistic-robotics', name: 'Logistikroboter', count: 250, time: 30, packs: RGB, prerequisites: ['robotics'],

@@ -9,6 +9,7 @@ import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
 import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
+import { treeKey } from '../sim/robots';
 import { CircuitSystem } from '../sim/circuit';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import type { Tree } from '../sim/trees';
@@ -528,21 +529,46 @@ export class Game {
   private finishCopy(): void {
     const s = this.selecting!;
     this.selecting = null;
+    const ax = Math.min(s.x0, s.x1);
+    const bx = Math.max(s.x0, s.x1);
+    const ay = Math.min(s.y0, s.y1);
+    const by = Math.max(s.y0, s.y1);
+    if (s.cut) {
+      // Ausschneiden/Abreißen (wie der Abrissplaner): Gebäude und Bäume im Bereich für Bauroboter markieren;
+      // mit Umschalt: Markierungen im Bereich aufheben
+      const unmark = this.input.shift;
+      const robots = this.world.robots;
+      let trees = 0;
+      for (let y = ay; y <= by; y++) {
+        for (let x = ax; x <= bx; x++) {
+          const e = this.world.entityAt(x, y);
+          if (e) {
+            if (unmark) robots.marked.delete(e.id);
+            else robots.marked.add(e.id);
+          }
+          const t = this.world.map.trees.treeAt(x, y);
+          if (t) {
+            const k = treeKey(t.cx, t.cy, t.i);
+            if (unmark) robots.markedTrees.delete(k);
+            else if (!robots.markedTrees.has(k)) {
+              robots.markedTrees.set(k, { cx: t.cx, cy: t.cy, i: t.i, x: t.x, y: t.y });
+              trees++;
+            }
+          }
+        }
+      }
+      if (unmark) {
+        this.world.player?.note('Markierungen im Bereich aufgehoben');
+        return;
+      }
+      if (trees) this.world.player?.note(`${trees} Bäume zum Fällen markiert (Bauroboter)`);
+    }
     const bp = bpCapture(this.world, s.x0, s.y0, s.x1, s.y1);
     if (!bp) {
-      this.world.player?.note('Keine Gebäude im Bereich');
+      if (!s.cut) this.world.player?.note('Keine Gebäude im Bereich');
       return;
     }
     this.clipboard = bp;
-    if (s.cut) {
-      // Ausschneiden: alle Gebäude im Bereich zum Abriss markieren (Bauroboter)
-      for (let y = Math.min(s.y0, s.y1); y <= Math.max(s.y0, s.y1); y++) {
-        for (let x = Math.min(s.x0, s.x1); x <= Math.max(s.x0, s.x1); x++) {
-          const e = this.world.entityAt(x, y);
-          if (e) this.world.robots.marked.add(e.id);
-        }
-      }
-    }
     this.setBlueprint(bp);
     this.hud.rememberClipboard(bp);
   }

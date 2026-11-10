@@ -23,6 +23,7 @@ import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
+import { ARMORS, EQUIPMENT } from '../data/armor';
 import { type FluidHolder, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT } from '../data/fluids';
@@ -363,6 +364,9 @@ export class Hud {
       this.tip.attach(s, () => (s.dataset.item ? this.tip.item(s.dataset.item, Number(s.dataset.count)) : null));
       return s;
     });
+    this.armorEl = el('div', 'armor-panel', left);
+    this.armorKey = '';
+    this.updateArmor();
     const right = el('div', 'col craft-col', body);
     el('div', 'sub-head', right).textContent = 'Handwerk (Klick: 1, Umschalt: 5, Strg: alle)';
     // Reiter wie im Original: Logistik, Produktion, Zwischenprodukte, Kampf
@@ -418,6 +422,12 @@ export class Hud {
   private updateInventory(force = false): void {
     const p = this.game.world.player;
     if (!p) return;
+    if (this.invSlots.length !== p.inventory.size) {
+      // Inventargröße hat sich geändert (Rüstung, Werkzeuggürtel)
+      this.buildInventory();
+      return;
+    }
+    this.updateArmor();
     const key = JSON.stringify(p.inventory.slots) + this.game.cursorItem;
     if (!force && key === this.invKey) return;
     this.invKey = key;
@@ -439,6 +449,94 @@ export class Hud {
       const n = p.craftableCount(id);
       s.classList.toggle('disabled', n === 0);
       s.querySelector('.count')!.textContent = n > 0 ? String(n) : '';
+    }
+  }
+
+  private armorEl: HTMLDivElement | null = null;
+  private armorKey = '';
+
+  /** Rüstung, Ausrüstungsraster und persönliche Roboter (Inventarfenster). */
+  private updateArmor(): void {
+    const g = this.game;
+    const p = g.world.player;
+    const box = this.armorEl;
+    if (!p || !box) return;
+    const grid = p.grid;
+    const out = p.personalRobotsOut(g.world);
+    const armors = Object.keys(ARMORS).filter((a) => p.inventory.count(a) > 0);
+    const equips = Object.keys(EQUIPMENT).filter((a) => p.inventory.count(a) > 0);
+    const key = JSON.stringify([p.armor, grid?.items, Math.round((grid?.energy ?? 0) / 1e5), out, armors, equips, p.personalRobots, p.inventory.count('construction-robot'), p.inventory.count('repair-pack')]);
+    if (key === this.armorKey) return;
+    this.armorKey = key;
+    box.replaceChildren();
+    const msg = (m: string | null) => {
+      if (m) this.flash(m);
+      this.armorKey = '';
+      this.updateInventory(true);
+    };
+    const head = el('div', 'sub-head', box);
+    head.textContent = 'Rüstung';
+    const row = el('div', 'armor-row', box);
+    const slot = el('div', 'slot armor-slot', row);
+    if (p.armor) {
+      slot.appendChild(this.icon(`item.${p.armor}`));
+      slot.title = `${ITEMS[p.armor].name} – Klick: ablegen`;
+      slot.onclick = () => msg(p.unequipArmor(g.world));
+    } else slot.title = 'Keine Rüstung angelegt';
+    const info = el('div', 'dim armor-info', row);
+    const a = p.armor ? ARMORS[p.armor] : null;
+    info.textContent = a
+      ? `${ITEMS[p.armor!].name}: Schaden −${a.flat} und −${Math.round(a.percent * 100)} %${a.inventoryBonus ? `, +${a.inventoryBonus} Inventarplätze` : ''}${a.gridW ? `, Raster ${a.gridW}×${a.gridH}` : ''}`
+      : 'Rüstung herstellen und hier anlegen.';
+    for (const it of armors) {
+      const b = el('button', 'small-btn', box);
+      b.textContent = `${ITEMS[it].name} anlegen`;
+      b.onclick = () => msg(p.equipArmor(g.world, it));
+    }
+    if (!grid) return;
+    // Raster links, Angaben rechts daneben
+    const cols = el('div', 'armor-cols', box);
+    const side = el('div', 'armor-side', cols);
+    // Raster: Ausrüstung als Rechtecke; Klick nimmt sie heraus
+    const CELL = 26;
+    const gd = el('div', 'equip-grid', cols);
+    cols.insertBefore(gd, side);
+    gd.style.width = `${grid.w * CELL}px`;
+    gd.style.height = `${grid.h * CELL}px`;
+    for (const it of grid.items) {
+      const d = EQUIPMENT[it.item];
+      const c = el('div', `equip ${d.kind}`, gd);
+      c.style.left = `${it.x * CELL}px`;
+      c.style.top = `${it.y * CELL}px`;
+      c.style.width = `${d.w * CELL - 2}px`;
+      c.style.height = `${d.h * CELL - 2}px`;
+      c.appendChild(this.icon(`item.${it.item}`));
+      c.title = `${ITEMS[it.item].name} – Klick: herausnehmen`;
+      c.onclick = () => msg(p.removeEquipment(g.world, it.x, it.y));
+    }
+    for (const it of equips) {
+      const b = el('button', 'small-btn', side);
+      b.textContent = `${ITEMS[it].name} einsetzen`;
+      b.onclick = () => msg(p.insertEquipment(it));
+    }
+    if (grid.capacity > 0) {
+      const r = el('div', 'progress-row stacked', side);
+      el('span', 'label', r).textContent = `Energie ${(grid.energy / 1e6).toFixed(1)} / ${(grid.capacity / 1e6).toFixed(0)} MJ · Solar ${Math.round(grid.solarPerTick * 0.06)} kW (tagsüber)`;
+      const bar = el('div', 'progress power', r);
+      el('div', 'fill', bar).style.width = `${Math.round((grid.energy / grid.capacity) * 100)}%`;
+    }
+    if (grid.roboports > 0) {
+      const area = Math.round(grid.constructionRadius * 2);
+      const info2 = el('div', 'dim armor-info', side);
+      info2.textContent = `Roboter: ${out}/${grid.robotLimit} unterwegs, ${p.inventory.count('construction-robot')} im Inventar · Baufläche ${area}×${area}`;
+      info2.title = 'Persönliche Bauroboter bauen Geister mit Items aus dem Inventar, reißen Markiertes ab (Strg+X, auch Bäume; '
+        + 'Umschalt+Strg+X hebt auf) und reparieren mit Reparatursets aus dem Inventar.';
+      const t = el('button', p.personalRobots ? 'small-btn on' : 'small-btn', side);
+      t.textContent = p.personalRobots ? 'Persönliche Roboter: an' : 'Persönliche Roboter: aus';
+      t.onclick = () => {
+        p.personalRobots = !p.personalRobots;
+        msg(null);
+      };
     }
   }
 
@@ -1584,7 +1682,7 @@ export class Hud {
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p>Schienen in der Hand: <b>Tab</b> Gleisform (gerade, Bogen, Diagonale, Übergang gerade↔diagonal) · <b>R</b> drehen · Diagonale: die Ecke folgt der Maus, Ziehen legt eine Treppe</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen – markiert auch Bäume zum Fällen, <b>Umschalt+Strg+X</b> hebt Markierungen auf, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>

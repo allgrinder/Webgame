@@ -428,6 +428,23 @@ const list: RecipeDef[] = [
     results: [{ item: 'refined-concrete', amount: 10 }],
   },
   { id: 'refined-hazard-concrete', category: 'crafting', time: 0.25, ingredients: [{ item: 'refined-concrete', amount: 10 }], results: [{ item: 'refined-hazard-concrete', amount: 10 }] },
+  // Rüstung und Ausrüstung (Wiki-Infoboxen)
+  { id: 'heavy-armor', category: 'crafting', time: 8, ingredients: [{ item: 'copper-plate', amount: 100 }, { item: 'steel-plate', amount: 50 }], results: [{ item: 'heavy-armor', amount: 1 }] },
+  { id: 'modular-armor', category: 'crafting', time: 15, ingredients: [{ item: 'steel-plate', amount: 50 }, { item: 'advanced-circuit', amount: 30 }], results: [{ item: 'modular-armor', amount: 1 }] },
+  {
+    id: 'power-armor', category: 'crafting', time: 20,
+    ingredients: [{ item: 'steel-plate', amount: 40 }, { item: 'processing-unit', amount: 40 }, { item: 'electric-engine-unit', amount: 20 }], results: [{ item: 'power-armor', amount: 1 }],
+  },
+  {
+    id: 'personal-roboport-equipment', category: 'crafting', time: 10,
+    ingredients: [{ item: 'advanced-circuit', amount: 10 }, { item: 'battery', amount: 45 }, { item: 'iron-gear-wheel', amount: 40 }, { item: 'steel-plate', amount: 20 }],
+    results: [{ item: 'personal-roboport-equipment', amount: 1 }],
+  },
+  {
+    id: 'solar-panel-equipment', category: 'crafting', time: 10,
+    ingredients: [{ item: 'advanced-circuit', amount: 2 }, { item: 'solar-panel', amount: 1 }, { item: 'steel-plate', amount: 5 }], results: [{ item: 'solar-panel-equipment', amount: 1 }],
+  },
+  { id: 'battery-equipment', category: 'crafting', time: 10, ingredients: [{ item: 'battery', amount: 5 }, { item: 'steel-plate', amount: 10 }], results: [{ item: 'battery-equipment', amount: 1 }] },
   {
     id: 'roboport', category: 'crafting', time: 5,
     ingredients: [{ item: 'advanced-circuit', amount: 45 }, { item: 'iron-gear-wheel', amount: 45 }, { item: 'steel-plate', amount: 45 }],

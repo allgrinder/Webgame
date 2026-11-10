@@ -1521,6 +1521,21 @@ export class GameRenderer {
       const y1 = (e.y + e.h) * TILE - 6;
       g.moveTo(x0, y0).lineTo(x1, y1).moveTo(x1, y0).lineTo(x0, y1).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
     }
+    // zum Fällen markierte Bäume
+    for (const t of world.robots.markedTrees.values()) {
+      const cx = t.x * TILE;
+      const cy = (t.y - 0.6) * TILE;
+      const r = TILE * 0.35;
+      g.moveTo(cx - r, cy - r).lineTo(cx + r, cy + r).moveTo(cx + r, cy - r).lineTo(cx - r, cy + r).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
+    }
+    // Baufläche der persönlichen Roboter (beim Planen: Blaupause im Cursor oder Auswahl)
+    const pl = world.player;
+    if (pl?.grid && pl.grid.roboports > 0 && pl.personalRobots && (ui.selection || (ui.ghosts?.length ?? 0) > 0)) {
+      const R = pl.grid.constructionRadius;
+      const px = pl.px / 256;
+      const py = pl.py / 256;
+      g.rect((px - R) * TILE, (py - R) * TILE, 2 * R * TILE, 2 * R * TILE).stroke({ width: 2 / z, color: 0x7ad0ff, alpha: 0.55 });
+    }
     this.drawCombat(world, g);
     if (ui.selection) {
       const r = ui.selection;

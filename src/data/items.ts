@@ -142,6 +142,13 @@ const list: ItemDef[] = [
   { id: 'gun-turret', name: 'Geschützturm', stackSize: 50, placeResult: 'gun-turret', order: 134 },
   { id: 'stone-wall', name: 'Steinmauer', stackSize: 100, placeResult: 'stone-wall', order: 135 },
   { id: 'repair-pack', name: 'Reparaturset', stackSize: 100, order: 136 },
+  // Rüstung und Ausrüstung (Wiki-Infoboxen, src/data/armor.ts)
+  { id: 'heavy-armor', name: 'Schwere Rüstung', stackSize: 1, order: 137 },
+  { id: 'modular-armor', name: 'Modulare Rüstung', stackSize: 1, order: 138 },
+  { id: 'power-armor', name: 'Kraftrüstung', stackSize: 1, order: 139 },
+  { id: 'personal-roboport-equipment', name: 'Persönlicher Roboterhangar', stackSize: 20, order: 140 },
+  { id: 'solar-panel-equipment', name: 'Tragbares Solarmodul', stackSize: 20, order: 141 },
+  { id: 'battery-equipment', name: 'Persönlicher Akku', stackSize: 20, order: 142 },
   // Wurfgegenstände (Wiki „Grenade“, „Cliff explosives“) und Fass (Wiki „Barrel“)
   { id: 'grenade', name: 'Granate', stackSize: 100, order: 137 },
   { id: 'cliff-explosives', name: 'Klippensprengstoff', stackSize: 20, order: 138 },

@@ -84,4 +84,18 @@ describe('Roboter (Wiki „Roboport“, „Logistic robot“, „Construction ro
     expect(store.inventory.count('iron-chest')).toBe(1);
     expect(store.inventory.count('coal')).toBe(7);
   });
+
+  it('Hangar-Bauroboter reparieren mit Reparatursets aus dem Netz', () => {
+    const w = clearWorld();
+    const port = w.place('roboport', 0, 0, 0) as RoboportEntity;
+    insertInto(port, 'construction-robot', 3, 'player');
+    const store = w.place('storage-chest', 6, 0, 0) as ContainerEntity;
+    store.inventory.add('repair-pack', 3);
+    const wall = w.place('stone-wall', 12, 8, 0)!;
+    wall.hp = wall.def.health - 150;
+    run(w, 60 * 15);
+    expect(wall.hp).toBe(wall.def.health);
+    expect(store.inventory.count('repair-pack')).toBe(2);
+    expect(w.robots.robots.length).toBe(0);
+  });
 });

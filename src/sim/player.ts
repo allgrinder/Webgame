@@ -1,3 +1,5 @@
+import { ARMORS, EQUIPMENT } from '../data/armor';
+import { EquipmentGrid } from './armor';
 import { FLOOR, FLOOR_BY_ID } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
@@ -45,6 +47,11 @@ export class Player {
   facing = 2;
   walking = false;
   readonly inventory = new Inventory(PLAYER.inventorySlots);
+  /** Angelegte Rüstung (Item) und ihr Ausrüstungsraster. */
+  armor: string | null = null;
+  grid: EquipmentGrid | null = null;
+  /** Persönliche Bauroboter eingeschaltet (Wiki: Umschalter in der Schnellleiste). */
+  personalRobots = true;
   /** Schnellleiste: Item-IDs (Verweise, wie im Vorbild). */
   readonly quickbar: (string | null)[] = new Array(PLAYER.quickbarSlots).fill(null);
   readonly craftQueue: CraftJob[] = [];
@@ -124,8 +131,9 @@ export class Player {
     this.prevPy = this.py;
     // Forschungs-Boni der Figur: Stahlaxt, Werkzeuggürtel (+10 Inventarplätze)
     this.miningBonus = world.research.bonus('hand-mining');
-    const slots = PLAYER.inventorySlots + world.research.bonus('toolbelt');
+    const slots = this.inventorySize(world);
     if (this.inventory.size < slots) this.inventory.resize(slots);
+    this.grid?.update(1 - world.darkness);
     this.updateCombat(world);
     this.updateMovement(world);
     this.updateMining(world);
@@ -135,11 +143,81 @@ export class Player {
     }
   }
 
+  // ------------------------------------------------------------- Rüstung
+
+  /** Inventarplätze: Grundwert + Werkzeuggürtel + Rüstung. */
+  inventorySize(world: World): number {
+    return PLAYER.inventorySlots + world.research.bonus('toolbelt') + (this.armor ? ARMORS[this.armor].inventoryBonus : 0);
+  }
+
+  /** Rüstung aus dem Inventar anlegen (die bisherige kommt ins Inventar). Liefert eine Meldung bei Fehlschlag. */
+  equipArmor(world: World, item: string): string | null {
+    if (!ARMORS[item] || this.inventory.count(item) < 1) return 'Keine Rüstung';
+    if (this.armor) {
+      const err = this.unequipArmor(world);
+      if (err) return err;
+    }
+    this.inventory.remove(item, 1);
+    this.armor = item;
+    this.grid = EquipmentGrid.forArmor(item);
+    this.inventory.resize(this.inventorySize(world));
+    return null;
+  }
+
+  /** Rüstung ablegen: Ausrüstung und Rüstung kommen ins Inventar (das kleiner wird). */
+  unequipArmor(world: World): string | null {
+    if (!this.armor) return null;
+    const back = [this.armor, ...(this.grid?.items.map((p) => p.item) ?? [])];
+    const size = PLAYER.inventorySlots + world.research.bonus('toolbelt');
+    // Platz prüfen: alles muss nach dem Verkleinern hineinpassen
+    const test = new Inventory(this.inventory.size);
+    test.load(this.inventory.serialize());
+    if (!test.shrink(size) || back.some((it) => test.add(it, 1) < 1)) return 'Inventar zu voll, um die Rüstung abzulegen';
+    if (this.personalRobotsOut(world) > 0) return 'Persönliche Roboter sind noch unterwegs';
+    this.inventory.shrink(size);
+    for (const it of back) this.inventory.add(it, 1);
+    this.armor = null;
+    this.grid = null;
+    return null;
+  }
+
+  /** Ausrüstung aus dem Inventar ins Raster (ohne Lage: erster freier Platz). */
+  insertEquipment(item: string, x?: number, y?: number): string | null {
+    if (!this.grid) return 'Erst eine modulare Rüstung anlegen';
+    if (!EQUIPMENT[item] || this.inventory.count(item) < 1) return 'Keine Ausrüstung';
+    if (!this.grid.place(item, x, y)) return 'Kein Platz im Raster';
+    this.inventory.remove(item, 1);
+    return null;
+  }
+
+  /** Ausrüstung am Rasterfeld zurück ins Inventar. */
+  removeEquipment(world: World, x: number, y: number): string | null {
+    if (!this.grid) return null;
+    const item = this.grid.removeAt(x, y);
+    if (!item) return null;
+    if (EQUIPMENT[item].kind === 'roboport' && this.personalRobotsOut(world) > this.grid.robotLimit) {
+      this.grid.place(item, x, y);
+      return 'Persönliche Roboter sind noch unterwegs';
+    }
+    if (this.inventory.add(item, 1) < 1) {
+      this.grid.place(item, x, y);
+      return 'Inventar voll';
+    }
+    return null;
+  }
+
+  personalRobotsOut(world: World): number {
+    return world.robots.robots.filter((r) => r.personal).length;
+  }
+
   // ------------------------------------------------------------- Kampf
 
   /** Schaden an der Spielfigur; bei 0 Lebenspunkten Neustart am Startpunkt (Inventar bleibt, Vereinfachung). */
   damage(world: World, dmg: number): void {
     if (this.dead || this.god) return;
+    const a = this.armor ? ARMORS[this.armor] : null;
+    // Rüstung: fester Abzug, dann Anteil (Wiki „Damage“: Widerstände)
+    if (a) dmg = Math.max(dmg * 0.01, (dmg - a.flat) * (1 - a.percent));
     this.hp -= dmg;
     this.lastHit = world.tick;
     if (this.hp > 0) return;

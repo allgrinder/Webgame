@@ -1,3 +1,4 @@
+import { EquipmentGrid } from './armor';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
 import type { PollutionSystem } from './pollution';
@@ -102,6 +103,10 @@ interface PlayerData {
   lh?: number;
   rd?: number;
   ri?: string | null;
+  /** Rüstung, Ausrüstungsraster, persönliche Roboter an/aus. */
+  ar?: string | null;
+  gr?: ReturnType<EquipmentGrid['serialize']> | null;
+  pr?: boolean;
 }
 
 export function serializeWorld(w: World): SaveData {
@@ -156,6 +161,9 @@ export function serializeWorld(w: World): SaveData {
         lh: p.lastHit,
         rd: p.rounds,
         ri: p.roundsItem,
+        ar: p.armor,
+        gr: p.grid?.serialize() ?? null,
+        pr: p.personalRobots,
       }
       : null,
   };
@@ -217,6 +225,10 @@ export function deserializeWorld(d: SaveData): World {
     p.walking = pd.walking;
     p.pickingUp = pd.pu ?? false;
     p.inventory.load(pd.inv);
+    p.armor = pd.ar ?? null;
+    p.grid = p.armor ? EquipmentGrid.forArmor(p.armor) : null;
+    p.grid?.load(pd.gr ?? undefined);
+    p.personalRobots = pd.pr ?? true;
     pd.quickbar.forEach((q, i) => (p.quickbar[i] = q));
     for (const j of pd.queue) p.craftQueue.push({ ...j });
     p.mineTarget = pd.mine;

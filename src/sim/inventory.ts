@@ -33,6 +33,21 @@ export class Inventory {
     if (full) this.bar = this.slots.length;
   }
 
+  /**
+   * Verkleinern: Stapel aus den wegfallenden Plätzen rücken in freie Plätze davor. Liefert false (ohne Änderung),
+   * wenn dafür kein Platz ist.
+   */
+  shrink(size: number): boolean {
+    if (size >= this.slots.length) return true;
+    const moving = this.slots.slice(size).filter((s): s is Stack => !!s);
+    const free = this.slots.slice(0, size).filter((s) => !s).length;
+    if (moving.length > free) return false;
+    this.slots.length = size;
+    for (const st of moving) this.slots[this.slots.indexOf(null)] = st;
+    this.bar = Math.min(this.bar, size);
+    return true;
+  }
+
   accepts(item: string): boolean {
     return !this.filter || this.filter(item);
   }

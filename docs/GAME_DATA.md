@@ -497,3 +497,23 @@ seit 2.0 auch rohes JSON; Blaupausen und (verschachtelte) Bücher. Umrechnung in
   Bahnhofsname. Ausgelassen (mit Hinweis): Drähte, Bodenbeläge, Module, Bögen/Diagonalgleise (andere Formen).
 Geprüft mit Hauptbus-Splitter-Blaupausen aus dem Wiki (nur lokal, nicht eingecheckt): alle Gebäude übernommen,
 Untergrund-Paare identisch.
+
+## Rüstung, persönlicher Roboterhangar, Reparatur, Bäume fällen (Wunsch 10.11.2026)
+
+Quellen: Wiki-Infoboxen „Heavy armor“, „Modular armor“, „Power armor“, „Personal roboport“, „Portable solar panel“,
+„Personal battery“, „Repair pack“ und die zugehörigen Forschungen; Werte `src/data/armor.ts`.
+- Schwere Rüstung 100 Kupfer + 50 Stahl (8 s); modulare Rüstung 50 Stahl + 30 fort. Schaltkreise (15 s), Raster 5×5,
+  +10 Plätze; Kraftrüstung 40 Stahl + 40 Prozessoren + 20 Elektromotoren (20 s), Raster 6×8, +20 Plätze.
+  Widerstand physisch 6/30 % (Kraft 8/30 %); Vereinfachung: gilt für jeden Schaden an der Figur.
+- Persönlicher Roboterhangar 2×2: 10 Roboter, 2 Ladeplätze à 1 MW, 35 MJ Speicher, Baufläche 30×30 (mehrere: √(N·30²));
+  Start erst ab 20 % Ladung. Tragbares Solarmodul 1×1, 30 kW (× Tageslicht). Persönlicher Akku 1×2, 20 MJ.
+  Vereinfachung: Akkus und Hangarspeicher bilden einen gemeinsamen Speicher; Ausrüstung bleibt beim Ablegen der Rüstung
+  nicht in der Rüstung, sondern kommt ins Inventar.
+- Forschung: Schwere Rüstung 30×R (30 s); Modulare Rüstung 100×RG (30 s, nach fort. Schaltkreisen + schwerer Rüstung);
+  Tragbares Solarmodul 100×RG (15 s); Persönlicher Akku 50×RG (15 s); Persönlicher Roboterhangar 50×RGB (30 s, nach
+  Bauroboter + Solarmodul); Kraftrüstung 200×RGB (30 s).
+- Persönliche Roboter: bauen Geister mit Items aus dem Inventar, reißen markierte Gebäude ab und fällen markierte Bäume
+  (Ertrag ins Inventar), reparieren mit Reparatursets aus dem Inventar; laden an der Figur.
+- Hangar-Roboter reparieren nun ebenfalls (Reparaturset aus einer Kiste des Netzes) und fällen markierte Bäume (Holz in
+  eine Lagerkiste). Reparatur 2 Lebenspunkte je Tick (Messvorschlag), ein Set hält 300 Punkte; angebrochene Sets verfallen.
+- Strg+X markiert Gebäude und Bäume (Felsen sind bei uns Dekoration); Umschalt+Strg+X hebt Markierungen auf.

@@ -370,3 +370,23 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .progress-row.stacked { flex-direction: column; align-items: stretch; gap: 2px; }
 .progress-row.stacked .label { font-size: 12px; width: auto; min-width: 0; max-width: none; }
 .progress-row.stacked .progress { flex: none; width: 100%; }
+
+/* Rüstung im Inventarfenster */
+.armor-panel { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-width: 460px; }
+.armor-row { display: flex; gap: 8px; align-items: center; }
+.armor-slot { width: 40px; height: 40px; cursor: pointer; flex: none; }
+.armor-info { font-size: 12px; }
+.equip-grid { position: relative; background: repeating-linear-gradient(0deg, #2b2824 0 25px, #1a1815 25px 26px), #1a1815;
+  background-image: linear-gradient(#1a1815 1px, transparent 1px), linear-gradient(90deg, #1a1815 1px, transparent 1px);
+  background-size: 26px 26px; background-color: #2b2824; border: 1px solid #0c0b0a; }
+.equip { position: absolute; display: grid; place-items: center; cursor: pointer; border: 1px solid #0c0b0a;
+  background: linear-gradient(180deg, #4a4438 0%, #36322b 100%); }
+.equip:hover { border-color: #e0a53a; }
+.equip.roboport { background: linear-gradient(180deg, #3e4a52 0%, #2b343a 100%); }
+.equip.solar { background: linear-gradient(180deg, #2f3d55 0%, #222c3d 100%); }
+.equip.battery { background: linear-gradient(180deg, #3d4d33 0%, #2b3725 100%); }
+.equip .icon { width: 22px; height: 22px; }
+.small-btn.on { background: #e0a53a; color: #1c1a17; }
+
+.armor-cols { display: flex; gap: 10px; align-items: flex-start; }
+.armor-side { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }

@@ -1664,6 +1664,17 @@
     "res.uranium-ore.5.3"
    ]
   },
+  "ruestung": {
+   "hash": "ccb27bd0acd58875",
+   "sprites": [
+    "item.heavy-armor",
+    "item.modular-armor",
+    "item.power-armor",
+    "item.personal-roboport-equipment",
+    "item.solar-panel-equipment",
+    "item.battery-equipment"
+   ]
+  },
   "solar": {
    "hash": "cdb6e2646cd5a9d4",
    "sprites": [
@@ -12480,6 +12491,18 @@
     0.5
    ]
   },
+  "item.battery-equipment": {
+   "group": "items",
+   "frames": [
+    "item.battery-equipment#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.beacon": {
    "group": "items",
    "frames": [
@@ -13056,6 +13079,18 @@
     0.5
    ]
   },
+  "item.heavy-armor": {
+   "group": "items",
+   "frames": [
+    "item.heavy-armor#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.heavy-oil": {
    "group": "items",
    "frames": [
@@ -13320,6 +13355,18 @@
     0.5
    ]
   },
+  "item.modular-armor": {
+   "group": "items",
+   "frames": [
+    "item.modular-armor#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.nuclear-reactor": {
    "group": "items",
    "frames": [
@@ -13360,6 +13407,18 @@
    "group": "items",
    "frames": [
     "item.passive-provider-chest#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.personal-roboport-equipment": {
+   "group": "items",
+   "frames": [
+    "item.personal-roboport-equipment#0"
    ],
    "w": 64,
    "h": 64,
@@ -13444,6 +13503,18 @@
    "group": "items",
    "frames": [
     "item.plastic-bar#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.power-armor": {
+   "group": "items",
+   "frames": [
+    "item.power-armor#0"
    ],
    "w": 64,
    "h": 64,
@@ -13696,6 +13767,18 @@
    "group": "items",
    "frames": [
     "item.solar-panel#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.solar-panel-equipment": {
+   "group": "items",
+   "frames": [
+    "item.solar-panel-equipment#0"
    ],
    "w": 64,
    "h": 64,

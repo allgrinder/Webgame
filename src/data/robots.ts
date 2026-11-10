@@ -38,6 +38,8 @@ export const ROBOPORT = {
   /** Eigener Speicher (J); Quelle 2 (factorio-data roboport, buffer_capacity 100 MJ). */
   buffer: 100_000_000,
   drain: 50_000,
+  /** Suche nach beschädigten Gebäuden (Ticks, Messvorschlag). */
+  repairScanEvery: 60,
   /** Aufgaben verteilen alle n Ticks (Messvorschlag). */
   dispatchEvery: 10,
 } as const;

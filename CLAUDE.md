@@ -77,6 +77,8 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Kernkraft (`src/sim/heat.ts`, `entities/nuclear.ts`, Modelle `lib/kernkraft.py`), diagonale Gleise (`src/sim/rails.ts`,
   Tab wechselt Gleisform), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
   Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
+- Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
+  Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

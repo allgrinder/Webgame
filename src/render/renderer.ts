@@ -22,7 +22,7 @@ import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
-import { fluidSummary } from '../sim/fluids';
+import { UNUSED, type FluidBox, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { FLUIDS, FLUID_UNIT, visibleFluidColor } from '../data/fluids';
 import { EntityLife } from './life';
 import { HeatHaze } from './haze';
@@ -66,6 +66,8 @@ export interface RenderUi {
   alt: boolean;
   /** Markierung unter dem Cursor (Feldrechteck). */
   hover: { x: number; y: number; w: number; h: number } | null;
+  /** Flüssigkeitsanschlüsse mit Pfeil und Symbol zeigen (Rohr o. Ä. in der Hand; Alt-Ansicht zeigt sie immer). */
+  fluidPorts?: boolean;
   /** Abbaufortschritt 0..1 am Hover-Ziel. */
   mining: number;
 }
@@ -1065,6 +1067,7 @@ export class GameRenderer {
           sp.position.set(cx, cy);
           sp.zIndex = z - 32;
         } else this.drawGeneric(e, cx, cy, z - 32);
+        this.pipeWindow(e, cx, cy, z - 31);
         break;
       }
       case 'belt':
@@ -1081,6 +1084,77 @@ export class GameRenderer {
       }
       default:
         this.drawGeneric(e, cx, cy, z);
+    }
+  }
+
+  private dotTex: Texture | null = null;
+
+  /**
+   * Sichtfenster eines Rohrs (wie die Fenster der Rohre im Original): Farbe der Flüssigkeit, umso kräftiger,
+   * je voller das Rohr ist; leere Rohre ohne Fenster.
+   */
+  private pipeWindow(e: Entity, cx: number, cy: number, z: number): void {
+    if (!isFluidHolder(e)) return;
+    const b = e.fluidBoxes()[0];
+    const sum = b ? fluidSummary(b, FLUID_UNIT) : null;
+    if (!sum?.fluid || sum.own <= 0.5) return;
+    if (!this.dotTex) {
+      const gr = new Graphics().roundRect(0, 0, 32, 32, 9).fill(0xffffff);
+      this.dotTex = this.app.renderer.generateTexture(gr);
+    }
+    const f = Math.min(1, sum.own / Math.max(1e-9, sum.ownCap));
+    const sp = this.ents.get(this.dotTex);
+    sp.anchor.set(0.5);
+    sp.position.set(cx, cy - TILE * 0.06);
+    sp.scale.set((TILE * 0.26) / 32);
+    sp.tint = visibleFluidColor(FLUIDS[sum.fluid]?.color ?? 0x888888);
+    sp.alpha = 0.35 + 0.6 * f;
+    sp.zIndex = z;
+  }
+
+  /**
+   * Flüssigkeitsanschlüsse aller sichtbaren Gebäude: Pfeil (hinein/heraus) am Rand und Symbol der Flüssigkeit,
+   * nur genutzte Anschlüsse (Rezept bzw. Inhalt bekannt).
+   */
+  private drawFluidPorts(world: World, g: Graphics): void {
+    const s = this.sprites;
+    const z = this.camera.zoom;
+    const v = this.viewRect();
+    for (const e of this.visibleEntities(world, v)) {
+      if (e.kind === 'pipe' || e.kind === 'pipe-ground' || !isFluidHolder(e)) continue;
+      const boxes = e.fluidBoxes();
+      for (const p of e.fluidPorts()) {
+        const b = p.box;
+        if (b.filter === UNUSED) continue;
+        const fluid = (b.filter ?? b.net?.fluid ?? b.fluid) as string | null;
+        if (!fluid && e.kind === 'tank') continue;
+        const dir = portDirection(e, boxes.indexOf(b), b);
+        // Randmitte des Anschlussfelds
+        const ex = (p.tx + 0.5 + DX[p.dir] * 0.5) * TILE;
+        const ey = (p.ty + 0.5 + DY[p.dir] * 0.5) * TILE;
+        if (dir) {
+          // Pfeil: heraus = nach außen, hinein = zum Gebäude
+          const sgn = dir === 'out' ? 1 : -1;
+          const ax = DX[p.dir] * sgn;
+          const ay = DY[p.dir] * sgn;
+          const tip = TILE * 0.2;
+          const back = TILE * 0.06;
+          const wide = TILE * 0.13;
+          const bx = ex - ax * back;
+          const by = ey - ay * back;
+          g.poly([bx + ax * tip, by + ay * tip, bx - ay * wide, by + ax * wide, bx + ay * wide, by - ax * wide])
+            .fill({ color: dir === 'out' ? 0xffb03a : 0x7ad0ff, alpha: 0.95 }).stroke({ width: 1.5 / z, color: 0x000000, alpha: 0.6 });
+        }
+        if (fluid && s.has(`item.${fluid}`)) {
+          const ix = ex + DX[p.dir] * TILE * 0.42;
+          const iy = ey + DY[p.dir] * TILE * 0.42;
+          const size = TILE * 0.4;
+          this.altBg.circle(ix, iy, size * 0.62).fill({ color: 0x0b0b0a, alpha: 0.7 }).stroke({ width: 1.5, color: 0x000000, alpha: 0.5 });
+          const sp = this.icons.get(s.frame(`item.${fluid}`));
+          sp.position.set(ix, iy);
+          sp.scale.set((size / TILE) * 0.95);
+        }
+      }
     }
   }
 
@@ -1566,6 +1640,7 @@ export class GameRenderer {
       const [aw, ah] = sizeOf(def, ui.ghost.dir);
       if (def.rotatable) this.arrow(g, ui.ghost.x + aw / 2, ui.ghost.y + ah / 2, ui.ghost.dir, ui.ghost.ok ? 0x9dff9a : 0xff8070);
     }
+    if (ui.alt || ui.fluidPorts) this.drawFluidPorts(world, g);
     if (!ui.alt) return;
     const v = this.viewRect();
     for (const e of this.visibleEntities(world, v)) {
@@ -1742,5 +1817,18 @@ function railKey(shape: string, dir: number): string {
     case 'diagonal': return `rail.diag.${dir}`;
     case 'half': return `rail.half.${dir}`;
     default: return `rail.halfm.${dir}`;
+  }
+}
+
+/** Fließrichtung eines Anschlusses: aus Rezept bzw. Gebäudeart; null = unbekannt (nur Symbol). */
+function portDirection(e: Entity, boxIndex: number, b: FluidBox): 'in' | 'out' | null {
+  switch (e.kind) {
+    case 'assembler': return e.def.fluidBoxes?.[boxIndex]?.type === 'output' ? 'out' : 'in';
+    case 'boiler': return b === e.water ? 'in' : 'out';
+    case 'heat-exchanger': return b === e.water ? 'in' : 'out';
+    case 'generator': return 'in';
+    case 'pumpjack':
+    case 'offshore-pump': return 'out';
+    default: return null;
   }
 }

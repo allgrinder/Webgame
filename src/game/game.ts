@@ -900,6 +900,8 @@ export class Game {
     }
     return {
       ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power, drill, inserter, throwAim, floorBrush,
+      // Flüssigkeitsanschlüsse zeigen, solange etwas mit Rohranschluss in der Hand ist (wie im Original)
+      fluidPorts: !!cursorPlace && FLUID_PLACE_KINDS.has(entityDef(cursorPlace).kind),
       selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
     };
   }
@@ -963,6 +965,9 @@ export class Game {
     return '';
   }
 }
+
+/** Gebäudearten mit Rohranschlüssen: in der Hand zeigen sie alle Flüssigkeitsanschlüsse. */
+const FLUID_PLACE_KINDS = new Set(['pipe', 'pipe-ground', 'pump', 'tank', 'offshore-pump', 'pumpjack', 'boiler', 'generator', 'heat-exchanger', 'assembler']);
 
 const CREATIVE_QUICKBAR: (string | null)[] = [
   'transport-belt', 'burner-inserter', 'burner-mining-drill', 'stone-furnace', null, null, null, null, null, null,

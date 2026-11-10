@@ -537,3 +537,8 @@ nachfolgenden Items an, um Platz zu machen; nur bei lückenlos vollem Band warte
 Raffinerie-Anschlüsse wie im Original (Wiki „Oil refinery“): Eingänge hinten links Wasser, rechts Rohöl; Ausgänge vorn
 links Schweröl, Mitte Leichtöl, rechts Erdgas – auch bei der Grundverarbeitung (Rezeptfeld `box` in `src/data/recipes.ts`).
 Unbenutzte Anschlüsse eines Rezepts verbinden sich nicht (auch nicht mit Rohren).
+
+## Flüssigkeits-Anschlüsse und Rohr-Sichtfenster (Wunsch 10.11.2026)
+- Wie im Original: Mit gedrückter Alt-Ansicht oder mit Rohr/Pumpe/Tank/Flüssigkeitsmaschine in der Hand zeigt jeder
+  Flüssigkeitsanschluss einen Pfeil (blau = Eingang, orange = Ausgang) und das Symbol der Flüssigkeit darin.
+- Rohre bekommen ein Sichtfenster in der Farbe der geführten Flüssigkeit; Deckkraft 0,35 + 0,6 × Füllstand (eigene Wahl).

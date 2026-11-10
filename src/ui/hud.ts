@@ -282,12 +282,21 @@ export class Hud {
       key.textContent = i === 9 ? '0' : String(i + 1);
       if (item) slot.appendChild(this.icon(`item.${item}`));
       el('span', 'count', slot);
-      slot.addEventListener('click', () => this.game.selectQuickbar(i));
+      const p = this.game.world.player;
+      slot.addEventListener('click', () => {
+        // wie im Original: leerer Platz + Gegenstand in der Hand = Platz belegen; sonst Gegenstand in die Hand nehmen
+        if (p && !item && this.game.cursorItem) {
+          p.quickbar[i] = this.game.cursorItem;
+          this.buildQuickbar();
+          return;
+        }
+        this.game.selectQuickbar(i);
+      });
       if (item) this.tip.attach(slot, () => this.tip.item(item));
+      else slot.title = 'Leer – Gegenstand in die Hand nehmen (im Inventar anklicken oder mit Q aufnehmen), dann hier klicken';
       slot.addEventListener('contextmenu', (e) => {
         e.preventDefault();
-        // Rechtsklick: Schnellleistenplatz mit Cursor-Item belegen oder leeren
-        const p = this.game.world.player;
+        // Rechtsklick: mit dem Gegenstand in der Hand belegen bzw. (ohne) leeren
         if (p) {
           p.quickbar[i] = this.game.cursorItem;
           this.buildQuickbar();
@@ -1700,7 +1709,7 @@ export class Hud {
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p>Schienen in der Hand: <b>Tab</b> Gleisform (gerade, Bogen, Diagonale, Übergang gerade↔diagonal) · <b>R</b> drehen · Diagonale: die Ecke folgt der Maus, Ziehen legt eine Treppe</p>
         <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen – markiert auch Bäume zum Fällen, <b>Umschalt+Strg+X</b> hebt Markierungen auf, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
-        <p><b>1–0</b> Schnellleiste (Rechtsklick auf Platz: mit Cursor-Item belegen) · <b>Alt</b> Detailansicht</p>
+        <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: Platz neu belegen bzw. ohne Gegenstand leeren) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>

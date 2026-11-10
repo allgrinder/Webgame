@@ -517,3 +517,19 @@ Quellen: Wiki-Infoboxen „Heavy armor“, „Modular armor“, „Power armor�
 - Hangar-Roboter reparieren nun ebenfalls (Reparaturset aus einer Kiste des Netzes) und fällen markierte Bäume (Holz in
   eine Lagerkiste). Reparatur 2 Lebenspunkte je Tick (Messvorschlag), ein Set hält 300 Punkte; angebrochene Sets verfallen.
 - Strg+X markiert Gebäude und Bäume (Felsen sind bei uns Dekoration); Umschalt+Strg+X hebt Markierungen auf.
+
+## Abgestimmte Baupläne (Wunsch 10.11.2026, `src/data/blueprints.ts`, geprüft in `tests/sim/presets2.test.ts`)
+
+Rechnung mit unseren Werten (gelbes Band 15/s, 7,5 je Spur; Steinofen 0,3125 Platten/s, Stahlofen 0,625/s;
+elektrischer Bohrer 0,5 Erz/s; Kessel 1,8 MW = 2 Dampfmaschinen à 900 kW; Solarpanel 60 kW, Akku 5 MJ):
+- Ofenreihe 2 × 24 Steinöfen (bzw. 2 × 12 Stahlöfen) = 15 Platten/s; je Außenband eine Spur Erz (7,5/s) und eine Spur Kohle.
+- Bohrerfeld 2 × 15 elektrische Bohrer = 15 Erz/s.
+- Dampfkraft 1 Uferpumpe : 10 Kessel : 20 Dampfmaschinen = 18 MW; Brennstoff-Greifarme versorgen sich selbst.
+- Solarkachel 18 × 18: 25 Panele : 21 Akkus + Umspannwerk; trägt 0,9 MW Dauerlast, sobald die Akkus einmal voll sind.
+- Mall (Montagemaschine 2): 10 Grundteile, Kisten auf einen Stapel begrenzt, Zwischenprodukte direkt verkettet.
+- Plastik: 2 Raffinerien (Grundverarbeitung, je 9 Erdgas/s) → 1 Chemiefabrik (20 Erdgas/s, 90 % ausgelastet) = 1,8 Plastik/s;
+  braucht 40 Rohöl/s (4 Pumpjacks bei 100 % Ergiebigkeit; Pumpjack 10 Rohöl/s je 100 %).
+
+Bandlogik nach Wiki „Inserters“ (Chest to belt): Ist die Lücke an der Ablagestelle schmaler als ein Item, halten die
+nachfolgenden Items an, um Platz zu machen; nur bei lückenlos vollem Band wartet der Greifarm. Erst damit füllen
+24 Öfen je Spur ein Band ganz (vorher ≈ 96 %).

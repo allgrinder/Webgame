@@ -751,7 +751,45 @@ export class BeltSystem {
       // Eingang: nur auf die sichtbare erste Hälfte; Ausgang: zweite Hälfte
       off = t.ug.output ? Math.min(off, HALF - 1) : Math.max(off, HALF) - P + t.lens[laneIdx];
     }
-    return this.insertAt(lane, lane.tileEnd[t.idx] + off, item);
+    const d = lane.tileEnd[t.idx] + off;
+    return this.insertAt(lane, d, item) || this.insertPushing(lane, d, item);
+  }
+
+  /**
+   * Wiki „Inserters“ (Chest to belt): Ist die Lücke an der Ablagestelle schmaler als ein Item, halten die
+   * nachfolgenden Items an, um Platz zu machen – nur nach vorn muss Platz sein. So füllen Greifarme ein Band
+   * ganz; bei lückenlos vollem Band warten sie. Die nachfolgenden Items werden um die fehlende Strecke
+   * zurückgehalten (Kette), aber nicht über den Linienanfang hinaus.
+   */
+  private insertPushing(lane: Lane, d: number, item: number): boolean {
+    if (d < 0 || d >= lane.len) return false;
+    const gaps = lane.gaps;
+    let pos = 0;
+    let k = 0;
+    for (; k < gaps.length; k++) {
+      const np = pos + gaps[k];
+      if (np > d) break;
+      pos = np;
+    }
+    if (k > 0 && d - pos < S) return false; // vorn kein Platz
+    if (k >= gaps.length) return false; // nichts dahinter – dann hätte insertAt schon gepasst
+    // nachfolgende Items zurückhalten: neue Abstände ab dem eingefügten Item
+    const newGaps = gaps.slice(k);
+    newGaps[0] = pos + gaps[k] - d; // Abstand neues Item → bisheriges Item k
+    let total = d;
+    for (let i = 0; i < newGaps.length; i++) {
+      if (newGaps[i] < S) {
+        const shift = S - newGaps[i];
+        newGaps[i] = S;
+        if (i + 1 < newGaps.length) newGaps[i + 1] = Math.max(0, newGaps[i + 1] - shift);
+      }
+      total += newGaps[i];
+    }
+    if (total >= lane.len) return false; // kein Platz bis zum Linienanfang
+    gaps.splice(k, gaps.length - k, d - pos, ...newGaps);
+    lane.items.splice(k, 0, item);
+    if (k < lane.active) lane.active = k;
+    return true;
   }
 
   /** Bereich [lo, hi) einer Spur, in dem Items auf diesem Feld sichtbar und greifbar sind. */

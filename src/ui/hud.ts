@@ -29,6 +29,7 @@ import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
+import { HandbookView } from './handbook';
 
 const STATUS_TEXT: Record<Status, string> = {
   [Status.Idle]: 'Leerlauf',
@@ -113,6 +114,7 @@ export class Hud {
   private readonly menu: HTMLDivElement;
   private readonly techWin: HTMLDivElement;
   private readonly statsWin: HTMLDivElement;
+  private readonly bookWin: HTMLDivElement;
   private readonly powerWin: HTMLDivElement;
   private readonly powerBadge: HTMLDivElement;
   private readonly gridView: StatsView;
@@ -152,6 +154,7 @@ export class Hud {
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.statsWin = el('div', 'window stats hidden', this.layer);
+    this.bookWin = el('div', 'window handbook hidden', this.layer);
     this.powerWin = el('div', 'window stats power-win hidden', this.layer);
     this.powerBadge = el('div', 'hud-power hidden', this.layer);
     this.powerBadge.title = 'Strom-Übersicht (O)';
@@ -915,7 +918,7 @@ export class Hud {
       this.mapView.toggle(0, 0);
       any = true;
     }
-    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.powerWin, this.bpWin, this.trainWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -930,6 +933,13 @@ export class Hud {
   private recipePicker(e: Extract<Entity, { kind: 'assembler' }>, body: HTMLElement): void {
     const g = this.game;
     el('div', 'sub-head', body).textContent = e.recipe ? 'Rezept (Klick zum Wechseln)' : 'Rezept wählen';
+    if (e.recipe) {
+      const out = e.recipe.results[0].item;
+      const hb = el('button', 'small-btn', body);
+      hb.textContent = 'Verhältnis im Handbuch (J)';
+      hb.title = 'Wie viele Maschinen je Zutat? Öffnet den Rechner für dieses Produkt';
+      hb.onclick = () => this.toggleHandbook(out);
+    }
     const grid = el('div', 'grid recipes', body);
     for (const r of RECIPE_LIST) {
       if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id)) continue;
@@ -1368,6 +1378,26 @@ export class Hud {
     body.scrollTop = scroll;
   }
 
+  private book: HandbookView | null = null;
+
+  /** Handbuch (J): Rezepte, Verwendung, Verhältnis-Rechner, Faustregeln. Mit `item` direkt auf dieser Seite. */
+  toggleHandbook(item?: string): void {
+    const show = item !== undefined || this.bookWin.classList.contains('hidden');
+    this.bookWin.classList.toggle('hidden', !show);
+    if (!show) return;
+    if (!this.book) {
+      const head = el('div', 'win-head', this.bookWin);
+      head.textContent = 'Handbuch';
+      const close = el('button', 'close', head);
+      close.textContent = '×';
+      close.onclick = () => this.toggleHandbook();
+      this.book = new HandbookView({ research: () => this.game.world.research, icon: (n, cls) => this.icon(n, cls) });
+      this.bookWin.appendChild(this.book.root);
+    }
+    if (item) this.book.open(item);
+    else this.book.refresh();
+  }
+
   toggleStats(): void {
     const hidden = this.statsWin.classList.toggle('hidden');
     if (!hidden) this.buildStats();
@@ -1734,7 +1764,7 @@ export class Hud {
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
         <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
         <p>Schienen in der Hand: <b>Tab</b> Gleisform (gerade, Bogen, Diagonale, Übergang gerade↔diagonal) · <b>R</b> drehen · Diagonale: die Ecke folgt der Maus, Ziehen legt eine Treppe</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen – markiert auch Bäume zum Fällen, <b>Umschalt+Strg+X</b> hebt Markierungen auf, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>J</b> Handbuch (Rezepte, Verhältnisse, Rechner) · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen – markiert auch Bäume zum Fällen, <b>Umschalt+Strg+X</b> hebt Markierungen auf, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
         <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: Platz neu belegen bzw. ohne Gegenstand leeren) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
@@ -1769,6 +1799,7 @@ export class Hud {
     btn('Laden (Autosave)', () => void this.loadGame('autosave'));
     btn('Spielstand exportieren (Datei)', () => this.exportGame());
     btn('Spielstand importieren (Datei)', () => this.importGame());
+    btn('Handbuch & Verhältnisse (J)', () => { this.toggleMenu(); this.toggleHandbook(); });
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
     {
       const vol = Math.round(this.game.sound.volume * 100);

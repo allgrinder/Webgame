@@ -362,6 +362,7 @@ export class Game {
       case 'alt': this.alt = !this.alt; break;
       case 'f3': this.hud.toggleDebug(); break;
       case 'p': this.hud.toggleStats(); break;
+      case 'j': this.hud.toggleHandbook(); break;
       case 'o': this.hud.togglePower(); break;
       case '+': case '=': this.floorBrush = Math.min(FLOOR.brushMax, this.floorBrush + 1); break;
       case '-': this.floorBrush = Math.max(FLOOR.brushMin, this.floorBrush - 1); break;

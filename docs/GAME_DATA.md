@@ -542,3 +542,14 @@ Unbenutzte Anschlüsse eines Rezepts verbinden sich nicht (auch nicht mit Rohren
 - Wie im Original: Mit gedrückter Alt-Ansicht oder mit Rohr/Pumpe/Tank/Flüssigkeitsmaschine in der Hand zeigt jeder
   Flüssigkeitsanschluss einen Pfeil (blau = Eingang, orange = Ausgang) und das Symbol der Flüssigkeit darin.
 - Rohre bekommen ein Sichtfenster in der Farbe der geführten Flüssigkeit; Deckkraft 0,35 + 0,6 × Füllstand (eigene Wahl).
+
+## Handbuch mit Verhältnis-Rechner (Wunsch 11.11.2026, `src/sim/ratio.ts`, `src/ui/handbook.ts`, Taste J)
+Keine neuen Zahlen: alles aus Rezepten (`src/data/recipes.ts`), Maschinengeschwindigkeiten (`src/data/entities.ts`),
+Abbauzeiten (`src/data/resources.ts`) und Bandgeschwindigkeit. Maschinen je Schritt = Menge/s × Rezeptzeit ÷
+(Ergebnismenge × Geschwindigkeit); Bohrer = Menge/s ÷ (Abbaugeschwindigkeit ÷ Abbauzeit); Pumpjack 10 Rohöl/s bei 100 %
+Ergiebigkeit; Uferpumpe 1200 Wasser/s. Ohne Module/Produktivität. „Ideales Verhältnis“ = kleinste Zahl Maschinen des
+obersten Schritts, bei der alle Herstellungsschritte (ohne Öfen und Abbau) ganzzahlig sind. Bevorzugte Rezepte bei
+mehreren: Erdgas aus Grundverarbeitung, Schwer-/Leichtöl aus erweiterter Verarbeitung, Festbrennstoff aus Leichtöl.
+Faustregeln (geprüft in `tests/sim/ratio.test.ts`): 5 Bohrer : 8 Steinöfen; 30 Bohrer : 48 Öfen = 1 gelbes Band;
+3 Kabel : 2 Schaltkreise; 1 Zahnrad : 10 rote Pakete; Dampf 1 Uferpumpe : 20 Kessel : 40 Dampfmaschinen;
+Plastik 20 Raffinerien : 9 Chemiefabriken.

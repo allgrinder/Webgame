@@ -1,5 +1,6 @@
 import { ENTITIES } from '../data/entities';
 import { FLUIDS } from '../data/fluids';
+import { ITEMS } from '../data/items';
 import { RECIPE_LIST, RECIPES, type RecipeDef } from '../data/recipes';
 import { RESOURCES } from '../data/resources';
 
@@ -251,27 +252,30 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
   chain('Blaue Wissenschaft', 'chemical-science-pack', 'Plastik und Schwefel kommen aus der Chemieanlage.');
   {
     // Dampf: Kessel 1,8 MW → Dampf/s; Dampfmaschine verbraucht fluidPerTick × 60
-    const boiler = ENTITIES.boiler as { energyUsage: number };
+    const boiler = ENTITIES.boiler as { energyUsage: number; steamPerWater: number };
     const engine = ENTITIES['steam-engine'] as { fluidPerTick: number; maxPower: number };
     const steam = FLUIDS.steam;
     const perBoiler = boiler.energyUsage / ((steam.defaultTemperature - FLUIDS.water.defaultTemperature) * steam.heatCapacity);
     const perEngine = engine.fluidPerTick * 60;
     const pump = rawSource('water', m)!.perMachine;
-    const boilers = Math.floor(pump / perBoiler);
+    const water = perBoiler / boiler.steamPerWater;
+    // Standardblock wie im Original: 20 Kessel an einer Pumpe (Kohle für alle über ein Band)
+    const boilers = 20;
     const engines = Math.round((boilers * perBoiler) / perEngine);
     rules.push({
-      title: 'Dampfkraft', item: 'steam-engine',
+      title: 'Dampfkraft (Standardblock, 36 MW)', item: 'steam-engine',
       parts: [{ count: 1, machine: 'offshore-pump', item: 'water' }, { count: boilers, machine: 'boiler', item: 'steam' }, { count: engines, machine: 'steam-engine', item: 'steam-engine' }],
-      note: `1 Kessel (${fmt(perBoiler)} Dampf/s) : ${fmt(perBoiler / perEngine)} Dampfmaschinen à ${fmt(engine.maxPower / 1e6)} MW. Eine Uferpumpe (${fmt(pump)} Wasser/s) reicht für ${boilers} Kessel.`,
+      note: `1 Kessel (${fmt(perBoiler)} Dampf/s aus ${fmt(water)} Wasser/s) : ${fmt(perBoiler / perEngine)} Dampfmaschinen à ${fmt(engine.maxPower / 1e6)} MW. `
+        + `Eine Uferpumpe (${fmt(pump)} Wasser/s) hat reichlich Reserve; ${boilers} Kessel brauchen ${fmt((boilers * boiler.energyUsage) / ITEMS.coal.fuelValue!)} Kohle/s = ein gelbes Band. Fertiger Bauplan unter B.`,
     });
   }
   {
     const panel = ENTITIES['solar-panel'] as { production: number };
-    const acc = ENTITIES.accumulator as { capacity?: number };
+    const acc = ENTITIES.accumulator as { buffer: number };
     rules.push({
       title: 'Solar mit Akkus', item: 'solar-panel',
       parts: [{ count: 25, machine: 'solar-panel', item: 'solar-panel' }, { count: 21, machine: 'accumulator', item: 'accumulator' }],
-      note: `Panel ${fmt(panel.production / 1000)} kW Spitze${acc.capacity ? `, Akku ${fmt(acc.capacity / 1e6)} MJ` : ''}: 25 : 21 trägt die Nacht (Wiki-Verhältnis 0,84).`,
+      note: `Panel ${fmt(panel.production / 1000)} kW Spitze, Akku ${fmt(acc.buffer / 1e6)} MJ: 25 : 21 trägt die Nacht (Wiki-Verhältnis 0,84).`,
     });
   }
   {

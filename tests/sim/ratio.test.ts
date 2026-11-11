@@ -26,7 +26,7 @@ describe('Verhältnis-Rechner (Handbuch)', () => {
 
   it('Dampfkraft 1 : 20 : 40 und Plastik 20 Raffinerien : 9 Chemiefabriken', () => {
     const rules = ratioRules();
-    const steam = rules.find((r) => r.title === 'Dampfkraft')!;
+    const steam = rules.find((r) => r.title.startsWith('Dampfkraft'))!;
     expect(steam.parts.map((p) => p.count)).toEqual([1, 20, 40]);
     const pl = rules.find((r) => r.item === 'plastic-bar')!;
     expect(pl.parts.slice(1).map((p) => p.count)).toEqual([20, 9]);

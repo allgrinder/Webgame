@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { PRESETS, drillField, mall, plasticBlock, smelterColumn, solarTile, steamBlock } from '../../src/data/blueprints';
+import { PRESETS, drillField, mall, plasticBlock, smelterColumn, solarTile, steamBlock, steamBlockDouble } from '../../src/data/blueprints';
 import { resourceById } from '../../src/data/resources';
 import { FLUID_UNIT } from '../../src/data/fluids';
 import { type Blueprint, applySettings, placed } from '../../src/sim/blueprint';
 import type { ElectricSource } from '../../src/sim/energy';
+import type { Generator } from '../../src/sim/power';
 import { type Entity, itemIndex } from '../../src/sim/machines';
 import { World } from '../../src/sim/world';
 
@@ -121,6 +122,33 @@ describe('Abgestimmte Baupläne (Vorlagen)', () => {
     const boilers = [...w.entities.values()].filter((e) => e.kind === 'boiler');
     for (const b of boilers) expect(b.burner!.fuel.count('coal'), `Kessel bei ${b.x}`).toBeGreaterThan(0);
   }, 60_000);
+
+  it('Dampfkraft 1:20:40 (Doppelreihe): 36 MW unter Volllast, ein Netz, Wasser und Kohle reichen bis zum letzten Kessel', () => {
+    const bp = steamBlockDouble(10);
+    const { w, ents } = build(bp);
+    expect(ents.filter((e) => e.kind === 'offshore-pump')).toHaveLength(1);
+    expect(ents.filter((e) => e.kind === 'boiler')).toHaveLength(20);
+    const gens = ents.filter((e) => e.kind === 'generator');
+    expect(gens).toHaveLength(40);
+    const belt = placed(bp, 0, 0).filter((p) => p.name === 'transport-belt').reduce((a, b) => (b.x > a.x ? b : a));
+    let produced = 0;
+    const T = 60 * 120;
+    for (let t = 0; t < T; t++) {
+      feed(w, belt.x, belt.y, 'coal', 'coal');
+      w.step();
+      // Volllast: jede Dampfmaschine gibt ab, was sie kann (verbraucht Dampf wie ein voll belastetes Netz)
+      for (const g of gens as unknown as Generator[]) {
+        const j = g.potential();
+        if (t >= T - 60 * 30) produced += j;
+        g.produce(j);
+      }
+    }
+    expect(new Set(gens.map((g) => w.power.netOf.get(g.id))).size).toBe(1);
+    // Mittel der letzten 30 s (J/Tick × 60 = W)
+    const mw = (produced / (60 * 30)) * 60 / 1e6;
+    expect(mw).toBeGreaterThan(35.5);
+    for (const b of ents.filter((e) => e.kind === 'boiler')) expect(b.burner!.fuel.count('coal'), `Kessel bei ${b.x},${b.y}`).toBeGreaterThan(0);
+  }, 120_000);
 
   it('Solarfeld 25:21: 0,9 MW Last ohne Ausfall (zweiter Tag, Akkus einmal voll geladen)', () => {
     const bp = solarTile();

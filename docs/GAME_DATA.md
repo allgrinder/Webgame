@@ -525,6 +525,9 @@ elektrischer Bohrer 0,5 Erz/s; Kessel 1,8 MW = 2 Dampfmaschinen à 900 kW; Solar
 - Ofenreihe 2 × 24 Steinöfen (bzw. 2 × 12 Stahlöfen) = 15 Platten/s; je Außenband eine Spur Erz (7,5/s) und eine Spur Kohle.
 - Bohrerfeld 2 × 15 elektrische Bohrer = 15 Erz/s.
 - Dampfkraft 1 Uferpumpe : 10 Kessel : 20 Dampfmaschinen = 18 MW; Brennstoff-Greifarme versorgen sich selbst.
+- Dampfkraft-Standardblock 1 Uferpumpe : 20 Kessel : 40 Dampfmaschinen = 36 MW (`steamBlockDouble(10)`): zwei Kesselreihen
+  um ein gemeinsames Kohleband (20 × 1,8 MW / 4 MJ = 9 Kohle/s), Rohrsäule von der Pumpe zu beiden Reihen. Wasser reicht
+  reichlich (Kessel 1 Wasser → 10 Dampf, 6 Wasser/s je Kessel). Test unter Volllast: ≥ 35,5 MW über 30 s.
 - Solarkachel 18 × 18: 25 Panele : 21 Akkus + Umspannwerk; trägt 0,9 MW Dauerlast, sobald die Akkus einmal voll sind.
 - Mall (Montagemaschine 2): 10 Grundteile, Kisten auf einen Stapel begrenzt, Zwischenprodukte direkt verkettet.
 - Plastik: 2 Raffinerien (Grundverarbeitung, je 9 Erdgas/s) → 1 Chemiefabrik (20 Erdgas/s, 90 % ausgelastet) = 1,8 Plastik/s;

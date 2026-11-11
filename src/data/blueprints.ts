@@ -102,6 +102,35 @@ export function steamBlock(n: number): Blueprint {
 }
 
 /**
+ * Dampfkraft-Standardblock 1 Uferpumpe : 2n Kessel : 4n Dampfmaschinen als Doppelreihe: oben n Kessel (Dampf nach
+ * Norden), unten n gespiegelte Kessel (Dampf nach Süden), dazwischen ein gemeinsames Kohleband (läuft nach Westen,
+ * rechts einspeisen). Brennstoff-Greifarme von beiden Seiten, die Uferpumpe speist beide Reihen über eine Rohrsäule
+ * links. Kleine Masten zwischen den Dampfmaschinen; zwei Masten neben dem Band verbinden beide Reihen zu einem Netz.
+ * n = 10: 20 Kessel × 1,8 MW = 36 MW, 20 × 0,45 Kohle/s = 9 Kohle/s (ein gelbes Band reicht).
+ */
+export function steamBlockDouble(n: number): Blueprint {
+  const parts: Part[] = [{ name: 'offshore-pump', x: -3, y: 3, dir: 1 }];
+  for (let y = 1; y <= 5; y++) parts.push({ name: 'pipe', x: -1, y });
+  for (let i = 0; i < n; i++) {
+    const x = 4 * i;
+    // obere Reihe
+    parts.push({ name: 'boiler', x, y: 0, dir: 0 });
+    parts.push({ name: 'steam-engine', x, y: -5, dir: 0 }, { name: 'steam-engine', x, y: -10, dir: 0 });
+    parts.push({ name: 'burner-inserter', x: x + 1, y: 2, dir: 0 });
+    // untere Reihe (gespiegelt)
+    parts.push({ name: 'boiler', x, y: 5, dir: 2 });
+    parts.push({ name: 'steam-engine', x, y: 7, dir: 0 }, { name: 'steam-engine', x, y: 12, dir: 0 });
+    parts.push({ name: 'burner-inserter', x: x + 1, y: 4, dir: 2 });
+    if (i < n - 1) parts.push({ name: 'pipe', x: x + 3, y: 1 }, { name: 'pipe', x: x + 3, y: 5 });
+    parts.push({ name: 'small-electric-pole', x: x + 3, y: -5 }, { name: 'small-electric-pole', x: x + 3, y: 10 });
+  }
+  // Verbindung der beiden Reihen (Kabelreichweite 7,5)
+  parts.push({ name: 'small-electric-pole', x: 3, y: 2 }, { name: 'small-electric-pole', x: 3, y: 4 });
+  for (let x = 0; x <= 4 * n - 1; x++) parts.push({ name: 'transport-belt', x, y: 3, dir: 3 });
+  return make(parts);
+}
+
+/**
  * Solarkachel 18 × 18 (Verhältnis 25 Solarpanele : 21 Akkus, Wiki „Solar panel“: 0,84 Akkus je Panel für
  * Dauerleistung) mit Umspannwerk in der Mitte; Kacheln lassen sich lückenlos aneinandersetzen.
  */
@@ -190,6 +219,12 @@ export const PRESETS: readonly BlueprintPreset[] = [
     name: 'Dampfkraft 1:10:20 (18 MW)',
     hint: 'Uferpumpe links ans Ufer (linkes Feld auf Wasser), Kohle rechts aufs Band unten; Masten oben verbinden. Kacheln lassen sich mit eigener Pumpe nebeneinandersetzen.',
     bp: steamBlock(10),
+  },
+  {
+    name: 'Dampfkraft 1:20:40 (36 MW, Doppelreihe)',
+    hint: 'Uferpumpe links ans Ufer (linkes Feld auf Wasser). Kohle von rechts auf das mittlere Band (9 Kohle/s, ein gelbes Band reicht); '
+      + 'die Brennstoff-Greifarme versorgen sich selbst. Strom an einem der Masten oben oder unten abnehmen.',
+    bp: steamBlockDouble(10),
   },
   {
     name: 'Solarfeld 25:21 (≈1 MW Tag und Nacht)',

@@ -3,7 +3,7 @@ import { type AssemblerDef, type BeaconDef, type LabDef, insertionLimitCrafts } 
 import { BEACON, MODULES, PRODUCTIVITY_RECIPES, isModule } from '../../data/modules';
 import { ITEMS } from '../../data/items';
 import { GOD } from '../../data/player';
-import { RECIPES, type RecipeDef } from '../../data/recipes';
+import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, type RecipeDef, barrelFluid } from '../../data/recipes';
 import { TECH_BY_ID } from '../../data/tech';
 import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
 import { FLUID_UNIT, isFluid } from '../../data/fluids';
@@ -43,6 +43,8 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
   declare readonly def: AssemblerDef;
   readonly energy: ElectricSource;
   recipe: RecipeDef | null = null;
+  /** Sammelrezept für Fässer: das Einzelrezept (recipe) wird vor jedem Durchlauf passend gewählt. */
+  barrel: 'fill' | 'empty' | null = null;
   input = new Inventory(0);
   output = new Inventory(1);
   /** Flüssigkeitsbehälter laut Gebäudedaten (Filter je Rezept). */
@@ -107,8 +109,26 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     return pick(ins, 'input') ?? pick(outs, 'output');
   }
 
+  /** Gewähltes Rezept, wie es Fenster, Blaupause und Spielstand sehen (bei Fässern das Sammelrezept). */
+  get recipeKey(): string | null {
+    if (this.barrel === 'fill') return FILL_ANY_BARREL;
+    if (this.barrel === 'empty') return EMPTY_ANY_BARREL;
+    return this.recipe?.id ?? null;
+  }
+
   /** Rezept wählen. Gibt Zutaten, Ergebnis und laufende Zutaten zurück (für den Spieler). */
   setRecipe(id: string | null): Stack[] {
+    if (id === FILL_ANY_BARREL || id === EMPTY_ANY_BARREL) {
+      const fill = id === FILL_ANY_BARREL;
+      // Vorlage mit gleicher Form (1 Fass + 1 Flüssigkeit); die Flüssigkeit bestimmt später das Rohr bzw. das Fass
+      const out = this.setRecipe(fill ? 'fill-water-barrel' : 'empty-water-barrel');
+      if (!this.recipe) return out;
+      this.barrel = fill ? 'fill' : 'empty';
+      for (const b of this.boxes) if (b.filter !== '__none') b.filter = null;
+      if (!fill) this.input = new Inventory(1, (it) => barrelFluid(it) !== null);
+      return out;
+    }
+    this.barrel = null;
     const out = this.contents().filter((s) => !isModule(s.item));
     // Produktivitätsmodule passen nicht zum neuen Rezept → zurück an den Spieler
     if (this.modules && id && !PRODUCTIVITY_RECIPES.has(id)) {
@@ -171,7 +191,12 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
       this.status = Status.Idle;
       return;
     }
+    if (!this.crafting && this.barrel && !this.pickBarrelRecipe()) {
+      this.status = Status.NoInput;
+      return;
+    }
     if (!this.crafting) {
+      const r = this.recipe!;
       for (const res of r.results) {
         if (isFluid(res.item)) {
           const net = this.boxFor(r, res.item)?.net;
@@ -208,6 +233,26 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     this.status = Status.Working;
     this.workTicks++;
     this.progress += this.modules ? speedFactor(this.effects) : 1;
+    return this.finish(w, this.recipe!);
+  }
+
+  /** Sammelrezept: passendes Einzelrezept wählen (Flüssigkeit im Rohr bzw. Fass im Eingang). */
+  private pickBarrelRecipe(): boolean {
+    let fluid: string | null;
+    if (this.barrel === 'fill') {
+      const box = this.boxes.find((b) => b.filter !== '__none');
+      fluid = box?.net?.fluid ?? box?.fluid ?? null;
+    } else {
+      const it = this.input.firstItem(() => true);
+      fluid = it ? barrelFluid(it) : null;
+    }
+    const r = fluid ? RECIPES[`${this.barrel}-${fluid}-barrel`] : undefined;
+    if (!r) return false;
+    this.recipe = r;
+    return true;
+  }
+
+  private finish(w: World, r: RecipeDef): void {
     const need = this.recipeTicks(r);
     if (this.progress >= need) {
       let times = 1;
@@ -238,7 +283,9 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
     if (this.modules && isModule(item) && !this.recipe?.ingredients.some((x) => x.item === item)) {
       return mode === 'player' ? this.modules.space(item) : 0;
     }
-    const g = this.recipe?.ingredients.find((x) => x.item === item && !isFluid(x.item));
+    const g = this.barrel === 'empty'
+      ? (barrelFluid(item) ? { item, amount: 1 } : undefined)
+      : this.recipe?.ingredients.find((x) => x.item === item && !isFluid(x.item));
     if (!g) return 0;
     const have = this.input.count(item);
     const cap = Math.max(0, (ITEMS[item]?.stackSize ?? 1) - have);
@@ -270,7 +317,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
   }
   override save() {
     return {
-      ...this.energy.serialize(), recipe: this.recipe?.id ?? null, in: this.input.serialize(), out: this.output.serialize(),
+      ...this.energy.serialize(), recipe: this.recipeKey, ...(this.barrel ? { rc: this.recipe?.id } : {}), in: this.input.serialize(), out: this.output.serialize(),
       cr: this.crafting, progress: this.progress, work: this.workTicks, fb: this.boxes.map((b) => [b.amount, b.fluid]),
       ...(this.crafts ? { cn: this.crafts } : {}),
       ...(this.modules ? { mod: this.modules.serialize(), bo: this.bonus } : {}),
@@ -279,6 +326,7 @@ export class AssemblerEntity extends EntityBase implements FluidHolder {
   override load(d: Record<string, unknown>): void {
     this.energy.load(d as { eb: number });
     this.setRecipe((d.recipe as string | null) ?? null);
+    if (this.barrel && typeof d.rc === 'string' && RECIPES[d.rc]) this.recipe = RECIPES[d.rc];
     this.input.load(d.in as InvData);
     this.output.load(d.out as InvData);
     this.crafting = !!d.cr;

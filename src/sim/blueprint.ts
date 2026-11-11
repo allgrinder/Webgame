@@ -33,7 +33,7 @@ export interface GhostEntity {
 }
 
 export function settingsOf(e: Entity): Settings | undefined {
-  if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipe.id };
+  if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipeKey! };
   if (e.kind === 'underground') return { out: e.output };
   if (e.kind === 'train-stop') return { st: e.stationName };
   if (e.kind === 'container' && e.inventory.bar < e.inventory.size) return { bar: e.inventory.bar };

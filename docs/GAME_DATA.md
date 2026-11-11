@@ -556,3 +556,10 @@ mehreren: Erdgas aus Grundverarbeitung, Schwer-/Leichtöl aus erweiterter Verarb
 Faustregeln (geprüft in `tests/sim/ratio.test.ts`): 5 Bohrer : 8 Steinöfen; 30 Bohrer : 48 Öfen = 1 gelbes Band;
 3 Kabel : 2 Schaltkreise; 1 Zahnrad : 10 rote Pakete; Dampf 1 Uferpumpe : 20 Kessel : 40 Dampfmaschinen;
 Plastik 20 Raffinerien : 9 Chemiefabriken.
+
+## Fässer vereinfacht (Wunsch 11.11.2026)
+Abweichung vom Original (dort je Flüssigkeit ein Füll- und ein Leerrezept): Die Montagemaschine bietet nur
+„Fass befüllen“ (`fill-barrel`) und „Fass entleeren“ (`empty-filled-barrel`) an. Vor jedem Durchlauf wählt sie das
+passende Einzelrezept (Werte unverändert: 0,2 s, 50 Einheiten) – beim Befüllen nach der Flüssigkeit im Rohr, beim
+Entleeren nach dem Fass im Eingang (nimmt jedes gefüllte Fass). Das Fass selbst gibt es nur einmal; gefüllte Fässer
+bleiben eigene Items (der Inhalt muss erkennbar sein). Alte Spielstände mit Einzelrezepten laufen weiter.

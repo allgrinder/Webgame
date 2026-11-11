@@ -541,6 +541,24 @@ export function recipe(id: string): RecipeDef {
   return r;
 }
 
+/**
+ * Sammelrezepte für Fässer (Vereinfachung, Wunsch 11.11.2026): Die Montagemaschine bietet nur „Fass befüllen“ und
+ * „Fass entleeren“ an und wählt das passende Einzelrezept selbst – nach der Flüssigkeit im Rohr bzw. dem Fass im Eingang.
+ */
+export const FILL_ANY_BARREL = 'fill-barrel';
+export const EMPTY_ANY_BARREL = 'empty-filled-barrel';
+
+/** Einzelrezept zum Befüllen bzw. Entleeren eines bestimmten Fasses (fill-<Flüssigkeit>-barrel, empty-<Flüssigkeit>-barrel)? */
+export function isFluidBarrelRecipe(id: string): boolean {
+  return /^fill-.+-barrel$/.test(id) || (/^empty-.+-barrel$/.test(id) && id !== 'empty-barrel');
+}
+
+/** Gefülltes Fass → Flüssigkeit (null: kein gefülltes Fass). */
+export function barrelFluid(item: string): string | null {
+  const m = /^(.+)-barrel$/.exec(item);
+  return m && m[1] !== 'empty' && RECIPES[`empty-${m[1]}-barrel`] ? m[1] : null;
+}
+
 /** Schmelzrezept zu einer Zutat (z. B. Eisenerz -> Eisenplatte). */
 export function smeltingRecipeFor(itemId: string): RecipeDef | undefined {
   return list.find((r) => r.category === 'smelting' && r.ingredients[0]?.item === itemId);

@@ -2,7 +2,7 @@ import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { PLAYER_COMBAT } from '../data/enemies';
 import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
-import { RECIPE_LIST } from '../data/recipes';
+import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
@@ -698,9 +698,11 @@ export class Hud {
     if (e.kind === 'splitter') this.splitterControls(e, body);
     for (const gs of e.guiSlots()) {
       const rec = e.kind === 'assembler' ? e.recipe : null;
+      // Sammelrezept Fass: die Fass-Sorte steht erst mit der Flüssigkeit fest → dort keinen Platzhalter zeigen
+      const barrel = e.kind === 'assembler' ? e.barrel : null;
       const ghosts = !rec || e.kind !== 'assembler' ? undefined
-        : gs.inv === e.input ? rec.ingredients.filter((x) => !isFluid(x.item))
-        : gs.inv === e.output ? rec.results.filter((x) => !isFluid(x.item)) : undefined;
+        : gs.inv === e.input ? (barrel === 'empty' ? undefined : rec.ingredients.filter((x) => !isFluid(x.item)))
+        : gs.inv === e.output ? (barrel === 'fill' ? undefined : rec.results.filter((x) => !isFluid(x.item))) : undefined;
       row(gs.label, gs.inv, ghosts);
     }
     if (e.kind === 'inserter' && e.def.filterSlots) this.inserterFilters(e, body);
@@ -934,20 +936,43 @@ export class Hud {
     const g = this.game;
     el('div', 'sub-head', body).textContent = e.recipe ? 'Rezept (Klick zum Wechseln)' : 'Rezept wählen';
     if (e.recipe) {
-      const out = e.recipe.results[0].item;
+      const out = e.barrel ? 'empty-barrel' : e.recipe.results[0].item;
       const hb = el('button', 'small-btn', body);
       hb.textContent = 'Verhältnis im Handbuch (J)';
       hb.title = 'Wie viele Maschinen je Zutat? Öffnet den Rechner für dieses Produkt';
       hb.onclick = () => this.toggleHandbook(out);
     }
     const grid = el('div', 'grid recipes', body);
+    // Fässer: statt eines Rezepts je Flüssigkeit nur „Fass befüllen“ und „Fass entleeren“ (Flüssigkeit erkennt die Maschine)
+    const barrels = g.world.research.recipeUnlocked('fill-water-barrel') && e.canCraft(RECIPES['fill-water-barrel'])
+      ? [{ id: FILL_ANY_BARREL, name: 'Fass befüllen', text: 'Leeres Fass + 50 Einheiten der Flüssigkeit im Rohr → gefülltes Fass (0,2 s). Welche Flüssigkeit, erkennt die Maschine selbst.' },
+        { id: EMPTY_ANY_BARREL, name: 'Fass entleeren', text: 'Gefülltes Fass → leeres Fass + 50 Einheiten ins Rohr (0,2 s). Nimmt jedes gefüllte Fass.' }]
+      : [];
+    const choices: { id: string; icon: string; badge?: string; tip: () => HTMLElement }[] = [];
     for (const r of RECIPE_LIST) {
-      if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id)) continue;
-      const s = el('div', `slot recipe${e.recipe?.id === r.id ? ' active' : ''}`, grid);
-      s.appendChild(this.icon(`item.${r.results[0].item}`));
-      this.tip.attach(s, () => this.tip.recipe(r, e.def.craftingSpeed));
+      if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id) || isFluidBarrelRecipe(r.id)) continue;
+      choices.push({ id: r.id, icon: `item.${r.results[0].item}`, tip: () => this.tip.recipe(r, e.def.craftingSpeed) });
+      if (r.id === 'empty-barrel') {
+        for (const b of barrels) {
+          choices.push({
+            id: b.id, icon: 'item.empty-barrel', badge: b.id === FILL_ANY_BARREL ? '+' : '−',
+            tip: () => {
+              const box = el('div', 'tt-recipe');
+              el('div', 'tt-head', box).textContent = b.name;
+              el('div', 'tt-sub', box).textContent = b.text;
+              return box;
+            },
+          });
+        }
+      }
+    }
+    for (const c of choices) {
+      const s = el('div', `slot recipe${e.recipeKey === c.id ? ' active' : ''}`, grid);
+      s.appendChild(this.icon(c.icon));
+      if (c.badge) el('span', 'recipe-badge', s).textContent = c.badge;
+      this.tip.attach(s, c.tip);
       s.addEventListener('click', () => {
-        const back = e.setRecipe(e.recipe?.id === r.id ? null : r.id);
+        const back = e.setRecipe(e.recipeKey === c.id ? null : c.id);
         const p = g.world.player;
         for (const st of back) {
           const n = p ? p.inventory.add(st.item, st.count) : 0;

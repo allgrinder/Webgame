@@ -30,6 +30,7 @@ import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
+import { EditorPanel } from './editor';
 
 const STATUS_TEXT: Record<Status, string> = {
   [Status.Idle]: 'Leerlauf',
@@ -166,10 +167,19 @@ export class Hud {
     this.powerView = new StatsView(statIcon, 'power');
     this.gridView = new StatsView(statIcon, 'power');
     this.researchEl = el('div', 'research-bar', this.layer);
+    this.editorPanel = new EditorPanel(this.layer, {
+      get editor() { return game.editor; },
+      get paused() { return game.paused; },
+      get cursorItem() { return game.cursorItem; },
+      set cursorItem(v) { game.cursorItem = v; game.cursorBlueprint = null; },
+      toggleEditor: (on) => game.toggleEditor(on),
+      toggleEditorRun: () => game.toggleEditorRun(),
+      icon: (n, cls) => this.icon(n, cls),
+    });
     this.minimap = new Minimap(this.layer, () => game.renderer.biomeField(game.world));
     this.mapView = new MapView(this.layer, this.minimap);
     this.mapView.onPick = (x, y) => {
-      if (!game.world.player) {
+      if (!game.world.player || game.editor) {
         game.renderer.camera.x = x;
         game.renderer.camera.y = y;
       }
@@ -213,6 +223,7 @@ export class Hud {
 
   update(fps: number): void {
     this.frame++;
+    this.editorPanel.update();
     const g = this.game;
     const w = g.world;
     {
@@ -220,7 +231,7 @@ export class Hud {
       const pl = w.player;
       const r = g.renderer.screenToWorld(0, 0);
       const r2 = g.renderer.screenToWorld(g.renderer.app.screen.width, g.renderer.app.screen.height);
-      this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
+      this.minimap.update(w, pl && !g.editor ? pl.px / 256 : c.x, pl && !g.editor ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
       this.mapView.update(w, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
     const evo = ` · Gegner: ${ENEMY_SETTINGS[w.settings.enemies].label}${w.settings.enemies !== 'aus' ? `, Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : ''}`;
@@ -242,7 +253,7 @@ export class Hud {
     // Cursor-Item
     const ci = g.cursorItem;
     if (ci) {
-      const count = g.creative ? '∞' : String(w.player?.inventory.count(ci) ?? 0);
+      const count = g.free ? '∞' : String(w.player?.inventory.count(ci) ?? 0);
       const key = `${ci}|${count}`;
       if (this.cursorEl.dataset.key !== key) {
         this.cursorEl.dataset.key = key;
@@ -319,9 +330,9 @@ export class Hud {
     this.quickbar.querySelectorAll<HTMLDivElement>('.slot').forEach((slot, i) => {
       const item = qb[i];
       const c = slot.querySelector('.count')!;
-      c.textContent = item && p && !this.game.creative ? String(p.inventory.count(item)) : '';
+      c.textContent = item && p && !this.game.free ? String(p.inventory.count(item)) : '';
       slot.classList.toggle('active', !!item && item === this.game.cursorItem);
-      slot.classList.toggle('empty', !!item && !!p && !this.game.creative && p.inventory.count(item) === 0);
+      slot.classList.toggle('empty', !!item && !!p && !this.game.free && p.inventory.count(item) === 0);
     });
   }
 
@@ -599,7 +610,7 @@ export class Hud {
     const e = g.world.entities.get(id);
     if (!e) return;
     const p = g.world.player;
-    if (p && !g.creative) {
+    if (p && !g.free) {
       if (!p.canReach(e.cx, e.cy)) {
         p.note('Außer Reichweite');
         return;
@@ -1213,10 +1224,10 @@ export class Hud {
       sl.onclick = () => {
         const p = g.world.player;
         const ci = g.cursorItem;
-        if (ci && (p || g.creative)) {
-          const have = g.creative ? 1e9 : p!.inventory.count(ci);
+        if (ci && (p || g.free)) {
+          const have = g.free ? 1e9 : p!.inventory.count(ci);
           const n = v.inv.add(ci, Math.min(have, ITEMS[ci]?.stackSize ?? 1));
-          if (!g.creative) p!.inventory.remove(ci, n);
+          if (!g.free) p!.inventory.remove(ci, n);
         } else if (st) {
           const n = p ? p.inventory.add(st.item, st.count) : st.count;
           v.inv.remove(st.item, n);
@@ -1404,6 +1415,14 @@ export class Hud {
   }
 
   private book: HandbookView | null = null;
+  private readonly editorPanel: EditorPanel;
+
+  /** Editor-Modus wurde ein- oder ausgeschaltet bzw. die Simulation darin umgeschaltet. */
+  onEditorChanged(): void {
+    this.editorPanel.update();
+    this.layer.classList.toggle('editing', this.game.editor);
+    this.refreshAll();
+  }
 
   /** Handbuch (J): Rezepte, Verwendung, Verhältnis-Rechner, Faustregeln. Mit `item` direkt auf dieser Seite. */
   toggleHandbook(item?: string): void {
@@ -1793,7 +1812,7 @@ export class Hud {
         <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: Platz neu belegen bzw. ohne Gegenstand leeren) · <b>Alt</b> Detailansicht</p>
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
-        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
+        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F2</b> Editor-Modus (Spiel anhalten, alles frei bauen) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
       </div>`;
     this.help.querySelector('.close')!.addEventListener('click', () => this.toggleHelp());
@@ -1825,6 +1844,7 @@ export class Hud {
     btn('Spielstand exportieren (Datei)', () => this.exportGame());
     btn('Spielstand importieren (Datei)', () => this.importGame());
     btn('Handbuch & Verhältnisse (J)', () => { this.toggleMenu(); this.toggleHandbook(); });
+    btn(this.game.editor ? 'Editor-Modus beenden (F2)' : 'Editor-Modus (F2): anhalten und frei bauen', () => { this.toggleMenu(); this.game.toggleEditor(); });
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
     {
       const vol = Math.round(this.game.sound.volume * 100);

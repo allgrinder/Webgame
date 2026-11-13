@@ -455,3 +455,19 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .hb-tog { width: 14px; flex: none; color: var(--accent); cursor: pointer; user-select: none; }
 /* Sammelrezepte Fass befüllen (+) / entleeren (−) */
 .slot .recipe-badge { position: absolute; right: 1px; top: -2px; font-size: 16px; font-weight: 800; color: #ffd27a; text-shadow: 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
+
+/* Editor-Modus (F2) */
+.editor-bar { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 30; pointer-events: auto;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px; max-width: min(900px, 92vw); padding: 6px 12px;
+  background: linear-gradient(180deg, #4a3a1c 0%, #33291a 100%); border: 1px solid #0c0b0a;
+  box-shadow: 0 6px 20px rgba(0,0,0,.55), inset 0 0 0 2px #7a5a24; }
+.editor-bar.hidden { display: none; }
+.editor-title { color: #ffd27a; letter-spacing: .08em; }
+.editor-status { padding: 2px 8px; background: #8a2a1a; color: #ffe; font-weight: 700; font-size: 12px; }
+.editor-status.running { background: #2f6a2a; }
+.editor-hint { flex-basis: 100%; text-align: center; font-size: 12px; }
+.editor-palette { left: 10px; top: 110px; width: 262px; max-height: calc(100vh - 230px); display: flex; flex-direction: column; z-index: 30; }
+.editor-palette .tt-search { margin: 6px 8px; }
+.editor-groups { overflow-y: auto; padding: 0 8px 8px; }
+.hud.editing .research-bar, .hud.editing .hud-power { display: none; }
+.hud.editing::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 4px #c9902a99; z-index: 1; }

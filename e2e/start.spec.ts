@@ -59,3 +59,50 @@ test('Gottmodus-Link: neue Runde mit Gottmodus, ohne Weiterspielen-Dialog', asyn
   expect(god).toBe(true);
   expect(errors).toEqual([]);
 });
+
+test('Editor-Modus: F2 hält an, alles kostenlos bauen und entfernen, danach läuft das Spiel weiter', async ({ page }) => {
+  const errors = await openScene(page, '?god');
+  type G = {
+    eisenwerk: {
+      editor: boolean; paused: boolean;
+      world: { tick: number; entities: Map<number, { name: string }>; map: { clearTrees(x: number, y: number, w: number, h: number): void; setWater(x: number, y: number, v: boolean): void };
+        player: { inventory: { count(i: string): number } } };
+      renderer: { screenToWorld(x: number, y: number): { x: number; y: number }; app: { screen: { width: number; height: number } } };
+    };
+  };
+  await page.keyboard.press('F2');
+  await expect(page.locator('.editor-bar')).toBeVisible();
+  await expect(page.locator('.editor-palette')).toBeVisible();
+  const t0 = await page.evaluate(() => (window as unknown as G).eisenwerk.world.tick);
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => (window as unknown as G).eisenwerk.world.tick)).toBe(t0);
+  // Bauplatz rechts der Mitte freiräumen, dann Montagemaschine 3 (nicht erforscht, nicht im Inventar) bauen
+  const spot = await page.evaluate(() => {
+    const g = (window as unknown as G).eisenwerk;
+    const sx = g.renderer.app.screen.width / 2 + 260;
+    const sy = g.renderer.app.screen.height / 2;
+    const w = g.renderer.screenToWorld(sx, sy);
+    g.world.map.clearTrees(Math.floor(w.x) - 3, Math.floor(w.y) - 3, 7, 7);
+    for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++) g.world.map.setWater(Math.floor(w.x) + x, Math.floor(w.y) + y, false);
+    return { sx, sy };
+  });
+  await page.locator('.editor-palette .hb-item[data-item="assembling-machine-3"]').click();
+  await page.mouse.move(spot.sx, spot.sy);
+  await page.waitForTimeout(100);
+  await page.mouse.click(spot.sx, spot.sy);
+  await page.waitForTimeout(200);
+  const count = () => page.evaluate(() => [...(window as unknown as G).eisenwerk.world.entities.values()].filter((e) => e.name === 'assembling-machine-3').length);
+  expect(await count()).toBe(1);
+  expect(await page.evaluate(() => (window as unknown as G).eisenwerk.world.player.inventory.count('assembling-machine-3'))).toBe(0);
+  await page.screenshot({ path: 'test-results/editor.png' });
+  // Rechtsklick entfernt sofort
+  await page.mouse.click(spot.sx, spot.sy, { button: 'right' });
+  await page.waitForTimeout(200);
+  expect(await count()).toBe(0);
+  // Beenden: Spiel läuft weiter
+  await page.keyboard.press('F2');
+  await expect(page.locator('.editor-bar')).toBeHidden();
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => (window as unknown as G).eisenwerk.world.tick)).toBeGreaterThan(t0 + 10);
+  expect(errors).toEqual([]);
+});

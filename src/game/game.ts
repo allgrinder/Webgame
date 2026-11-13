@@ -8,7 +8,7 @@ import type { SpriteLib } from '../render/assets';
 import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
-import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
+import { type Blueprint, applySettings, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
 import { treeKey } from '../sim/robots';
 import { fluidSummary, isFluidHolder } from '../sim/fluids';
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
@@ -63,6 +63,12 @@ export class Game {
   buildDir: Dir = 0;
   alt = false;
   paused = false;
+  /**
+   * Editor-Modus (F2, wie der Karteneditor des Originals): Spiel angehalten, alles kostenlos und ohne Reichweite
+   * baubar (auch Unerforschtes), Rechtsklick entfernt sofort, freie Kamera. Beim Beenden läuft das Spiel weiter.
+   */
+  editor = false;
+  private editorWasPaused = false;
   private acc = 0;
   private dragLast: { x: number; y: number } | null = null;
   private dragBelts: number[] = [];
@@ -89,6 +95,48 @@ export class Game {
     if (this.creative) this.cursorItem = 'transport-belt';
   }
 
+  /** Bauen ohne Inventar und Reichweite (Sandkasten oder Editor-Modus). */
+  get free(): boolean {
+    return this.creative || this.editor;
+  }
+
+  /** Editor-Modus ein- bzw. ausschalten. */
+  toggleEditor(on = !this.editor): void {
+    if (on === this.editor) return;
+    this.editor = on;
+    this.cursorBlueprint = null;
+    this.selecting = null;
+    this.wireTool = null;
+    this.wireFrom = null;
+    this.dragLast = null;
+    const p = this.world.player;
+    if (on) {
+      this.editorWasPaused = this.paused;
+      this.paused = true;
+      p?.setMineTarget(null);
+      if (p) {
+        p.moveX = 0;
+        p.moveY = 0;
+        p.shooting = false;
+        p.pickingUp = false;
+      }
+    } else {
+      this.paused = this.editorWasPaused;
+      this.acc = 0;
+      // was nicht im Inventar ist, verschwindet aus der Hand
+      if (this.cursorItem && p && !this.creative && p.inventory.count(this.cursorItem) < 1) this.cursorItem = null;
+    }
+    this.hud.onEditorChanged();
+  }
+
+  /** Im Editor: Simulation laufen lassen bzw. anhalten (zum Ausprobieren). */
+  toggleEditorRun(): void {
+    if (!this.editor) return;
+    this.paused = !this.paused;
+    this.acc = 0;
+    this.hud.onEditorChanged();
+  }
+
   applySceneCamera(scene: Scene): void {
     const c = this.renderer.camera;
     c.x = scene.camera.x;
@@ -99,6 +147,7 @@ export class Game {
 
   /** Spielstand ersetzen (Laden). */
   setWorld(world: World, creative: boolean): void {
+    if (this.editor) this.toggleEditor(false);
     this.world = world;
     this.creative = creative;
     this.acc = 0;
@@ -173,7 +222,7 @@ export class Game {
       c.zoom = Math.min(c.maxZoom, Math.max(c.minZoom, c.zoom * Math.pow(0.85, wheel)));
     }
     const p = this.world.player;
-    if (p) {
+    if (p && !this.editor) {
       c.x = (p.prevPx + (p.px - p.prevPx) * alpha) / 256;
       c.y = (p.prevPy + (p.py - p.prevPy) * alpha) / 256;
     } else if (!this.hud.typing) {
@@ -188,7 +237,7 @@ export class Game {
 
   private applyPlayerInput(): void {
     const p = this.world.player;
-    if (!p) return;
+    if (!p || this.editor) return;
     const d = this.input.down;
     p.moveX = (d.has('d') ? 1 : 0) - (d.has('a') ? 1 : 0);
     p.moveY = (d.has('s') ? 1 : 0) - (d.has('w') ? 1 : 0);
@@ -244,12 +293,13 @@ export class Game {
     }
     // Rechtsklick halten: abbauen
     const p = this.world.player;
-    if (inp.right) {
+    // im Editor/Sandkasten genügt ein kurzer Rechtsklick (auch wenn er im selben Bild losgelassen wurde)
+    if (inp.right || (this.free && inp.rightPressed)) {
       const e = this.world.entityAt(tx, ty);
       const veh = !e || e.kind === 'rail' ? this.world.trains.vehicleAt(m.x, m.y) : null;
       if (veh && this.input.rightPressed) {
         const items = this.world.trains.remove(veh.vehicle.id);
-        if (p && !this.creative) for (const it of items) p.inventory.add(it.item, it.count);
+        if (p && !this.free) for (const it of items) p.inventory.add(it.item, it.count);
         return;
       }
       if (veh) return;
@@ -258,10 +308,14 @@ export class Game {
         this.world.ghosts.remove(gh.id);
         return;
       }
-      if (this.creative && !p) {
+      if ((this.creative && !p) || this.editor) {
         if (e) {
           this.pushHistory({ type: 'remove', name: e.name, x: e.x, y: e.y, dir: e.dir });
           this.world.remove(e.id);
+        } else if (this.editor) {
+          // Editor: Bäume sofort entfernen
+          const tree = this.treeNear(m.x, m.y);
+          if (tree) this.world.map.trees.remove(tree.cx, tree.cy, tree.i);
         }
       } else if (p) {
         const tree = e ? undefined : this.treeNear(m.x, m.y);
@@ -361,6 +415,7 @@ export class Game {
         break;
       case 'alt': this.alt = !this.alt; break;
       case 'f3': this.hud.toggleDebug(); break;
+      case 'f2': this.toggleEditor(); break;
       case 'p': this.hud.toggleStats(); break;
       case 'j': this.hud.toggleHandbook(); break;
       case 'o': this.hud.togglePower(); break;
@@ -424,7 +479,7 @@ export class Game {
     const e = this.world.entityAt(m.x, m.y);
     if (!e) return;
     const item = entityDef(e.name).item;
-    if (this.creative || (this.world.player && this.world.player.inventory.count(item) > 0)) {
+    if (this.free || (this.world.player && this.world.player.inventory.count(item) > 0)) {
       this.cursorItem = item;
       this.buildDir = e.dir;
     }
@@ -485,7 +540,7 @@ export class Game {
       }
     }
     const def = entityDef(place);
-    if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < (def.itemCount ?? 1)) return null;
+    if (!this.free && (this.world.player?.inventory.count(item) ?? 0) < (def.itemCount ?? 1)) return null;
     const [w, h] = sizeOf(def, dir);
     let x = Math.round(m.x - w / 2);
     let y = Math.round(m.y - h / 2);
@@ -498,7 +553,7 @@ export class Game {
     const chk = this.world.canPlace(place, x, y, dir);
     let ok = chk.ok;
     const p = this.world.player;
-    if (p && !this.creative && p.distanceTo(x + w / 2, y + h / 2) > (p.buildDistance)) ok = false;
+    if (p && !this.free && p.distanceTo(x + w / 2, y + h / 2) > (p.buildDistance)) ok = false;
     return { name: place, x, y, dir, ok };
   }
 
@@ -508,7 +563,7 @@ export class Game {
     const chk = this.world.canPlace(g.name, g.x, g.y, g.dir);
     const e = this.world.place(g.name, g.x, g.y, g.dir);
     if (e && chk.replace === undefined) {
-      if (!this.creative) this.world.player?.inventory.remove(item, entityDef(g.name).itemCount ?? 1);
+      if (!this.free) this.world.player?.inventory.remove(item, entityDef(g.name).itemCount ?? 1);
       this.pushHistory({ type: 'build', id: e.id, name: g.name, x: g.x, y: g.y, dir: g.dir });
     }
     return e;
@@ -537,6 +592,30 @@ export class Game {
     const bx = Math.max(s.x0, s.x1);
     const ay = Math.min(s.y0, s.y1);
     const by = Math.max(s.y0, s.y1);
+    if (s.cut && this.editor && !this.input.shift) {
+      // Editor: Bereich sofort leeren (Gebäude und Bäume), Inhalt als Blaupause in die Hand
+      const bp = bpCapture(this.world, s.x0, s.y0, s.x1, s.y1);
+      const ids = new Set<number>();
+      for (let y = ay; y <= by; y++) {
+        for (let x = ax; x <= bx; x++) {
+          const e = this.world.entityAt(x, y);
+          if (e) ids.add(e.id);
+          const t = this.world.map.trees.treeAt(x, y);
+          if (t) this.world.map.trees.remove(t.cx, t.cy, t.i);
+        }
+      }
+      for (const id of ids) {
+        const e = this.world.entities.get(id)!;
+        this.pushHistory({ type: 'remove', name: e.name, x: e.x, y: e.y, dir: e.dir });
+        this.world.remove(id);
+      }
+      if (bp) {
+        this.clipboard = bp;
+        this.setBlueprint(bp);
+        this.hud.rememberClipboard(bp);
+      }
+      return;
+    }
     if (s.cut) {
       // Ausschneiden/Abreißen (wie der Abrissplaner): Gebäude und Bäume im Bereich für Bauroboter markieren;
       // mit Umschalt: Markierungen im Bereich aufheben
@@ -583,7 +662,7 @@ export class Game {
     if (!gh) return false;
     const item = entityDef(gh.name).item;
     const p = this.world.player;
-    if (!this.creative && (!p || p.inventory.count(item) < 1)) {
+    if (!this.free && (!p || p.inventory.count(item) < 1)) {
       p?.note(`${ITEMS[item]?.name ?? item} fehlt im Inventar`);
       return true;
     }
@@ -628,6 +707,20 @@ export class Game {
     }
     if (this.cursorBlueprint) {
       const o = this.blueprintOrigin();
+      if (this.editor) {
+        // Editor: Blaupause sofort aufstellen statt Geister für Bauroboter
+        let n = 0;
+        for (const q of bpPlaced(this.cursorBlueprint, o.x, o.y)) {
+          if (!this.world.canPlace(q.name, q.x, q.y, q.dir).ok) continue;
+          const e = this.world.place(q.name, q.x, q.y, q.dir);
+          if (!e) continue;
+          applySettings(e, q.settings);
+          this.pushHistory({ type: 'build', id: e.id, name: q.name, x: q.x, y: q.y, dir: q.dir });
+          n++;
+        }
+        if (!n) this.world.player?.note('Kein Platz für die Blaupause');
+        return;
+      }
       const n = this.world.ghosts.placeBlueprint(this.world, this.cursorBlueprint, o.x, o.y);
       if (!n) this.world.player?.note('Kein Platz für die Blaupause');
       return;
@@ -647,7 +740,7 @@ export class Game {
       const err = this.world.capsules.throw(this.world, item, at.x, at.y);
       if (err) p?.note(err);
       else if (item === 'cliff-explosives' && !this.world.map.isCliff(at.x, at.y)) p?.note('Klippensprengstoff wirkt nur auf Klippen');
-      if (p && p.inventory.count(item) === 0 && !this.creative) this.cursorItem = null;
+      if (p && p.inventory.count(item) === 0 && !this.free) this.cursorItem = null;
       return;
     }
     if (item === 'repair-pack') {
@@ -661,10 +754,10 @@ export class Game {
       return;
     }
     if (item === 'locomotive' || item === 'cargo-wagon') {
-      if (!this.creative && (!p || p.inventory.count(item) < 1)) return;
+      if (!this.free && (!p || p.inventory.count(item) < 1)) return;
       const v = DIR_VEC[this.buildDir];
       if (this.world.trains.place(this.world, item, at.x, at.y, v[0], v[1])) {
-        if (!this.creative) p?.inventory.remove(item, 1);
+        if (!this.free) p?.inventory.remove(item, 1);
       } else p?.note('Fahrzeuge nur auf ein Gleis stellen');
       return;
     }
@@ -721,33 +814,33 @@ export class Game {
     let placed = 0;
     for (let y = o.y; y < o.y + this.floorBrush; y++) {
       for (let x = o.x; x < o.x + this.floorBrush; x++) {
-        if (p && !this.creative) {
+        if (p && !this.free) {
           if (p.inventory.count(item) < 1) break;
           if (!p.canReach(x + 0.5, y + 0.5)) continue;
         }
         const old = this.world.placeFloor(item, x, y);
         if (old === null) continue;
         placed++;
-        if (p && !this.creative) {
+        if (p && !this.free) {
           p.inventory.remove(item, 1);
           if (old) p.inventory.add(old, 1);
         }
       }
     }
     if (placed) this.sound.play('build', 0.35, 0, 80);
-    if (p && !this.creative && p.inventory.count(item) === 0) this.cursorItem = null;
+    if (p && !this.free && p.inventory.count(item) === 0) this.cursorItem = null;
   }
 
   private placeLandfill(tx: number, ty: number): void {
     const p = this.world.player;
-    if (p && !this.creative) {
+    if (p && !this.free) {
       if (p.inventory.count('landfill') < 1) return;
       if (!p.canReach(tx + 0.5, ty + 0.5)) {
         p.note('Außer Reichweite');
         return;
       }
     }
-    if (this.world.landfill(tx, ty) && p && !this.creative) p.inventory.remove('landfill', 1);
+    if (this.world.landfill(tx, ty) && p && !this.free) p.inventory.remove('landfill', 1);
   }
 
   private onDrag(tx: number, ty: number): void {
@@ -821,7 +914,7 @@ export class Game {
 
   private ghostOk(g: Ghost): boolean {
     const def = entityDef(g.name);
-    if (!this.creative) {
+    if (!this.free) {
       const p = this.world.player;
       if (!p || p.inventory.count(def.item) < 1) return false;
       const [w, h] = sizeOf(def, g.dir);
@@ -920,16 +1013,16 @@ export class Game {
     if (h.type === 'build') {
       const e = this.world.entities.get(h.id);
       if (!e || e.name !== h.name) return;
-      if (p && !this.creative) p.pickUpEntity(this.world, h.id);
+      if (p && !this.free) p.pickUpEntity(this.world, h.id);
       else this.world.remove(h.id);
     } else {
       const item = entityDef(h.name).item;
-      if (p && !this.creative && p.inventory.count(item) < 1) {
+      if (p && !this.free && p.inventory.count(item) < 1) {
         p.note('Kein Gebäude im Inventar');
         return;
       }
       const e = this.world.place(h.name, h.x, h.y, h.dir);
-      if (e && p && !this.creative) p.inventory.remove(item, 1);
+      if (e && p && !this.free) p.inventory.remove(item, 1);
     }
   }
 

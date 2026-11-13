@@ -77,6 +77,8 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Kernkraft (`src/sim/heat.ts`, `entities/nuclear.ts`, Modelle `lib/kernkraft.py`), diagonale Gleise (`src/sim/rails.ts`,
   Tab wechselt Gleisform), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
   Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
+- Editor-Modus (F2, `Game.editor`/`Game.free`, `src/ui/editor.ts`): Spiel angehalten, alles kostenlos/ohne Reichweite/ohne Forschung
+  baubar, Rechtsklick und Strg+X entfernen sofort, Blaupausen sofort aufgestellt, freie Kamera; Simulation darin zuschaltbar.
 - Handbuch (Taste J): Rezepte, Verwendung, Verhältnis-Rechner und Faustregeln (`src/sim/ratio.ts`, `src/ui/handbook.ts`).
 - Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
   Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).

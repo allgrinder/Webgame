@@ -564,6 +564,11 @@ export function smeltingRecipeFor(itemId: string): RecipeDef | undefined {
   return list.find((r) => r.category === 'smelting' && r.ingredients[0]?.item === itemId);
 }
 
+/** Schmelzrezept, dessen Ergebnis ein Item ist (z. B. Eisenplatte ← Eisenerz). */
+export function smeltingRecipeProducing(itemId: string): RecipeDef | undefined {
+  return list.find((r) => r.category === 'smelting' && r.results.some((x) => x.item === itemId));
+}
+
 /** Rezept, das ein Item per Hand herstellt. */
 export function craftingRecipeFor(itemId: string): RecipeDef | undefined {
   return list.find((r) => r.category === 'crafting' && r.results.some((x) => x.item === itemId));

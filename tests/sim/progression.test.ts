@@ -45,3 +45,13 @@ describe('Fortschritt (Skill survival-crafting)', () => {
     expect(compassDe(0, 0, -10, 10)).toBe('Südwesten');
   });
 });
+
+describe('Schmelzrezepte nachschlagen', () => {
+  it('über das Ergebnis (Tooltip) und über die Zutat (Ofen) sind verschieden', async () => {
+    const { smeltingRecipeFor, smeltingRecipeProducing } = await import('../../src/data/recipes');
+    expect(smeltingRecipeProducing('iron-plate')?.ingredients[0].item).toBe('iron-ore');
+    expect(smeltingRecipeProducing('steel-plate')?.ingredients[0].item).toBe('iron-plate');
+    expect(smeltingRecipeFor('iron-plate')?.results[0].item).toBe('steel-plate');
+    expect(smeltingRecipeProducing('iron-ore')).toBeUndefined();
+  });
+});

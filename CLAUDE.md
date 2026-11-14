@@ -84,6 +84,7 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
 - Editor-Modus (F2, `Game.editor`/`Game.free`, `src/ui/editor.ts`): Spiel angehalten, alles kostenlos/ohne Reichweite/ohne Forschung
   baubar, Rechtsklick und Strg+X entfernen sofort, Blaupausen sofort aufgestellt, freie Kamera; Simulation darin zuschaltbar.
+- Oberfläche: Größe 100–200 % (Menü, `?ui=`, `src/ui/uiscale.ts`, CSS `zoom` auf Bedienfeldern); Zustände in der Alt-Ansicht mit Farbe *und* Form.
 - Handbuch (Taste J): Rezepte, Verwendung, Verhältnis-Rechner und Faustregeln (`src/sim/ratio.ts`, `src/ui/handbook.ts`).
 - Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
   Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).

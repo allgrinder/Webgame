@@ -1,3 +1,4 @@
+import { uiScale } from './uiscale';
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
 import { AMMO, CAPSULES, POLLUTION_PER_MINUTE } from '../data/enemies';
@@ -5,7 +6,7 @@ import { FLOOR_BY_ITEM } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { TECHS } from '../data/tech';
 import { MJ } from '../data/time';
-import { RECIPE_LIST, type RecipeDef, craftingRecipeFor, smeltingRecipeFor } from '../data/recipes';
+import { RECIPE_LIST, type RecipeDef, craftingRecipeFor, smeltingRecipeProducing } from '../data/recipes';
 
 /** Ein gemeinsames Tooltip-Fenster für Slots und Rezepte (folgt der Maus). */
 export class Tooltip {
@@ -17,10 +18,12 @@ export class Tooltip {
     parent.appendChild(this.el);
     window.addEventListener('pointermove', (e) => {
       if (this.el.style.display !== 'block') return;
+      // Oberflächengröße: Abstände im Tooltip sind gezoomt, Mauskoordinaten nicht
+      const z = uiScale();
       const w = this.el.offsetWidth;
       const h = this.el.offsetHeight;
-      const x = Math.min(window.innerWidth - w - 6, e.clientX + 16);
-      const y = Math.min(window.innerHeight - h - 6, e.clientY + 16);
+      const x = Math.min(window.innerWidth / z - w - 6, (e.clientX + 16) / z);
+      const y = Math.min(window.innerHeight / z - h - 6, (e.clientY + 16) / z);
       this.el.style.transform = `translate(${x}px, ${y}px)`;
     });
   }
@@ -77,7 +80,7 @@ export class Tooltip {
     if (ammo) basic.push(`Schaden: ${ammo.damage} je Schuss · ${ammo.rounds} Schuss je Magazin`);
     section('Gegenstand', basic);
     // Geschmolzene Items (Platten, Ziegel, Stahl) kann man nicht von Hand herstellen – wie im Original
-    const smelt = craftingRecipeFor(id) ? undefined : smeltingRecipeFor(id);
+    const smelt = craftingRecipeFor(id) ? undefined : smeltingRecipeProducing(id);
     if (smelt) {
       const src = smelt.ingredients.map((g) => `${g.amount} × ${nameOf(g.item)}`).join(' + ');
       section('Herstellung', [`Im Ofen: ${src} → ${nameOf(id)}`, 'Nicht von Hand: Ofen bauen, Erz und Brennstoff einlegen']);
@@ -194,7 +197,7 @@ export class Tooltip {
       row.appendChild(st);
     }
     const sub = craftingRecipeFor(item);
-    const smelt = sub ? undefined : smeltingRecipeFor(item);
+    const smelt = sub ? undefined : smeltingRecipeProducing(item);
     if (smelt) {
       const tag = document.createElement('span');
       tag.className = 'tt-tag';

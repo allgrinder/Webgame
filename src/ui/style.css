@@ -471,3 +471,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .editor-groups { overflow-y: auto; padding: 0 8px 8px; }
 .hud.editing .research-bar, .hud.editing .hud-power { display: none; }
 .hud.editing::after { content: ''; position: fixed; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 4px #c9902a99; z-index: 1; }
+
+/* Oberflächengröße (Menü „Oberfläche“, src/ui/uiscale.ts): zoom auf die Bedienfelder, nicht auf Karte/Minimap */
+:root { --ui: 1; }
+.hud > .window, .window-row, .quickbar, .craft-queue, .hud-info, .hover-info, .messages, .research-bar, .hud-health,
+.hud-power, .editor-bar, .tooltip, .cursor-item { zoom: var(--ui); }
+.tech { left: calc(2vw / var(--ui)); top: calc(4vh / var(--ui)); width: calc(96vw / var(--ui)); height: calc(90vh / var(--ui)); }
+.handbook { width: min(1120px, calc(96vw / var(--ui))); height: calc(88vh / var(--ui)); }
+.window-row > .window { max-height: calc(92vh / var(--ui)); }
+.editor-palette { max-height: calc((100vh - 230px) / var(--ui)); }

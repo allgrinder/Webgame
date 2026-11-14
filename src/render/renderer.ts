@@ -859,6 +859,7 @@ export class GameRenderer {
         for (let i = e0; i < this.ents.used; i++) EntityLife.apply(this.ents.at(i), k[0], k[1]);
         for (let i = g0; i < this.glow.used; i++) EntityLife.apply(this.glow.at(i), k[0], k[1]);
       }
+      if (blink && e.status === Status.NoPower && !(e.kind === 'pole')) this.noPower.push(e.cx, e.cy - e.h * 0.1);
       if (blink && (e.status === Status.NoFuel || e.status === Status.OutputBlocked)) {
         const icon = this.icons.get(s.frame(e.status === Status.NoFuel ? 'icon.nofuel' : 'icon.blocked'));
         icon.position.set(cx, cy);
@@ -1658,6 +1659,9 @@ export class GameRenderer {
       const [aw, ah] = sizeOf(def, ui.ghost.dir);
       if (def.rotatable) this.arrow(g, ui.ghost.x + aw / 2, ui.ghost.y + ah / 2, ui.ghost.dir, ui.ghost.ok ? 0x9dff9a : 0xff8070);
     }
+    // fehlender Strom: blinkender Blitz (wie im Original), im Code gezeichnet
+    for (let i = 0; i < this.noPower.length; i += 2) this.bolt(g, this.noPower[i] * TILE, this.noPower[i + 1] * TILE, TILE * 0.32);
+    this.noPower.length = 0;
     if (ui.alt || ui.fluidPorts) this.drawFluidPorts(world, g);
     if (!ui.alt) return;
     const v = this.viewRect();
@@ -1793,8 +1797,36 @@ export class GameRenderer {
       list.forEach((it, k) => icon(it, cx + (k - (list.length - 1) / 2) * TILE * 0.32, (e.y + e.h) * TILE - TILE * 0.28, TILE * 0.28));
     }
     const stat = STATUS_COLORS[e.status];
-    if (stat !== undefined) g.circle(cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, 5).fill({ color: stat }).stroke({ width: 1, color: 0x000000, alpha: 0.6 });
+    if (stat !== undefined) this.statusMark(g, e.status, cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, stat);
   }
+
+  /**
+   * Zustandszeichen: Farbe und Form (Skill game-ui-ux: Farbe nie als einziges Signal). Läuft = Kreis,
+   * Leerlauf = Ring, fehlt Zutat = Raute, Ausgang voll = Quadrat, kein Brennstoff/Strom = Dreieck.
+   */
+  private statusMark(g: Graphics, st: Status, x: number, y: number, color: number): void {
+    const r = 6;
+    const edge = { width: 1.2, color: 0x000000, alpha: 0.7 };
+    switch (st) {
+      case Status.Working: g.circle(x, y, r * 0.85).fill({ color }).stroke(edge); break;
+      case Status.Idle: case Status.Depleted: g.circle(x, y, r * 0.75).stroke({ width: 2.5, color }).circle(x, y, r).stroke(edge); break;
+      case Status.NoInput: case Status.NoTarget: g.poly([x, y - r, x + r, y, x, y + r, x - r, y]).fill({ color }).stroke(edge); break;
+      case Status.OutputBlocked: g.rect(x - r * 0.8, y - r * 0.8, r * 1.6, r * 1.6).fill({ color }).stroke(edge); break;
+      default: g.poly([x, y - r * 1.1, x + r, y + r * 0.75, x - r, y + r * 0.75]).fill({ color }).stroke(edge);
+    }
+  }
+
+  /** Blitz-Symbol (kein Strom). */
+  private bolt(g: Graphics, x: number, y: number, s: number): void {
+    g.circle(x, y, s * 1.05).fill({ color: 0x1a1410, alpha: 0.75 }).stroke({ width: 2, color: 0xe04030, alpha: 0.9 });
+    g.poly([
+      x + s * 0.15, y - s * 0.8, x - s * 0.45, y + s * 0.1, x - s * 0.02, y + s * 0.1,
+      x - s * 0.2, y + s * 0.8, x + s * 0.45, y - s * 0.12, x + s * 0.02, y - s * 0.12,
+    ]).fill({ color: 0xffd23a });
+  }
+
+  /** Gebäude ohne Strom in diesem Bild (Blinktakt), x/y abwechselnd. */
+  private readonly noPower: number[] = [];
 
 
   private arrow(g: Graphics, x: number, y: number, dir: Dir, color: number, size = 0.3, alpha = 0.85): void {

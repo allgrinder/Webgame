@@ -33,6 +33,7 @@ import { compassDe, nearestChartedResource } from '../sim/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
 import { EditorPanel } from './editor';
+import { loadUiScale, nextUiScale, setUiScale, uiScale } from './uiscale';
 
 const STATUS_TEXT: Record<Status, string> = {
   [Status.Idle]: 'Leerlauf',
@@ -146,6 +147,7 @@ export class Hud {
   private title = '';
 
   constructor(root: HTMLElement, private readonly game: Game, private readonly sprites: SpriteLib) {
+    loadUiScale();
     this.layer = el('div', 'hud', root);
     this.info = el('div', 'hud-info', this.layer);
     this.healthEl = el('div', 'hud-health', this.layer);
@@ -202,7 +204,8 @@ export class Hud {
     this.buildHelp();
     this.showDebug = game.debug;
     window.addEventListener('pointermove', (e) => {
-      this.cursorEl.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 14}px)`;
+      const z = uiScale();
+      this.cursorEl.style.transform = `translate(${(e.clientX + 14) / z}px, ${(e.clientY + 14) / z}px)`;
     });
     this.refreshAll();
   }
@@ -1911,6 +1914,14 @@ export class Hud {
         location.reload();
       });
     });
+    {
+      const cur = uiScale();
+      const pct = (v: number) => `${Math.round(v * 100)} %`;
+      btn(`Oberfläche: ${pct(cur)} (Klick: ${pct(nextUiScale(cur))})`, () => {
+        setUiScale(nextUiScale(cur));
+        void this.buildMenu();
+      });
+    }
     {
       // Auflösung: weniger Bildpunkte = deutlich schneller auf schwachen Grafikchips und hochauflösenden Bildschirmen
       const cur = pixelSetting();

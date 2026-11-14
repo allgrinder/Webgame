@@ -28,6 +28,8 @@ import { type FluidHolder, UNUSED, fluidSummary, isFluidHolder } from '../sim/fl
 import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
+import { RESOURCES } from '../data/resources';
+import { compassDe, nearestChartedResource } from '../sim/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
 import { EditorPanel } from './editor';
@@ -1435,7 +1437,29 @@ export class Hud {
       const close = el('button', 'close', head);
       close.textContent = '×';
       close.onclick = () => this.toggleHandbook();
-      this.book = new HandbookView({ research: () => this.game.world.research, icon: (n, cls) => this.icon(n, cls) });
+      this.book = new HandbookView({
+        research: () => this.game.world.research,
+        icon: (n, cls) => this.icon(n, cls),
+        locate: (item) => {
+          const res = RESOURCES.find((r) => r.result === item);
+          if (!res) return null;
+          const w = this.game.world;
+          const p = w.player;
+          const c = this.game.renderer.camera;
+          const x = p && !this.game.editor ? p.px / 256 : c.x;
+          const y = p && !this.game.editor ? p.py / 256 : c.y;
+          const f = nearestChartedResource(w, res.index, x, y);
+          if (!f) return { text: `Nächster Fundort: noch keiner aufgedeckt – erkunden oder ein Radar bauen (deckt die Umgebung auf).` };
+          return {
+            text: `Nächster bekannter Fundort: ${Math.round(f.dist)} Felder Richtung ${compassDe(x, y, f.x, f.y)}.`,
+            show: () => {
+              this.toggleHandbook();
+              if (this.mapView.open) this.mapView.toggle(0, 0);
+              this.mapView.toggle(f.x, f.y);
+            },
+          };
+        },
+      });
       this.bookWin.appendChild(this.book.root);
     }
     if (item) this.book.open(item);
@@ -1702,7 +1726,13 @@ export class Hud {
   private updateResearch(): void {
     const r = this.game.world.research;
     if (r.finished.length) {
-      for (const id of r.finished) this.game.world.player?.note(`Forschung abgeschlossen: ${TECH_BY_ID[id]?.name ?? id}`);
+      for (const id of r.finished) {
+        // neue Rezepte nennen, damit klar ist, was als Nächstes geht (Skill survival-crafting)
+        const neu = [...new Set((TECH_BY_ID[id]?.unlocks ?? []).map((rid) => RECIPE_LIST.find((x) => x.id === rid)?.results[0]?.item).filter((x): x is string => !!x))]
+          .map((it) => ITEMS[it]?.name ?? FLUIDS[it]?.name ?? it);
+        const extra = neu.length ? ` – neu: ${neu.slice(0, 4).join(', ')}${neu.length > 4 ? ` und ${neu.length - 4} weitere` : ''}` : '';
+        this.game.world.player?.note(`Forschung abgeschlossen: ${TECH_BY_ID[id]?.name ?? id}${extra}`);
+      }
       this.game.sound.play('research', 0.8);
       r.finished.length = 0;
       this.refreshAll();

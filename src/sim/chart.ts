@@ -114,3 +114,39 @@ function ring(r: number): [number, number][] {
   for (let y = r; y > -r; y--) out.push([-r, y]);
   return out;
 }
+
+/**
+ * Nächster bekannter Fundort einer Ressource (nur aufgedeckte Abschnitte, Skill survival-crafting: „every tier's key
+ * resource must be visible or hinted“). Sucht die nächstgelegenen Abschnitte zuerst, grob in 2er-Schritten.
+ */
+export function nearestChartedResource(w: World, resIndex: number, x: number, y: number, maxChunks = 900): { x: number; y: number; dist: number } | null {
+  const pcx = chunkOf(Math.floor(x));
+  const pcy = chunkOf(Math.floor(y));
+  const chunks = [...w.chart.seen.keys()].map(unkey)
+    .map(([cx, cy]) => ({ cx, cy, d: (cx - pcx) ** 2 + (cy - pcy) ** 2 }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, maxChunks);
+  let best: { x: number; y: number; dist: number } | null = null;
+  for (const c of chunks) {
+    // weiter entfernte Abschnitte können nichts Näheres mehr liefern
+    if (best && (Math.sqrt(c.d) - 1.5) * CHART.chunk > best.dist) break;
+    const x0 = c.cx * CHART.chunk;
+    const y0 = c.cy * CHART.chunk;
+    for (let ty = y0; ty < y0 + CHART.chunk; ty += 2) {
+      for (let tx = x0; tx < x0 + CHART.chunk; tx += 2) {
+        const r = w.map.resourceAt(tx, ty);
+        if (r.res !== resIndex || r.amount <= 0) continue;
+        const dist = Math.hypot(tx + 0.5 - x, ty + 0.5 - y);
+        if (!best || dist < best.dist) best = { x: tx + 0.5, y: ty + 0.5, dist };
+      }
+    }
+  }
+  return best;
+}
+
+/** Himmelsrichtung von (x0, y0) nach (x1, y1), y wächst nach Süden. */
+export function compassDe(x0: number, y0: number, x1: number, y1: number): string {
+  const a = Math.atan2(x1 - x0, -(y1 - y0)); // 0 = Norden, im Uhrzeigersinn
+  const names = ['Norden', 'Nordosten', 'Osten', 'Südosten', 'Süden', 'Südwesten', 'Westen', 'Nordwesten'];
+  return names[((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8];
+}

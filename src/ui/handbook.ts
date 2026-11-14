@@ -13,6 +13,8 @@ import type { ResearchSystem } from '../sim/research';
 export interface HandbookHost {
   research(): ResearchSystem;
   icon(name: string, cls?: string): HTMLImageElement;
+  /** Nächster bekannter Fundort eines Rohstoffs (Text) und Anzeige auf der Karte; null: kein Bodenrohstoff. */
+  locate?(item: string): { text: string; show?: () => void } | null;
 }
 
 type Mode = 'sec' | 'min' | 'machines';
@@ -207,6 +209,15 @@ export class HandbookView {
       } else if (id === 'wood') el('div', 'hb-row', s, 'Bäume fällen (Rechtsklick halten oder Bauroboter mit Strg+X).');
       else if (id === 'steam') el('div', 'hb-row', s, 'Kessel (Wasser + Brennstoff) oder Wärmetauscher erzeugen Dampf.');
       else el('div', 'hb-row dim', s, 'Kein Rezept – Rohstoff bzw. Abfallprodukt.');
+      const loc = this.host.locate?.(id);
+      if (loc) {
+        const row = el('div', 'hb-row', s);
+        el('span', '', row, loc.text);
+        if (loc.show) {
+          const b = el('button', 'small-btn', row, 'Auf der Karte zeigen');
+          b.onclick = loc.show;
+        }
+      }
     }
     // Rezepte
     if (recipes.length) {

@@ -12,7 +12,8 @@
     "e2e": "playwright test",
     "assets": "node scripts/assets.mjs",
     "assets:preview": "node scripts/contact-sheet.mjs",
-    "assets:placeholder": "node scripts/placeholder-assets.mjs"
+    "assets:placeholder": "node scripts/placeholder-assets.mjs",
+    "check:docs": "python3 -I .claude/skills/game-docs/scripts/check_docs.py docs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

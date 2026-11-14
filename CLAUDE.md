@@ -32,67 +32,26 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
   Umwandlung in `SAVE_MIGRATIONS` ergänzen (nie löschen); jedes Speichern behält die vorherige Fassung (` ~vorher`).
 - Szenen über `?scene=freeplay|demo|sandbox|stress`; Gottmodus (Testhilfe) über `?god`.
 
-## Stand
-- M1 Bänder: fertig.
-- M2 Blender-Pipeline: fertig (9 Modelle, 154 Sprites; Boden als periodische 8×8-Fläche).
-- M3 Produktionskette: fertig (`?scene=demo`, Tests für Bohrer/Ofen/Greifarm/Kette/Speichern).
-- M4 Spielbare Runde: fertig (Freeplay-Start, Handabbau, Inventar, Handwerk mit Zwischenprodukten,
-  Gebäudefenster, Speichern/Laden in IndexedDB, Playwright-Ablauftest).
-- Natürlicher Boden: Steppenwiese (periodisch 16×16), Decals (Erd-/Kiesflecken, Kiesel, Blüten, Grasbüschel),
-  Flora (Sträucher, Findlinge, Bäume mit Schattenebene) per Seed in `src/render/decor.ts`, Parameter in `src/data/decor.ts`.
-- Wasser (Seen/Teiche) in `src/sim/map.ts`, Darstellung nach Ecken-Prinzip (`water.<Fall>.<Variante>`).
-- Sprites mit 128 px pro Feld (Atlas-Auflösung 2), Spielwelt weiter 64 Einheiten pro Feld.
-- Phase B Komfort: fertig (Eisenkiste, Bodenitems, Rückgängig, gerade Linie, Autosave/Export/Import).
-- Phase C fertig: Kupfer/Ziegel/Kabel/Schaltkreis; Flüssigkeiten (`src/sim/fluids.ts`, Netze wie Rohrsegmente) und
-  Strom (`src/sim/power.ts`, Puffer je Verbraucher); Montagemaschine und Labor (`src/sim/entities/production.ts`),
-  Forschung (`src/sim/research.ts`, Daten `src/data/tech.ts`, gesperrte Rezepte); Logistik: schnelles Band
-  (Geschwindigkeit je Linie), Untergrundband (Teil der Transportlinie), Splitter (`src/sim/entities/logistics.ts`).
-- Gebäudeklassen in `src/sim/entities/` (Registry `registry.ts`); Modelle der neuen Anlagen in `assets/blender/lib/anlagen.py`.
-- Blender: bpy-Modul 5.2 in `.venv-blender` (mit OIDN-Denoiser, halbe Samples); `EISEN_PREVIEW=1` für schnelle Probeläufe.
-- Phase A: Effekte (`src/render/effects.ts`, `src/data/fx.ts`), Figur 8 Richtungen (`models/player.py`), Nadelbäume/Felsgruppen
-  (`models/landscape.py`, nutzt die Blender-Add-ons Sapling und Rock Generator aus /usr/share/blender als Werkzeug),
-  Tooltips/Minimap (`src/ui/tooltip.ts`, `src/ui/minimap.ts`).
-- Karte: Feuchte-Feld (`GameMap.moistureAt`), Seen (verzerrtes fbm), Flüsse mit Furten, Startsee; Landschaftsräume
-  in der Darstellung (`src/render/biome.ts`: Bodenfarbe, Deko-Gewichtung `fertility`). Wolkenschatten `src/render/clouds.ts`.
-- Freies Spiel: zufälliger Seed je neuer Runde, Startdialog „Weiterspielen“, Autosave alle 5 min und beim Verlassen der Seite.
-- Asset-Pipeline rendert ein Modell nur neu, wenn sein Skript oder eine importierte Bibliothek sich ändert (`npm run assets -- --deps`).
-- Phase E (Wiki-Abgleich): Korrekturen (Kessel 1:10, Greifarm-Takt/Energie, Füllgrenzen, Splitter-Vorrang/Filter,
-  Auslöser-Forschung), fällbare Bäume/Holz, frühe Phase (Stahl, Masten, Lampe, Montage 2, Motor, Pumpe, Tank,
-  Rohr unterirdisch, Landaufschüttung), Tag/Nacht (`DAY` in `src/data/time.ts`, Nachtebene `src/render/night.ts`).
-  Tests: `tests/sim/wiki.test.ts`, `trees.test.ts`, `early.test.ts`. Gegner bewusst zurückgestellt.
-- Blöcke 1–4 (Wunsch „1 bis 4 umsetzen“): Öl/Chemie (`entities/fluidplus.ts`, Modelle `models/oil.py`), Solar/Akku
-  (Stromvorrang in `src/sim/power.ts`), Statistik (`src/sim/stats.ts`, `src/ui/stats.ts`), Forschungswarteschlange,
-  Blaupausen/Geister (`src/sim/blueprint.ts`), Module/Leuchtfeuer (`src/sim/modules.ts`, `src/data/modules.ts`),
-  Roboter (`src/sim/robots.ts`, `src/data/robots.ts`), Schaltungsnetz (`src/sim/circuit.ts`, Taste G),
-  Züge (`src/sim/rails.ts`, `src/sim/trains.ts`, Gleise auf 2er-Raster, R wechselt Gleisform), Raketensilo
-  (`entities/rocket.ts`). Vereinfachungen in `docs/WIKI_ABGLEICH.md` Abschnitt 4. Modelle: `lib/spaet.py`, `lib/bahn.py`.
-- Gegner (Phase H): Verschmutzung `src/sim/pollution.ts`, Nester/Krabbler/Angriffe `src/sim/enemies.ts`, Türme/Mauern
-  `src/sim/entities/military.ts`, Werte `src/data/enemies.ts`, Modelle `lib/kampf.py`/`models/gegner.py`; Karteneinstellungen
-  (Rohstoffe, Gegner) in `src/data/mapgen.ts` und im Spielstand. Leertaste schießt, Reparaturset per Linksklick halten.
-- Stil „Endzeit-Industrie“ in drei Ausbaustufen (Notbau → Werkstatt → Hochtechnik): `docs/ART_STYLE.md`, Baukasten
-  `assets/blender/lib/kit.py`; Pilot Montagemaschinen 1–3 (`lib/stufen.py`, `models/montage.py`). Neue/überarbeitete
-  Modelle folgen der Stilbibel.
-- Phase I: Geräusche `src/audio/sound.ts` (ZzFX, Ereignisse `src/sim/events.ts`), Spielstände gzip (`src/game/packing.ts`),
-  Bloom (pixi-filters, Menü/`?bloom=0`), Partikel-Ausbrüche (`render/effects.ts`), Flussfeld-Wegsuche (`src/sim/flowfield.ts`),
-  Eigenschafts-Tests (fast-check). Wiki ist direkt erreichbar (Umgebung „Webgame“).
-- Phase J: Kleinteile neu (`lib/kleinteile.py`), Klippen (`GameMap.isCliff`, `models/cliffs.py`), Wurfgegenstände
-  (`src/sim/capsules.ts`), Bodenbeläge (`src/data/floors.ts`, `GameMap.floorAt`, `models/floors.py`), bewegtes Wasser
-  (Reflexe und Uferschaum in `models/water.py`). Klippen nur in neuen Karten (Einstellung `cliffs`).
-- Phase K: Forschungs-Boni/unendliche Forschung, Massen-/Filtergreifarm, Fässer, Leiche, Band im Schaltungsnetz,
-  Kernkraft (`src/sim/heat.ts`, `entities/nuclear.ts`, Modelle `lib/kernkraft.py`), diagonale Gleise (`src/sim/rails.ts`,
-  Tab wechselt Gleisform), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
-  Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
-- Editor-Modus (F2, `Game.editor`/`Game.free`, `src/ui/editor.ts`): Spiel angehalten, alles kostenlos/ohne Reichweite/ohne Forschung
-  baubar, Rechtsklick und Strg+X entfernen sofort, Blaupausen sofort aufgestellt, freie Kamera; Simulation darin zuschaltbar.
-- Oberfläche: Größe 100–200 % (Menü, `?ui=`, `src/ui/uiscale.ts`, CSS `zoom` auf Bedienfeldern); Zustände in der Alt-Ansicht mit Farbe *und* Form.
-- Handbuch (Taste J): Rezepte, Verwendung, Verhältnis-Rechner und Faustregeln (`src/sim/ratio.ts`, `src/ui/handbook.ts`).
-- Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
-  Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).
-- Leistung: Messszene `?scene=factory` (`src/game/factoryscene.ts`), Bildzeiten in F3 (`src/game/perf.ts`), Budgets und Messungen in
-  `docs/PERFORMANCE.md` (`tests/sim/bench.test.ts`, `e2e/perf.spec.ts`), Einstellung „Auflösung“ (`?pixel=`).
-- Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
-- Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
+## Stand und Überblick
+- **Spielübersicht `docs/GDD.md`** (eine Quelle für Features, Status, Code-Links, Entscheidungen D-nnn). Nach jeder neuen
+  oder geänderten Funktion dort Zeile/Status bzw. Entscheidung pflegen; `npm run check:docs` prüft Links und Status.
+- Plan `docs/ROADMAP.md` · Werte mit Quellen `docs/GAME_DATA.md` · Abweichungen vom Original `docs/WIKI_ABGLEICH.md` ·
+  Leistung `docs/PERFORMANCE.md` · Stil `docs/ART_STYLE.md` · Grafik-Herkunft `docs/ASSET_PROVENANCE.md`.
+- Offene Messvorschläge in `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
+
+## Technische Hinweise
+- Gebäudeklassen in `src/sim/entities/` (Registry `registry.ts`), Ereignisse für Ton/Effekte `src/sim/events.ts`.
+- Darstellung: Sprites mit 128 px pro Feld (Atlas-Auflösung 2), Spielwelt 64 Einheiten pro Feld; Wasser nach
+  Ecken-Prinzip (`water.<Fall>.<Variante>`); Deko per Seed in `src/render/decor.ts` (Parameter `src/data/decor.ts`),
+  Landschaftsräume `src/render/biome.ts`; Nachtlicht nutzt Normal-Maps (Blender schreibt `<name>.nrm`).
+- Blender: bpy-Modul 5.2 in `.venv-blender` (OIDN, halbe Samples); `EISEN_PREVIEW=1` für Probeläufe; `npm run assets -- --deps`
+  rendert nur geänderte Modelle. Baukasten `assets/blender/lib/kit.py`, Anlagen in `assets/blender/lib/` (`anlagen.py`,
+  `spaet.py`, `bahn.py`, `kampf.py`, `kleinteile.py`, `kernkraft.py`, `stufen.py`); Blender-Add-ons Sapling und Rock
+  Generator aus /usr/share/blender nur als Werkzeug.
+- URL-Schalter: `?scene=…`, `?god`, `?bloom=0`, `?look=0`, `?pixel=0.5`, `?ui=1.3`, `?hd`/`?sd`. Messszene `?scene=factory`
+  (`src/game/factoryscene.ts`), Bildzeiten in F3 (`src/game/perf.ts`). Editor-Modus F2 (`Game.editor`, `Game.free`).
+- Klippen nur in neuen Karten (Einstellung `cliffs`). Wiki ist direkt erreichbar (Umgebung „Webgame“).
 
 ## Prüfen
-- `npm run build && npm test && npm run e2e`
+- `npm run build && npm test && npm run e2e`, Doku: `npm run check:docs`
 - Nach Grafikänderungen: `npm run assets && npm run assets:preview`, dann `assets/preview/*.png` ansehen.

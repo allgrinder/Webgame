@@ -1,4 +1,5 @@
 import { EquipmentGrid } from './armor';
+import { ENTITIES } from '../data/entities';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
 import type { PollutionSystem } from './pollution';
@@ -16,6 +17,64 @@ import { type CraftJob, type MineTarget, Player } from './player';
 import { World } from './world';
 
 export const SAVE_VERSION = 1;
+
+/** Spielstand stammt aus einer neueren Fassung des Spiels: nicht laden (sonst gehen Daten verloren). */
+export class SaveTooNewError extends Error {
+  constructor(readonly version: number) {
+    super(`Spielstand stammt aus einer neueren Fassung des Spiels (Version ${version}, dieses Spiel kennt ${SAVE_VERSION})`);
+  }
+}
+
+type Raw = Record<string, unknown>;
+
+/**
+ * Umwandlungen alter Spielstände, je Version eine reine Funktion v → v+1 (Skill save-systems). Nie löschen,
+ * sonst lassen sich Stände dieser Version nicht mehr laden. Neue Felder bekommen hier ihren Standardwert.
+ */
+export const SAVE_MIGRATIONS: Readonly<Record<number, (d: Raw) => Raw>> = {};
+
+/**
+ * Rohdaten eines Spielstands prüfen und auf die aktuelle Version bringen: neuere Versionen ablehnen,
+ * ältere Schritt für Schritt umwandeln, danach den Aufbau prüfen.
+ */
+export function migrateSave(raw: unknown, migrations: Readonly<Record<number, (d: Raw) => Raw>> = SAVE_MIGRATIONS, current = SAVE_VERSION): SaveData {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Spielstand unlesbar');
+  let d: Raw = { ...(raw as Raw) };
+  let v = typeof d.version === 'number' ? d.version : 1;
+  if (v > current) throw new SaveTooNewError(v);
+  while (v < current) {
+    const m = migrations[v];
+    if (!m) throw new Error(`Keine Umwandlung für Spielstandversion ${v}`);
+    d = m(d);
+    v++;
+    d.version = v;
+  }
+  d.version = current;
+  validateSave(d);
+  return d as unknown as SaveData;
+}
+
+/** Aufbau prüfen; wirft mit verständlicher Meldung (Feld bzw. Gebäude). */
+export function validateSave(d: Raw): void {
+  const num = (k: string) => {
+    if (typeof d[k] !== 'number' || !Number.isFinite(d[k] as number)) throw new Error(`Spielstand beschädigt: „${k}“ fehlt oder ist keine Zahl`);
+  };
+  num('seed');
+  num('tick');
+  num('nextId');
+  for (const k of ['entities', 'beltItems', 'map']) if (!Array.isArray(d[k])) throw new Error(`Spielstand beschädigt: „${k}“ fehlt`);
+  const ids = new Set<number>();
+  let maxId = 0;
+  for (const e of d.entities as Raw[]) {
+    if (!e || typeof e.id !== 'number' || typeof e.x !== 'number' || typeof e.y !== 'number') throw new Error('Spielstand beschädigt: Gebäude ohne Lage');
+    if (typeof e.name !== 'string' || !ENTITIES[e.name]) throw new Error(`Spielstand enthält unbekanntes Gebäude „${String(e.name)}“`);
+    if (ids.has(e.id)) throw new Error(`Spielstand beschädigt: Gebäude-ID ${e.id} doppelt`);
+    ids.add(e.id);
+    maxId = Math.max(maxId, e.id);
+  }
+  if ((d.nextId as number) <= maxId) throw new Error('Spielstand beschädigt: nächste ID zu klein');
+  if (d.player !== null && d.player !== undefined && typeof d.player !== 'object') throw new Error('Spielstand beschädigt: Spielfigur');
+}
 
 type InvData = ReturnType<Inventory['serialize']>;
 type BurnerData = { e: number; f: InvData };
@@ -173,8 +232,8 @@ function entityData(e: Entity): EntityData {
   return { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status, ...(e.hp < e.def.health ? { hp: e.hp } : {}), ...e.save() } as EntityData;
 }
 
-export function deserializeWorld(d: SaveData): World {
-  if (d.version !== SAVE_VERSION) throw new Error(`Spielstandversion ${d.version} wird nicht unterstützt`);
+export function deserializeWorld(raw: SaveData): World {
+  const d = migrateSave(raw);
   const w = new World(d.seed, d.settings ? { ...LEGACY_MAP_SETTINGS, ...d.settings } : LEGACY_MAP_SETTINGS);
   w.tick = d.tick;
   w.map.loadModifications(d.map);

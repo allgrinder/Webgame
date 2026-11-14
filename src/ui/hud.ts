@@ -5,7 +5,7 @@ import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS
 import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
-import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
+import { BACKUP_SUFFIX, deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
 import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serialize';
 import { isGzip, pack, unpack } from '../game/packing';
 import { PRESETS } from '../data/blueprints';
@@ -1901,9 +1901,20 @@ export class Hud {
         const l = el('button', 'small-btn', r);
         l.textContent = 'Laden';
         l.onclick = () => void this.loadGame(s.name);
+        if (s.backupTime) {
+          // vorherige Fassung (Sicherung beim Überschreiben, Skill save-systems)
+          const b = el('button', 'small-btn', r);
+          b.textContent = '↶ vorher';
+          b.title = `Vorherige Fassung von ${new Date(s.backupTime).toLocaleString('de-DE')} laden`;
+          b.onclick = () => void this.loadGame(s.name + BACKUP_SUFFIX);
+        }
         const d = el('button', 'small-btn', r);
         d.textContent = 'Löschen';
-        d.onclick = async () => { await deleteSave(s.name); void this.buildMenu(); };
+        d.onclick = async () => {
+          if (!confirm(`Spielstand „${s.name}“ samt vorheriger Fassung löschen?`)) return;
+          await deleteSave(s.name);
+          void this.buildMenu();
+        };
       }
     }
   }
@@ -2007,7 +2018,7 @@ export class Hud {
       }
       this.closeWindows();
       this.game.setWorld(r.world, r.creative);
-      this.flash('Geladen');
+      this.flash(r.fromBackup ? `Spielstand beschädigt (${r.error ?? '?'}) – vorherige Fassung geladen` : 'Geladen');
     } catch (err) {
       this.flash(`Laden fehlgeschlagen: ${String(err)}`);
     }

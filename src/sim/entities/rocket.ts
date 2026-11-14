@@ -82,6 +82,7 @@ export class RocketSiloEntity extends EntityBase {
         this.rocketReady = false;
         this.launchAt = w.tick;
         w.rocketsLaunched++;
+        w.events.push('launch', this.cx, this.cy);
       }
     }
     // Teile bauen (bis eine Rakete bereitsteht und die nächste ebenfalls vollständig ist)

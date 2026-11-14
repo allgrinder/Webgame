@@ -21,12 +21,13 @@ import type { GameEvent } from '../sim/events';
 import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled, pixelResolution } from './look';
+import { ScreenShake } from './shake';
 import { NightLayer } from './night';
 import { UNUSED, type FluidBox, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { FLUIDS, FLUID_UNIT, visibleFluidColor } from '../data/fluids';
 import { EntityLife } from './life';
 import { HeatHaze } from './haze';
-import { HAZE } from '../data/fx';
+import { HAZE, SHAKE } from '../data/fx';
 import { Effects } from './effects';
 import { ParticlePool, SpritePool } from './pools';
 
@@ -346,8 +347,23 @@ export class GameRenderer {
 
   /** Ereignisse der Simulation (Explosionen usw.) an die Effekte geben. */
   onEvents(events: readonly GameEvent[]): void {
-    for (const ev of events) if (ev.type === 'build' && ev.id !== undefined) this.life.built(ev.id);
+    const c = this.camera;
+    for (const ev of events) {
+      if (ev.type === 'build' && ev.id !== undefined) this.life.built(ev.id);
+      const tr = SHAKE.events[ev.type];
+      if (tr) {
+        // nahe der Bildmitte voll, bis zur Reichweite abnehmend; Bisse treffen immer die Figur
+        const d = Math.hypot(ev.x - c.x, ev.y - c.y);
+        const k = ev.type === 'bite' ? 1 : Math.max(0, 1 - d / SHAKE.range);
+        if (k > 0) this.shake.add(tr * k);
+      }
+    }
     this.effects?.onEvents(events);
+  }
+
+  /** „Weniger Blitzen“ umschalten (Menü). */
+  setReduceFlash(on: boolean): void {
+    if (this.effects) this.effects.reduceFlash = on;
   }
 
   /** Auflösung im laufenden Spiel ändern (Menü). */
@@ -361,7 +377,11 @@ export class GameRenderer {
     const w = this.app.screen.width;
     const h = this.app.screen.height;
     this.root.scale.set(c.zoom);
-    this.root.position.set(Math.round(w / 2 - c.x * TILE * c.zoom), Math.round(h / 2 - c.y * TILE * c.zoom));
+    // Wackeln nur als Bildversatz (Spielstand, Mausziel und Kollision bleiben unberührt)
+    const now = performance.now();
+    const sh = this.shake.update(Math.min(0.1, (now - this.lastRender) / 1000));
+    this.lastRender = now;
+    this.root.position.set(Math.round(w / 2 - c.x * TILE * c.zoom + sh.x), Math.round(h / 2 - c.y * TILE * c.zoom + sh.y));
     const view = this.viewRect();
     this.drawGround(world, view);
     this.drawBelts(world, view, alpha);
@@ -400,6 +420,9 @@ export class GameRenderer {
   }
 
   private readonly filterArea = new Rectangle(0, 0, 1, 1);
+  /** Bildschirmwackeln (Skill game-feel). */
+  readonly shake = new ScreenShake();
+  private lastRender = performance.now();
 
   // ------------------------------------------------------------------ Boden
 

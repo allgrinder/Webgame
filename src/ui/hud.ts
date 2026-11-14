@@ -33,6 +33,7 @@ import { compassDe, nearestChartedResource } from '../sim/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
 import { EditorPanel } from './editor';
+import { SHAKE_STEPS, reduceFlash, setReduceFlash, setShakeSetting } from '../render/shake';
 import { loadUiScale, nextUiScale, setUiScale, uiScale } from './uiscale';
 
 const STATUS_TEXT: Record<Status, string> = {
@@ -1930,6 +1931,25 @@ export class Hud {
         const next = PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length];
         setPixelSetting(next);
         this.game.renderer.setResolution(pixelResolution(next));
+        void this.buildMenu();
+      });
+    }
+    {
+      // Spielgefühl (Skill game-feel): Wackeln abstufbar, Blitze dämpfbar
+      const r = this.game.renderer;
+      const cur = r.shake.strength;
+      const label = (v: number) => (v === 0 ? 'aus' : `${Math.round(v * 100)} %`);
+      btn(`Bildschirmwackeln: ${label(cur)} (Explosionen, Raketenstart, Bisse)`, () => {
+        const next = SHAKE_STEPS[(SHAKE_STEPS.indexOf(cur as (typeof SHAKE_STEPS)[number]) + 1) % SHAKE_STEPS.length];
+        setShakeSetting(next);
+        r.shake.strength = next;
+        r.shake.trauma = 0;
+        void this.buildMenu();
+      });
+      const rf = reduceFlash();
+      btn(`Weniger Blitzen: ${rf ? 'an' : 'aus'} (Funken gedämpft)`, () => {
+        setReduceFlash(!rf);
+        r.setReduceFlash(!rf);
         void this.buildMenu();
       });
     }

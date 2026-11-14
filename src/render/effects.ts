@@ -1,3 +1,4 @@
+import { reduceFlash } from './shake';
 import type { Texture } from 'pixi.js';
 import { EMITTERS, FX, type FxKind, LIFE } from '../data/fx';
 import { Status } from '../sim/entity';
@@ -165,9 +166,17 @@ export class Effects {
   }
 
   /** Ausbruch: n Partikel strahlenförmig (Felder/s), mit Farbe, Lebensdauer- und Größenfaktor. */
+  /** „Weniger Blitzen“ (Menü): Funken halb so viele und gedämpft. */
+  reduceFlash = reduceFlash();
+
   burst(kind: FxKind, x: number, y: number, n: number, speed: number, tint = 0xffffff, life = 1, size = 1): void {
     const list = this.tex[kind];
     if (!list.length) return;
+    if (kind === 'spark' && this.reduceFlash) {
+      n = Math.ceil(n / 2);
+      const f = 0.4;
+      tint = (Math.round(((tint >> 16) & 255) * f) << 16) | (Math.round(((tint >> 8) & 255) * f) << 8) | Math.round((tint & 255) * f);
+    }
     for (let i = 0; i < n && this.parts.length < FX.maxParticles; i++) {
       const a = Math.random() * Math.PI * 2;
       const v = speed * (0.4 + Math.random() * 0.8);

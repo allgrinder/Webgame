@@ -118,3 +118,18 @@ export const HAZE = {
   period: 1.6,
   rise: 1.8,
 } as const;
+
+/**
+ * Bildschirmwackeln (Skill game-feel, „trauma“-Modell): Ereignisse addieren Trauma 0..1, das in Echtzeit abklingt;
+ * Ausschlag = Trauma² × Stärke × summierte Sinuskurven (kein Zufallsrauschen). Eigene Werte (nicht im Original).
+ */
+export const SHAKE = {
+  /** Trauma-Abbau je Sekunde. */
+  decay: 1.3,
+  /** Höchster Ausschlag in Bildpunkten (x, y). */
+  maxOffset: [14, 10],
+  /** Ereignis → Trauma (Stufen: klein 0,1–0,2, mittel 0,3–0,5, groß 0,7–1). */
+  events: { explode: 0.45, nest: 0.6, launch: 0.9, bite: 0.22 } as Record<string, number>,
+  /** Ab dieser Entfernung (Felder) von der Bildmitte kein Wackeln mehr. */
+  range: 32,
+} as const;

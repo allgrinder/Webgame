@@ -9,6 +9,6 @@ Grafik, die **nicht** aus Blender kommt (prozedural im Code, Bildgenerator), wir
 | Datei/Bereich | Werkzeug bzw. Quelle | Lizenz/Hinweis | Datum |
 |---|---|---|---|
 | Rohr-Sichtfenster, Anschlusspfeile, Overlays | PixiJS-Graphics im Code (`src/render/renderer.ts`) | eigen | 2026-11 |
+| Zustandsformen (Kreis/Ring/Raute/Quadrat/Dreieck), Blitz bei fehlendem Strom | PixiJS-Graphics im Code (`statusMark`, `bolt` in `src/render/renderer.ts`) | eigen | 2026-11 |
 
 Nie verwenden: Grafiken, Icons oder Sounds des Vorbilds oder seines Wikis, auch nicht als Vorlage zum Nachzeichnen.
-| Zustandsformen (Kreis/Ring/Raute/Quadrat/Dreieck), Blitz bei fehlendem Strom | PixiJS-Graphics im Code (`statusMark`, `bolt` in `src/render/renderer.ts`) | eigen | 2026-11 |

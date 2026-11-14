@@ -563,3 +563,8 @@ Abweichung vom Original (dort je Flüssigkeit ein Füll- und ein Leerrezept): Di
 passende Einzelrezept (Werte unverändert: 0,2 s, 50 Einheiten) – beim Befüllen nach der Flüssigkeit im Rohr, beim
 Entleeren nach dem Fass im Eingang (nimmt jedes gefüllte Fass). Das Fass selbst gibt es nur einmal; gefüllte Fässer
 bleiben eigene Items (der Inhalt muss erkennbar sein). Alte Spielstände mit Einzelrezepten laufen weiter.
+
+## Bildschirmwackeln (Skill game-feel, eigene Werte, `SHAKE` in `src/data/fx.ts`)
+Trauma je Ereignis: Explosion 0,45, Nest zerstört 0,6, Raketenstart 0,9, Biss an der Figur 0,22; Abbau 1,3/s in Echtzeit,
+Ausschlag höchstens 14 × 10 px × Trauma², abnehmend bis 32 Felder Entfernung. Menü: Stärke 100 %/50 %/aus,
+„Weniger Blitzen“ halbiert und dämpft Funken. Nicht im Original (dort kein Bildschirmwackeln) – abschaltbar.

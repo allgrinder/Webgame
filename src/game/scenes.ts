@@ -4,6 +4,7 @@ import { resourceById } from '../data/resources';
 import { type AssemblerEntity, type Entity, type LabEntity, insertInto, itemIndex } from '../sim/machines';
 import { Player } from '../sim/player';
 import { World } from '../sim/world';
+import { factoryScene } from './factoryscene';
 
 export interface Scene {
   world: World;
@@ -13,11 +14,12 @@ export interface Scene {
   title: string;
 }
 
-export type SceneName = 'freeplay' | 'sandbox' | 'stress' | 'demo';
+export type SceneName = 'freeplay' | 'sandbox' | 'stress' | 'demo' | 'factory';
 
 export function createScene(name: SceneName, seed = 12345, settings: MapSettings = DEFAULT_MAP_SETTINGS): Scene {
   switch (name) {
     case 'stress': return stressScene();
+    case 'factory': return factoryScene();
     case 'demo': return demoScene(seed);
     case 'sandbox': return sandboxScene(seed);
     default: return freeplayScene(seed, settings);

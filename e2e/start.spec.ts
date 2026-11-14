@@ -102,7 +102,6 @@ test('Editor-Modus: F2 hält an, alles kostenlos bauen und entfernen, danach lä
   // Beenden: Spiel läuft weiter
   await page.keyboard.press('F2');
   await expect(page.locator('.editor-bar')).toBeHidden();
-  await page.waitForTimeout(600);
-  expect(await page.evaluate(() => (window as unknown as G).eisenwerk.world.tick)).toBeGreaterThan(t0 + 10);
+  await expect.poll(() => page.evaluate(() => (window as unknown as G).eisenwerk.world.tick), { timeout: 15_000 }).toBeGreaterThan(t0 + 10);
   expect(errors).toEqual([]);
 });

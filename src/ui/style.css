@@ -18,7 +18,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .hud { position: absolute; inset: 0; pointer-events: none; }
 .hud > * { pointer-events: auto; }
 .hud-info { position: absolute; left: 10px; top: 8px; font-weight: 600; color: var(--accent); text-shadow: 0 1px 2px #000; pointer-events: none; }
-.hud-debug { position: absolute; left: 10px; top: 28px; color: var(--dim); font: 12px ui-monospace, monospace; text-shadow: 0 1px 2px #000; pointer-events: none; }
+.hud-debug { position: absolute; left: 10px; top: 28px; color: var(--dim); font: 12px ui-monospace, monospace; white-space: pre; text-shadow: 0 1px 2px #000; pointer-events: none; }
 .hover-info { position: absolute; left: 10px; bottom: 80px; background: var(--panel); border: 1px solid var(--panel-edge); padding: 4px 8px; border-radius: 3px; pointer-events: none; }
 .messages { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); color: #ffd27a; text-shadow: 0 1px 3px #000; font-weight: 600; pointer-events: none; }
 .cursor-item { position: fixed; left: 0; top: 0; pointer-events: none; display: none; }

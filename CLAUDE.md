@@ -87,6 +87,8 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Handbuch (Taste J): Rezepte, Verwendung, Verhältnis-Rechner und Faustregeln (`src/sim/ratio.ts`, `src/ui/handbook.ts`).
 - Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
   Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).
+- Leistung: Messszene `?scene=factory` (`src/game/factoryscene.ts`), Bildzeiten in F3 (`src/game/perf.ts`), Budgets und Messungen in
+  `docs/PERFORMANCE.md` (`tests/sim/bench.test.ts`, `e2e/perf.spec.ts`), Einstellung „Auflösung“ (`?pixel=`).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

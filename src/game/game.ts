@@ -8,6 +8,7 @@ import type { SpriteLib } from '../render/assets';
 import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
+import { PerfMonitor } from './perf';
 import { type Blueprint, applySettings, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
 import { treeKey } from '../sim/robots';
 import { fluidSummary, isFluidHolder } from '../sim/fluids';
@@ -69,6 +70,9 @@ export class Game {
    */
   editor = false;
   private editorWasPaused = false;
+  /** Bildzeiten (ms) für F3 und Leistungstests. */
+  readonly perf = new PerfMonitor();
+  private lastSteps = 0;
   private acc = 0;
   private dragLast: { x: number; y: number } | null = null;
   private dragBelts: number[] = [];
@@ -176,7 +180,10 @@ export class Game {
   }
 
   private frame(dt: number): void {
+    const tFrame = performance.now();
     this.handleInput();
+    const tSim = performance.now();
+    this.lastSteps = 0;
     if (!this.paused) {
       this.acc += Math.min(dt, 250);
       let steps = 0;
@@ -187,6 +194,7 @@ export class Game {
         steps++;
       }
       if (steps === MAX_STEPS_PER_FRAME) this.acc = Math.min(this.acc, STEP_MS);
+      this.lastSteps = steps;
       const p = this.world.player;
       if (p) {
         for (const r of p.minedLog.splice(0)) this.pushHistory({ type: 'remove', name: r.name, x: r.x, y: r.y, dir: r.dir as Dir });
@@ -196,9 +204,14 @@ export class Game {
         }
       }
     }
+    const simMs = performance.now() - tSim;
+    this.perf.sim.add(simMs);
+    if (this.lastSteps) this.perf.tick.add(simMs / this.lastSteps);
     const alpha = this.paused ? 1 : this.acc / STEP_MS;
     this.updateCamera(dt, alpha);
+    const tRender = performance.now();
     this.renderer.render(this.world, alpha, this.buildUi());
+    this.perf.render.add(performance.now() - tRender);
     const events = this.world.events.drain();
     this.renderer.onEvents(events);
     this.sound.update(this.world, events, this.renderer.camera, this.renderer.app.screen.width);
@@ -209,8 +222,12 @@ export class Game {
       this.frameCount = 0;
       this.fpsTime = 0;
     }
+    const tHud = performance.now();
     this.hud.update(this.fps);
     this.input.endFrame();
+    const end = performance.now();
+    this.perf.hud.add(end - tHud);
+    this.perf.frame.add(end - tFrame);
   }
 
   // ------------------------------------------------------------ Kamera

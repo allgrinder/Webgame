@@ -12,7 +12,7 @@ import { PRESETS } from '../data/blueprints';
 import { type Blueprint, decode as bpDecode, encode as bpEncode } from '../sim/blueprint';
 import { importForeign, isForeignText, reportText } from '../sim/foreignbp';
 import { type SpriteLib, graphicsQuality, setGraphicsQuality } from '../render/assets';
-import { bloomEnabled, setBloomEnabled } from '../render/look';
+import { PIXEL_STEPS, type PixelSetting, bloomEnabled, pixelResolution, pixelSetting, setBloomEnabled, setPixelSetting } from '../render/look';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
@@ -101,6 +101,12 @@ function recipeGroup(item: string): CraftGroup {
   if (place) return LOGISTIK_KINDS.has(entityDef(place).kind) ? 'Logistik' : 'Produktion';
   if (item === 'locomotive' || item === 'cargo-wagon' || item.endsWith('-robot')) return 'Logistik';
   return 'Zwischenprodukte';
+}
+
+/** Bildzeiten für F3: Durchschnitt/p95 in ms (Skill performance-optimization). */
+function perfLine(r: ReturnType<Game['perf']['report']>): string {
+  const f = (k: keyof typeof r) => `${r[k].avg.toFixed(1)}/${r[k].p95.toFixed(1)}`;
+  return `ms Ø/p95 – Bild ${f('frame')} · Simulation ${f('sim')} (je Takt ${f('tick')}) · Zeichnen ${f('render')} · Oberfläche ${f('hud')}`;
 }
 
 export class Hud {
@@ -223,10 +229,21 @@ export class Hud {
     if (this.openEntityId !== null) this.buildEntity();
   }
 
+  /** Sekunden mit weniger als 25 Bildern/s am Stück; nach 20 s einmal je Sitzung ein Tipp. */
+  private slowFor = 0;
+  private slowHinted = false;
+
   update(fps: number): void {
     this.frame++;
     this.editorPanel.update();
     const g = this.game;
+    if (this.frame % 30 === 0 && !this.slowHinted && !g.paused && document.visibilityState === 'visible') {
+      this.slowFor = fps > 0 && fps < 25 ? this.slowFor + 30 / Math.max(fps, 1) : 0;
+      if (this.slowFor > 20) {
+        this.slowHinted = true;
+        this.flash(`Das Spiel läuft nur mit ${fps.toFixed(0)} Bildern/s. Tipp: Menü (Esc) → „Auflösung“ senken oder Leuchteffekte ausschalten.`);
+      }
+    }
     const w = g.world;
     {
       const c = g.renderer.camera;
@@ -250,7 +267,7 @@ export class Hud {
       this.debugBox.textContent =
         `FPS ${fps.toFixed(0)} | Tick ${w.tick} | Bänder ${w.belts.count} | Items ${w.belts.itemCount} | ` +
         `Gezeichnet: Boden ${st.ground}, Deko ${st.decor}, Band ${st.belts}, Items ${st.items}, Gebäude ${st.entities}` +
-        (g.paused ? ' | PAUSE' : '');
+        (g.paused ? ' | PAUSE' : '') + `\n${perfLine(g.perf.report())}`;
     } else this.debugBox.style.display = 'none';
     // Cursor-Item
     const ci = g.cursorItem;
@@ -1894,6 +1911,17 @@ export class Hud {
         location.reload();
       });
     });
+    {
+      // Auflösung: weniger Bildpunkte = deutlich schneller auf schwachen Grafikchips und hochauflösenden Bildschirmen
+      const cur = pixelSetting();
+      const label = (v: PixelSetting) => (v === 'auto' ? `automatisch (${pixelResolution('auto')}×)` : `${v.replace('.', ',')}×`);
+      btn(`Auflösung: ${label(cur)} (Klick: ${label(PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length])})`, () => {
+        const next = PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length];
+        setPixelSetting(next);
+        this.game.renderer.setResolution(pixelResolution(next));
+        void this.buildMenu();
+      });
+    }
     const bl = bloomEnabled();
     btn(`Leuchteffekte: ${bl ? 'an' : 'aus'} (Klick zum Umschalten, lädt neu)`, () => {
       void this.saveGame('autosave').finally(() => {

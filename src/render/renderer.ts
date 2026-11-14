@@ -1,5 +1,5 @@
 import { FLOOR_BY_ID } from '../data/floors';
-import { Application, Container, type Filter, Graphics, Texture } from 'pixi.js';
+import { Application, Container, type Filter, Graphics, Rectangle, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
@@ -20,7 +20,7 @@ import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { CloudShadows } from './clouds';
-import { bloomEnabled, gradeFilter, lookEnabled } from './look';
+import { bloomEnabled, gradeFilter, lookEnabled, pixelResolution } from './look';
 import { NightLayer } from './night';
 import { UNUSED, type FluidBox, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { FLUIDS, FLUID_UNIT, visibleFluidColor } from '../data/fluids';
@@ -221,7 +221,7 @@ export class GameRenderer {
       background: '#1d1b17',
       antialias: false,
       autoDensity: true,
-      resolution: Math.min(2, window.devicePixelRatio || 1),
+      resolution: pixelResolution(),
       preference: 'webgl',
     });
     parent.appendChild(app.canvas);
@@ -350,6 +350,12 @@ export class GameRenderer {
     this.effects?.onEvents(events);
   }
 
+  /** Auflösung im laufenden Spiel ändern (Menü). */
+  setResolution(r: number): void {
+    const rr = this.app.renderer;
+    rr.resize(rr.screen.width, rr.screen.height, r);
+  }
+
   render(world: World, alpha: number, ui: RenderUi): void {
     const c = this.camera;
     const w = this.app.screen.width;
@@ -381,7 +387,19 @@ export class GameRenderer {
       }
     }
     this.drawOverlay(world, ui);
+    // Filter nur auf dem sichtbaren Ausschnitt: spart die Grenzberechnung über alle Sprites je Bild
+    // (Skill performance-optimization/pixijs-rendering); Koordinaten lokal zum Weltcontainer
+    const fa = this.filterArea;
+    fa.x = -this.root.x / c.zoom;
+    fa.y = -this.root.y / c.zoom;
+    fa.width = w / c.zoom;
+    fa.height = h / c.zoom;
+    for (const ct of [this.root, this.groundLayer, this.glow.container, this.fxAddPool.container]) {
+      if (ct.filters && (ct.filters as Filter[]).length && ct.filterArea !== fa) ct.filterArea = fa;
+    }
   }
+
+  private readonly filterArea = new Rectangle(0, 0, 1, 1);
 
   // ------------------------------------------------------------------ Boden
 

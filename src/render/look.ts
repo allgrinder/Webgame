@@ -66,3 +66,31 @@ export function lookEnabled(): boolean {
     return true;
   }
 }
+
+/**
+ * Auflösung der Spielgrafik (Skill performance-optimization: „2x pixel ratio is 4x the pixels“). 'auto' = Bildschirmdichte
+ * (höchstens 2), sonst fester Faktor. Menü bzw. `?pixel=0.75`; Standard 'auto'.
+ */
+export const PIXEL_STEPS = ['auto', '1', '0.75', '0.5'] as const;
+export type PixelSetting = (typeof PIXEL_STEPS)[number];
+
+export function pixelSetting(): PixelSetting {
+  try {
+    const q = new URLSearchParams(location.search).get('pixel') ?? localStorage.getItem('eisenwerk.pixel');
+    return (PIXEL_STEPS as readonly string[]).includes(q ?? '') ? (q as PixelSetting) : 'auto';
+  } catch {
+    return 'auto';
+  }
+}
+
+export function setPixelSetting(v: PixelSetting): void {
+  try {
+    localStorage.setItem('eisenwerk.pixel', v);
+  } catch { /* privat */ }
+}
+
+/** Auflösungsfaktor des Renderers für eine Einstellung. */
+export function pixelResolution(v: PixelSetting = pixelSetting()): number {
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  return v === 'auto' ? Math.min(2, dpr) : Number(v);
+}

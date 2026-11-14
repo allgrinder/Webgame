@@ -568,3 +568,9 @@ bleiben eigene Items (der Inhalt muss erkennbar sein). Alte Spielstände mit Ein
 Trauma je Ereignis: Explosion 0,45, Nest zerstört 0,6, Raketenstart 0,9, Biss an der Figur 0,22; Abbau 1,3/s in Echtzeit,
 Ausschlag höchstens 14 × 10 px × Trauma², abnehmend bis 32 Felder Entfernung. Menü: Stärke 100 %/50 %/aus,
 „Weniger Blitzen“ halbiert und dämpft Funken. Nicht im Original (dort kein Bildschirmwackeln) – abschaltbar.
+
+## Ton und Tasten (Skills audio-design und input-systems, keine Spielwerte)
+- Tongruppen: Gesamt ← Effekte, Maschinen/Umgebung, Oberfläche/Forschung; Regler 0–100 % quadratisch auf die
+  Verstärkung (50 % ≈ −12 dB), 0 = stumm. Raketenstart hat einen eigenen Klang (ZzFX, eigene Parameter).
+- Tastenbelegung: benannte Aktionen (`src/game/keys.ts`), Standard wie bisher; belegte Taste → Tausch; fest: Esc, 1–0,
+  Strg-Kombinationen. Einstellungen als eigener Bildschirm im Menü (Esc → Einstellungen).

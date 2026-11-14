@@ -33,7 +33,32 @@ export const SOUNDS: Record<string, Params> = {
   engine: [0.14, 0.1, 50, 0.02, 0.08, 0.1, 2, 0.5, , , , , 0.1, 0.4, , , , 0.5],
   belt: [0.06, 0.4, 80, 0.05, 0.1, 0.1, 4, 0.2, , , , , , 3, , , , 0.3],
   krabbler: [0.15, 0.4, 600, 0.002, 0.005, 0.03, 4, 1, , , , , 0.02, 1.2, , 0.4, , 0.3],
+  // Raketenstart: langes, tiefes Grollen (eigene Parameter)
+  launch: [1, 0.05, 38, 0.4, 1.6, 2.2, 4, 0.3, 0.4, , , , , 3, , 0.3, 0.2, 0.6, 0.6],
 };
+
+/**
+ * Tongruppen (Skill audio-design: Regler je Gruppe, nie je Klang): Gesamt ← Effekte, Maschinen, Oberfläche.
+ * Regler 0..1 werden quadriert (gleichmäßige Lautstärkeänderung über den ganzen Weg), 0 = stumm.
+ */
+export type AudioBus = 'master' | 'sfx' | 'ambience' | 'ui';
+export const AUDIO_BUSES: readonly { id: AudioBus; label: string }[] = [
+  { id: 'master', label: 'Gesamt' },
+  { id: 'sfx', label: 'Effekte (Bauen, Kampf, Explosionen)' },
+  { id: 'ambience', label: 'Maschinen und Umgebung' },
+  { id: 'ui', label: 'Oberfläche und Forschung' },
+];
+const UI_SOUNDS = new Set(['click', 'research', 'craft']);
+const AMBIENT_SOUNDS = new Set(['drill', 'furnace', 'assembler', 'engine', 'belt', 'krabbler']);
+/** Gruppe eines Klangs. */
+export function busOf(name: string): Exclude<AudioBus, 'master'> {
+  return UI_SOUNDS.has(name) ? 'ui' : AMBIENT_SOUNDS.has(name) ? 'ambience' : 'sfx';
+}
+/** Reglerstellung → Verstärkung. */
+export function sliderGain(v: number): number {
+  const x = Math.max(0, Math.min(1, v));
+  return x * x;
+}
 
 /** Gebäudeart → Umgebungsklang. */
 const AMBIENT: Partial<Record<string, string>> = {
@@ -50,15 +75,17 @@ export class SoundSystem {
   private sampleRate = 44100;
   private last = new Map<string, number>();
   private ambientAt = 0;
-  volume: number;
+  private readonly busGain = new Map<AudioBus, GainNode>();
+  /** Reglerstellungen 0..1 je Gruppe. */
+  readonly levels: Record<AudioBus, number> = { master: 0.8, sfx: 1, ambience: 0.8, ui: 0.8 };
 
   constructor() {
-    let v = 0.6;
     try {
-      const s = localStorage.getItem(VOL_KEY);
-      if (s !== null) v = Math.max(0, Math.min(1, Number(s)));
+      const old = localStorage.getItem(VOL_KEY); // frühere einzelne Lautstärke (linear) → Gesamtregler
+      const saved = JSON.parse(localStorage.getItem(VOL_KEY + 's') ?? 'null') as Partial<Record<AudioBus, number>> | null;
+      if (saved) for (const b of AUDIO_BUSES) if (typeof saved[b.id] === 'number') this.levels[b.id] = Math.max(0, Math.min(1, saved[b.id]!));
+      else if (old !== null) this.levels.master = Math.sqrt(Math.max(0, Math.min(1, Number(old))));
     } catch { /* privat */ }
-    this.volume = v;
     const start = () => {
       void this.init();
       window.removeEventListener('pointerdown', start);
@@ -76,20 +103,42 @@ export class SoundSystem {
       this.sampleRate = ZZFX.sampleRate;
       this.build = (...p: Params) => ZZFX.buildSamples(...p);
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.volume;
       this.master.connect(this.ctx.destination);
+      this.busGain.set('master', this.master);
+      for (const b of AUDIO_BUSES) {
+        if (b.id === 'master') continue;
+        const g = this.ctx.createGain();
+        g.connect(this.master);
+        this.busGain.set(b.id, g);
+      }
+      this.applyLevels();
       if (this.ctx.state === 'suspended') await this.ctx.resume();
     } catch {
       this.ctx = null;
     }
   }
 
-  setVolume(v: number): void {
-    this.volume = Math.max(0, Math.min(1, v));
-    if (this.master) this.master.gain.value = this.volume;
+  /** Gesamtlautstärke als Verstärkung (0 = stumm). */
+  get volume(): number {
+    return sliderGain(this.levels.master);
+  }
+
+  private applyLevels(): void {
+    for (const [id, g] of this.busGain) g.gain.value = sliderGain(this.levels[id]);
+  }
+
+  /** Regler einer Gruppe setzen (0..1) und merken. */
+  setLevel(bus: AudioBus, v: number): void {
+    this.levels[bus] = Math.max(0, Math.min(1, v));
+    this.applyLevels();
     try {
-      localStorage.setItem(VOL_KEY, String(this.volume));
+      localStorage.setItem(VOL_KEY + 's', JSON.stringify(this.levels));
     } catch { /* privat */ }
+  }
+
+  /** Alte Schnittstelle: Gesamtregler. */
+  setVolume(v: number): void {
+    this.setLevel('master', v);
   }
 
   private buffer(name: string): AudioBuffer | null {
@@ -106,7 +155,8 @@ export class SoundSystem {
 
   /** Klang abspielen: Lautstärke 0..1, Panorama −1..1, kleine Tonhöhen-Schwankung. Gleiche Klänge höchstens alle minGap ms. */
   play(name: string, vol = 1, pan = 0, minGap = 40): void {
-    if (!this.ctx || !this.master || this.volume <= 0 || vol <= 0.01) return;
+    const bus = busOf(name);
+    if (!this.ctx || !this.master || this.levels.master <= 0 || this.levels[bus] <= 0 || vol <= 0.01) return;
     const now = performance.now();
     if (now - (this.last.get(name) ?? 0) < minGap) return;
     this.last.set(name, now);
@@ -119,7 +169,7 @@ export class SoundSystem {
     g.gain.value = vol;
     const p = this.ctx.createStereoPanner();
     p.pan.value = Math.max(-1, Math.min(1, pan));
-    src.connect(g).connect(p).connect(this.master);
+    src.connect(g).connect(p).connect(this.busGain.get(bus) ?? this.master);
     src.start();
   }
 

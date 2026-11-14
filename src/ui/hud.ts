@@ -33,6 +33,9 @@ import { compassDe, nearestChartedResource } from '../sim/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
 import { EditorPanel } from './editor';
+import { KEY_ACTIONS, keyLabel } from '../game/keys';
+import { keyName } from '../game/input';
+import { AUDIO_BUSES } from '../audio/sound';
 import { SHAKE_STEPS, reduceFlash, setReduceFlash, setShakeSetting } from '../render/shake';
 import { loadUiScale, nextUiScale, setUiScale, uiScale } from './uiscale';
 
@@ -1864,6 +1867,7 @@ export class Hud {
         <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
         <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F2</b> Editor-Modus (Spiel anhalten, alles frei bauen) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
+        <p class="dim">Die Tasten oben sind die Standardbelegung – ändern unter Menü (Esc) → Tastenbelegung.</p>
         <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
       </div>`;
     this.help.querySelector('.close')!.addEventListener('click', () => this.toggleHelp());
@@ -1897,69 +1901,7 @@ export class Hud {
     btn('Handbuch & Verhältnisse (J)', () => { this.toggleMenu(); this.toggleHandbook(); });
     btn(this.game.editor ? 'Editor-Modus beenden (F2)' : 'Editor-Modus (F2): anhalten und frei bauen', () => { this.toggleMenu(); this.game.toggleEditor(); });
     btn('Hilfe', () => { this.toggleMenu(); this.toggleHelp(); });
-    {
-      const vol = Math.round(this.game.sound.volume * 100);
-      btn(`Ton: ${vol === 0 ? 'aus' : `${vol} %`} (Klick: lauter/leiser)`, () => {
-        const steps = [0, 0.25, 0.5, 0.75, 1];
-        const i = steps.findIndex((v) => Math.abs(v - this.game.sound.volume) < 0.01);
-        this.game.sound.setVolume(steps[(i + 1) % steps.length]);
-        this.game.sound.play('click', 1, 0, 0);
-        void this.buildMenu();
-      });
-    }
-    const hd = graphicsQuality() === 'hd';
-    btn(hd ? 'Grafik: Hoch (HD) → Standard' : 'Grafik: Standard → Hoch (HD, braucht viel Grafikspeicher)', () => {
-      // vorher sichern, nach dem Neuladen geht es mit „Weiterspielen“ weiter
-      void this.saveGame('autosave').finally(() => {
-        setGraphicsQuality(hd ? 'sd' : 'hd');
-        location.reload();
-      });
-    });
-    {
-      const cur = uiScale();
-      const pct = (v: number) => `${Math.round(v * 100)} %`;
-      btn(`Oberfläche: ${pct(cur)} (Klick: ${pct(nextUiScale(cur))})`, () => {
-        setUiScale(nextUiScale(cur));
-        void this.buildMenu();
-      });
-    }
-    {
-      // Auflösung: weniger Bildpunkte = deutlich schneller auf schwachen Grafikchips und hochauflösenden Bildschirmen
-      const cur = pixelSetting();
-      const label = (v: PixelSetting) => (v === 'auto' ? `automatisch (${pixelResolution('auto')}×)` : `${v.replace('.', ',')}×`);
-      btn(`Auflösung: ${label(cur)} (Klick: ${label(PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length])})`, () => {
-        const next = PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length];
-        setPixelSetting(next);
-        this.game.renderer.setResolution(pixelResolution(next));
-        void this.buildMenu();
-      });
-    }
-    {
-      // Spielgefühl (Skill game-feel): Wackeln abstufbar, Blitze dämpfbar
-      const r = this.game.renderer;
-      const cur = r.shake.strength;
-      const label = (v: number) => (v === 0 ? 'aus' : `${Math.round(v * 100)} %`);
-      btn(`Bildschirmwackeln: ${label(cur)} (Explosionen, Raketenstart, Bisse)`, () => {
-        const next = SHAKE_STEPS[(SHAKE_STEPS.indexOf(cur as (typeof SHAKE_STEPS)[number]) + 1) % SHAKE_STEPS.length];
-        setShakeSetting(next);
-        r.shake.strength = next;
-        r.shake.trauma = 0;
-        void this.buildMenu();
-      });
-      const rf = reduceFlash();
-      btn(`Weniger Blitzen: ${rf ? 'an' : 'aus'} (Funken gedämpft)`, () => {
-        setReduceFlash(!rf);
-        r.setReduceFlash(!rf);
-        void this.buildMenu();
-      });
-    }
-    const bl = bloomEnabled();
-    btn(`Leuchteffekte: ${bl ? 'an' : 'aus'} (Klick zum Umschalten, lädt neu)`, () => {
-      void this.saveGame('autosave').finally(() => {
-        setBloomEnabled(!bl);
-        location.reload();
-      });
-    });
+    btn('Einstellungen … (Ton, Tasten, Grafik, Oberfläche)', () => void this.settingsDialog());
     {
       // Gegner im laufenden Spiel umstellen (wie die Karteneinstellung beim Start)
       const w = this.game.world;
@@ -2006,6 +1948,158 @@ export class Hud {
         };
       }
     }
+  }
+
+  /** Einstellungen als eigener Bildschirm (Skill game-ui-ux: Bildschirme als Stapel, Zurück führt ins Menü). */
+  private async settingsDialog(): Promise<void> {
+    this.menu.replaceChildren();
+    const head = el('div', 'win-head', this.menu);
+    head.textContent = 'Einstellungen';
+    const body = el('div', 'win-body menu-body', this.menu);
+    const btn = (label: string, fn: () => void) => {
+      const b = el('button', 'menu-btn', body);
+      b.textContent = label;
+      b.onclick = fn;
+    };
+    const rebuild = () => void this.settingsDialog();
+    btn('Tastenbelegung …', () => this.keysDialog());
+    {
+      // Ton je Gruppe (Skill audio-design): Schieberegler, quadratisch umgerechnet, 0 = stumm
+      el('div', 'sub-head', body).textContent = 'Ton';
+      const snd = this.game.sound;
+      for (const b of AUDIO_BUSES) {
+        const row = el('label', 'vol-row', body);
+        el('span', '', row).textContent = b.label;
+        const r = el('input', '', row);
+        r.type = 'range';
+        r.min = '0';
+        r.max = '100';
+        r.value = String(Math.round(snd.levels[b.id] * 100));
+        const out = el('span', 'dim', row);
+        out.textContent = r.value === '0' ? 'aus' : `${r.value} %`;
+        r.oninput = () => {
+          snd.setLevel(b.id, Number(r.value) / 100);
+          out.textContent = r.value === '0' ? 'aus' : `${r.value} %`;
+        };
+        r.onchange = () => snd.play(b.id === 'ambience' ? 'drill' : b.id === 'ui' ? 'click' : 'build', 1, 0, 0);
+      }
+    }
+    const hd = graphicsQuality() === 'hd';
+    btn(hd ? 'Grafik: Hoch (HD) → Standard' : 'Grafik: Standard → Hoch (HD, braucht viel Grafikspeicher)', () => {
+      // vorher sichern, nach dem Neuladen geht es mit „Weiterspielen“ weiter
+      void this.saveGame('autosave').finally(() => {
+        setGraphicsQuality(hd ? 'sd' : 'hd');
+        location.reload();
+      });
+    });
+    {
+      const cur = uiScale();
+      const pct = (v: number) => `${Math.round(v * 100)} %`;
+      btn(`Oberfläche: ${pct(cur)} (Klick: ${pct(nextUiScale(cur))})`, () => {
+        setUiScale(nextUiScale(cur));
+        rebuild();
+      });
+    }
+    {
+      // Auflösung: weniger Bildpunkte = deutlich schneller auf schwachen Grafikchips und hochauflösenden Bildschirmen
+      const cur = pixelSetting();
+      const label = (v: PixelSetting) => (v === 'auto' ? `automatisch (${pixelResolution('auto')}×)` : `${v.replace('.', ',')}×`);
+      btn(`Auflösung: ${label(cur)} (Klick: ${label(PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length])})`, () => {
+        const next = PIXEL_STEPS[(PIXEL_STEPS.indexOf(cur) + 1) % PIXEL_STEPS.length];
+        setPixelSetting(next);
+        this.game.renderer.setResolution(pixelResolution(next));
+        rebuild();
+      });
+    }
+    {
+      // Spielgefühl (Skill game-feel): Wackeln abstufbar, Blitze dämpfbar
+      const r = this.game.renderer;
+      const cur = r.shake.strength;
+      const label = (v: number) => (v === 0 ? 'aus' : `${Math.round(v * 100)} %`);
+      btn(`Bildschirmwackeln: ${label(cur)} (Explosionen, Raketenstart, Bisse)`, () => {
+        const next = SHAKE_STEPS[(SHAKE_STEPS.indexOf(cur as (typeof SHAKE_STEPS)[number]) + 1) % SHAKE_STEPS.length];
+        setShakeSetting(next);
+        r.shake.strength = next;
+        r.shake.trauma = 0;
+        rebuild();
+      });
+      const rf = reduceFlash();
+      btn(`Weniger Blitzen: ${rf ? 'an' : 'aus'} (Funken gedämpft)`, () => {
+        setReduceFlash(!rf);
+        r.setReduceFlash(!rf);
+        rebuild();
+      });
+    }
+    const bl = bloomEnabled();
+    btn(`Leuchteffekte: ${bl ? 'an' : 'aus'} (Klick zum Umschalten, lädt neu)`, () => {
+      void this.saveGame('autosave').finally(() => {
+        setBloomEnabled(!bl);
+        location.reload();
+      });
+    });
+    const back = el('button', 'menu-btn', body);
+    back.textContent = 'Zurück';
+    back.onclick = () => void this.buildMenu();
+    this.menu.classList.remove('hidden');
+  }
+
+  /** Tastenbelegung (Skill input-systems): Aktion anklicken, neue Taste drücken; belegte Tasten werden getauscht. */
+  keysDialog(): void {
+    const km = this.game.keys;
+    this.menu.replaceChildren();
+    const head = el('div', 'win-head', this.menu);
+    head.textContent = 'Tastenbelegung';
+    const body = el('div', 'win-body menu-body keys-body', this.menu);
+    const msg = el('div', 'hint', body);
+    msg.textContent = 'Aktion anklicken, dann die neue Taste drücken (Esc bricht ab). Fest: Esc, 1–0, Strg+S/L/Z/C/X/V.';
+    let groupEl: HTMLElement | null = null;
+    let group = '';
+    for (const a of KEY_ACTIONS) {
+      if (a.group !== group) {
+        group = a.group;
+        el('div', 'sub-head', body).textContent = group;
+        groupEl = el('div', 'keys-grid', body);
+      }
+      const row = el('div', 'key-row', groupEl!);
+      el('span', '', row).textContent = a.label;
+      const b = el('button', 'small-btn key-btn', row);
+      b.textContent = keyLabel(km.key(a.id));
+      if (km.key(a.id) !== a.key) b.classList.add('changed');
+      b.onclick = () => {
+        b.textContent = 'Taste drücken …';
+        b.classList.add('waiting');
+        const onKey = (e: KeyboardEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.removeEventListener('keydown', onKey, true);
+          const k = keyName(e);
+          if (k === 'escape') {
+            this.keysDialog();
+            return;
+          }
+          const r = km.set(a.id, k);
+          this.keysDialog();
+          const m = this.menu.querySelector<HTMLElement>('.keys-body .hint');
+          if (m && r.error) m.textContent = r.error;
+          else if (m && r.swapped) {
+            const other = KEY_ACTIONS.find((x) => x.id === r.swapped);
+            m.textContent = `${keyLabel(k)} lag auf „${other?.label}“ – getauscht: „${other?.label}“ hat jetzt ${keyLabel(km.key(r.swapped))}.`;
+          }
+        };
+        window.addEventListener('keydown', onKey, true);
+      };
+    }
+    const row = el('div', 'choice-row', body);
+    const reset = el('button', 'menu-btn', row);
+    reset.textContent = 'Standard wiederherstellen';
+    reset.onclick = () => {
+      km.reset();
+      this.keysDialog();
+    };
+    const back = el('button', 'menu-btn', row);
+    back.textContent = 'Zurück';
+    back.onclick = () => void this.settingsDialog();
+    this.menu.classList.remove('hidden');
   }
 
   /** Neue Runde: Karteneinstellungen wählen (Rohstoffe, Gegner) und mit neuer Karte starten. */

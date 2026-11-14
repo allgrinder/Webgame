@@ -90,15 +90,13 @@ test('Editor-Modus: F2 hält an, alles kostenlos bauen und entfernen, danach lä
   await page.mouse.move(spot.sx, spot.sy);
   await page.waitForTimeout(100);
   await page.mouse.click(spot.sx, spot.sy);
-  await page.waitForTimeout(200);
   const count = () => page.evaluate(() => [...(window as unknown as G).eisenwerk.world.entities.values()].filter((e) => e.name === 'assembling-machine-3').length);
-  expect(await count()).toBe(1);
+  await expect.poll(count, { timeout: 10_000 }).toBe(1);
   expect(await page.evaluate(() => (window as unknown as G).eisenwerk.world.player.inventory.count('assembling-machine-3'))).toBe(0);
   await page.screenshot({ path: 'test-results/editor.png' });
   // Rechtsklick entfernt sofort
   await page.mouse.click(spot.sx, spot.sy, { button: 'right' });
-  await page.waitForTimeout(200);
-  expect(await count()).toBe(0);
+  await expect.poll(count, { timeout: 10_000 }).toBe(0);
   // Beenden: Spiel läuft weiter
   await page.keyboard.press('F2');
   await expect(page.locator('.editor-bar')).toBeHidden();

@@ -480,3 +480,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .handbook { width: min(1120px, calc(96vw / var(--ui))); height: calc(88vh / var(--ui)); }
 .window-row > .window { max-height: calc(92vh / var(--ui)); }
 .editor-palette { max-height: calc((100vh - 230px) / var(--ui)); }
+.vol-row { display: grid; grid-template-columns: 1fr 140px 44px; align-items: center; gap: 8px; font-size: 13px; }
+.vol-row input[type=range] { width: 100%; accent-color: #c9902a; }
+/* Tastenbelegung */
+.keys-body { max-height: calc(80vh / var(--ui)); overflow-y: auto; }
+.keys-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 16px; }
+.key-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+.key-btn { min-width: 92px; text-align: center; }
+.key-btn.changed { border-color: var(--accent); }
+.key-btn.waiting { background: #6a5430; }
+.menu:has(.keys-body) { width: min(640px, calc(94vw / var(--ui))); }
+.menu { max-height: calc(92vh / var(--ui)); overflow-y: auto; }

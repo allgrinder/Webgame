@@ -9,6 +9,7 @@ import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
 import { PerfMonitor } from './perf';
+import { KeyMap, keyLabel } from './keys';
 import { type Blueprint, applySettings, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
 import { treeKey } from '../sim/robots';
 import { fluidSummary, isFluidHolder } from '../sim/fluids';
@@ -70,6 +71,8 @@ export class Game {
    */
   editor = false;
   private editorWasPaused = false;
+  /** Tastenbelegung (benannte Aktionen, Menü → Tastenbelegung). */
+  readonly keys = new KeyMap();
   /** Bildzeiten (ms) für F3 und Leistungstests. */
   readonly perf = new PerfMonitor();
   private lastSteps = 0;
@@ -245,10 +248,11 @@ export class Game {
     } else if (!this.hud.typing) {
       const speed = (dt / 1000) * 12 / c.zoom;
       const d = this.input.down;
-      if (d.has('w')) c.y -= speed;
-      if (d.has('s')) c.y += speed;
-      if (d.has('a')) c.x -= speed;
-      if (d.has('d')) c.x += speed;
+      const K = this.keys;
+      if (K.isDown(d, 'up')) c.y -= speed;
+      if (K.isDown(d, 'down')) c.y += speed;
+      if (K.isDown(d, 'left')) c.x -= speed;
+      if (K.isDown(d, 'right')) c.x += speed;
     }
   }
 
@@ -256,11 +260,12 @@ export class Game {
     const p = this.world.player;
     if (!p || this.editor) return;
     const d = this.input.down;
-    p.moveX = (d.has('d') ? 1 : 0) - (d.has('a') ? 1 : 0);
-    p.moveY = (d.has('s') ? 1 : 0) - (d.has('w') ? 1 : 0);
-    p.pickingUp = d.has('f');
+    const K = this.keys;
+    p.moveX = (K.isDown(d, 'right') ? 1 : 0) - (K.isDown(d, 'left') ? 1 : 0);
+    p.moveY = (K.isDown(d, 'down') ? 1 : 0) - (K.isDown(d, 'up') ? 1 : 0);
+    p.pickingUp = K.isDown(d, 'pickup');
     // Leertaste: auf den nächsten Gegner in Reichweite schießen (wie im Original)
-    p.shooting = d.has(' ') || d.has('space');
+    p.shooting = K.isDown(d, 'shoot');
   }
 
   // ------------------------------------------------------------ Eingabe
@@ -367,13 +372,15 @@ export class Game {
       if (this.clipboard) this.setBlueprint(this.clipboard);
       return;
     }
-    if (k === 'b') { this.hud.toggleBlueprints(); return; }
-    if (k === 'g') {
+    // benannte Aktion der Taste (Tastenbelegung im Menü änderbar, src/game/keys.ts)
+    const act = ctrl ? undefined : this.keys.action(k);
+    if (act === 'blueprints') { this.hud.toggleBlueprints(); return; }
+    if (act === 'wire') {
       this.cursorItem = null;
       this.cursorBlueprint = null;
       this.wireTool = this.wireTool === null ? 'red' : this.wireTool === 'red' ? 'green' : null;
       this.wireFrom = null;
-      this.world.player?.note(this.wireTool ? `${this.wireTool === 'red' ? 'Roter' : 'Grüner'} Draht: zwei Gebäude nacheinander anklicken (G wechselt)` : 'Draht weggelegt');
+      this.world.player?.note(this.wireTool ? `${this.wireTool === 'red' ? 'Roter' : 'Grüner'} Draht: zwei Gebäude nacheinander anklicken (${keyLabel(this.keys.key('wire'))} wechselt)` : 'Draht weggelegt');
       return;
     }
     if (k === 'escape' && this.wireTool) {
@@ -381,19 +388,26 @@ export class Game {
       this.wireFrom = null;
       return;
     }
-    if (this.cursorBlueprint && k === 'r') { this.cursorBlueprint = bpRotate(this.cursorBlueprint); return; }
+    if (this.cursorBlueprint && act === 'rotate') { this.cursorBlueprint = bpRotate(this.cursorBlueprint); return; }
     if (k === 'escape' && (this.cursorBlueprint || this.selecting)) {
       this.cursorBlueprint = null;
       this.selecting = null;
       return;
     }
-    if (k === 'q' && (this.cursorBlueprint || this.selecting)) {
+    if (act === 'pipette' && (this.cursorBlueprint || this.selecting)) {
       this.cursorBlueprint = null;
       this.selecting = null;
       return;
     }
-    switch (k) {
-      case 'r': {
+    if (k === 'escape') {
+      if (!this.hud.closeWindows()) {
+        if (this.cursorItem) this.cursorItem = null;
+        else this.hud.toggleMenu();
+      }
+      return;
+    }
+    switch (act) {
+      case 'rotate': {
         const m = this.mouseWorld();
         const e = this.world.entityAt(m.x, m.y);
         const rev = shift;
@@ -406,17 +420,17 @@ export class Game {
         } else this.buildDir = rotCW(this.buildDir, rev ? 3 : 1);
         break;
       }
-      case 'tab':
+      case 'railShape':
         if (this.cursorItem === 'rail') {
           this.railGroup = (this.railGroup + (shift ? RAIL_GROUPS.length - 1 : 1)) % RAIL_GROUPS.length;
           this.railVar = 0;
-          this.world.player?.note(`Gleisform: ${RAIL_GROUPS[this.railGroup].name} (Tab wechselt, R dreht)`);
+          this.world.player?.note(`Gleisform: ${RAIL_GROUPS[this.railGroup].name} (${keyLabel(this.keys.key('railShape'))} wechselt, ${keyLabel(this.keys.key('rotate'))} dreht)`);
         }
         break;
-      case 'q': this.pipette(); break;
-      case 'e': this.hud.toggleInventory(); break;
-      case 't': this.hud.toggleResearch(); break;
-      case 'm':
+      case 'pipette': this.pipette(); break;
+      case 'inventory': this.hud.toggleInventory(); break;
+      case 'research': this.hud.toggleResearch(); break;
+      case 'map':
         // M: Kartenansicht (wie im Original); Umschalt+M: Minimap-Größe
         if (shift) this.hud.minimap.toggle();
         else {
@@ -424,34 +438,26 @@ export class Game {
           this.hud.mapView.toggle(p ? p.px / 256 : this.renderer.camera.x, p ? p.py / 256 : this.renderer.camera.y);
         }
         break;
-      case 'escape':
-        if (!this.hud.closeWindows()) {
-          if (this.cursorItem) this.cursorItem = null;
-          else this.hud.toggleMenu();
-        }
-        break;
       case 'alt': this.alt = !this.alt; break;
-      case 'f3': this.hud.toggleDebug(); break;
-      case 'f2': this.toggleEditor(); break;
-      case 'p': this.hud.toggleStats(); break;
-      case 'j': this.hud.toggleHandbook(); break;
-      case 'o': this.hud.togglePower(); break;
-      case '+': case '=': this.floorBrush = Math.min(FLOOR.brushMax, this.floorBrush + 1); break;
-      case '-': this.floorBrush = Math.max(FLOOR.brushMin, this.floorBrush - 1); break;
-      case 'f4': if (this.debug) this.paused = !this.paused; break;
-      case 'h': this.hud.toggleHelp(); break;
-      case 'z':
+      case 'debug': this.hud.toggleDebug(); break;
+      case 'editor': this.toggleEditor(); break;
+      case 'stats': this.hud.toggleStats(); break;
+      case 'handbook': this.hud.toggleHandbook(); break;
+      case 'power': this.hud.togglePower(); break;
+      case 'brushUp': this.floorBrush = Math.min(FLOOR.brushMax, this.floorBrush + 1); break;
+      case 'brushDown': this.floorBrush = Math.max(FLOOR.brushMin, this.floorBrush - 1); break;
+      case 'help': this.hud.toggleHelp(); break;
+      case 'drop':
         // Z: ein Item ablegen (mit Spieler); im Sandkasten Debug-Erz
         if (this.world.player && this.cursorItem) {
           const m = this.mouseWorld();
           this.world.player.dropItem(this.world, this.cursorItem, m.x, m.y);
         } else if (this.debug) this.debugItem('iron-ore');
         break;
-      case 'x': case 'c': case 'v':
-        if (this.debug) this.debugItem({ x: 'coal', c: 'stone', v: 'iron-plate' }[k]);
-        break;
       default:
-        if (/^[0-9]$/.test(k)) {
+        if (k === 'f4' && this.debug) this.paused = !this.paused;
+        else if ((k === 'x' || k === 'c' || k === 'v') && this.debug) this.debugItem({ x: 'coal', c: 'stone', v: 'iron-plate' }[k]);
+        else if (/^[0-9]$/.test(k)) {
           const slot = k === '0' ? 9 : Number(k) - 1;
           this.selectQuickbar(slot);
         }

@@ -1,6 +1,6 @@
 # Eisenwerk — Spielübersicht (GDD)
 
-**Version:** 1.0 · **Stand:** 2026-11-14 · [Features](#feature-index) · [Entscheidungen](#decisions) · [Änderungen](#change-log)
+**Version:** 1.1 · **Stand:** 2026-11-14 · [Features](#feature-index) · [Entscheidungen](#decisions) · [Änderungen](#change-log)
 
 ## Summary
 Die Spielfigur landet auf einer trockenen Steppenwelt und baut aus Handabbau, ersten Bohrern und Öfen eine wachsende
@@ -69,7 +69,7 @@ abbauen → schmelzen → herstellen → forschen → neue Gebäude automatisier
 | Grafik-Pipeline | implemented | Grafik | Blender-Skripte → Atlanten → WebP (SD/HD), Normal-Maps | [Skripte](../assets/blender) · [Stil](ART_STYLE.md) |
 | Leistung | implemented | Qualität | Messszene, Budgets, Auflösungseinstellung | [Messungen](PERFORMANCE.md) |
 | Oberfläche und Einstellungen | implemented | Komfort | Größe 100–200 %, Zustände mit Formen, Wackeln, weniger Blitzen | [Größe](../src/ui/uiscale.ts) · [Wackeln](../src/render/shake.ts) |
-| Lautstärken und Tasten | in progress | Komfort | Getrennte Lautstärken, frei belegbare Tasten | [Ton](../src/audio/sound.ts) |
+| Lautstärken und Tasten | implemented | Komfort | Tongruppen mit Reglern, Tastenbelegung mit Tausch bei Konflikt, Einstellungsfenster | [Ton](../src/audio/sound.ts) · [Tasten](../src/game/keys.ts) |
 
 ## Milestones
 1. **M1–M4 spielbare Runde:** Bänder, Grafik-Pipeline, Produktionskette, Freeplay mit Speichern · erledigt.
@@ -96,4 +96,5 @@ abbauen → schmelzen → herstellen → forschen → neue Gebäude automatisier
 - **Offen:** Bauplan schwarze Wissenschaft (ganz oder halb), weitere Editor-Werkzeuge (Rohstoffe, Gelände, Gegner).
 
 ## Change log
+**1.1 (2026-11-14):** Lautstärken und Tasten fertig, Einstellungen als eigener Bildschirm.
 **1.0 (2026-11-14):** erste Spielübersicht nach dem Skill game-docs; Stand aus CLAUDE.md übernommen, Feature-Liste mit Code-Links.

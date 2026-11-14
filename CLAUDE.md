@@ -8,7 +8,10 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Alle Zahlenwerte in `src/data/`, jede Quelle in `docs/GAME_DATA.md` (Wiki > factorio-data-Prototypen > Messvorschlag).
   Aus factorio-data nur einzelne Zahlen ablesen, nichts kopieren, keine Abhängigkeit. Kein Reverse Engineering.
 - Bänder: Transportlinien mit Abständen (`src/sim/belts.ts`), nie Items einzeln pro Tick bewegen.
-- Grafik nur aus Blender-Skripten (`assets/blender/`, headless `blender -b -P`), keine fremden Grafiken/Icons/Sounds.
+- Grafik selbst erzeugt: bevorzugt Blender-Skripte (`assets/blender/`, headless `blender -b -P`); erlaubt sind auch
+  prozedurale Grafik im Code und Bildgeneratoren, wenn das Ergebnis der Stilbibel (`docs/ART_STYLE.md`) folgt.
+  Nie Grafiken/Icons/Sounds aus dem Vorbild, dessen Wiki oder fremden Quellen ohne passende Lizenz; Herkunft jeder
+  Grafik, die nicht aus Blender kommt, in `docs/ASSET_PROVENANCE.md` (Skill `create-game-assets`).
   Ergebnis: PNG-Arbeitsatlanten in `assets/atlas/` (eingecheckt, nicht ausgeliefert) und daraus WebP für die Seite:
   `public/assets/hd/` (volle Auflösung) und `public/assets/sd/` (halbe, Standard), Liste in `public/assets/manifest.json`.
   Atlasframes werden auf sichtbare Pixel beschnitten. Grafikqualität: Menü bzw. `?hd`/`?sd`. Nach jedem Renderlauf

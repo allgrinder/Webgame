@@ -20,6 +20,7 @@ Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie i
 - Ziel: so nah wie möglich am Original (Wiki ist Quelle 1, Abgleich in `docs/WIKI_ABGLEICH.md`).
 - Meilenstein fertig erst, wenn `npm run build`, `npm test` und `npm run e2e` durchlaufen.
 - Erweiterbarkeit: neue Gebäude/Ressourcen/Rezepte nur über `src/data/` + `kind`-Verhalten in `src/sim/`.
+- Spieleentwicklungs-Skills (Fremdquelle, Apache-2.0) in `.claude/skills/` (siehe dortige README); diese Regeln haben Vorrang.
 
 ## Konventionen
 - Richtungen 0=N,1=E,2=S,3=W; y wächst nach Süden. Gebäude-`dir` = Ausgaberichtung (Greifarm: Ablagerichtung).
